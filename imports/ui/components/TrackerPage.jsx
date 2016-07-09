@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import { i18n } from 'meteor/universe:i18n';
+import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
 
 const SECOND = 1000;
 const T = i18n.createComponent(i18n.createTranslator('tracker_page'));
@@ -31,10 +32,6 @@ export default class TrackerPage extends React.Component {
   tick() {
     const elapsed = this.round(moment() - this.state.start + this.state.diff);
     this.setState({elapsed: elapsed});
-  }
-
-  formatElapsed(elapsed) {
-    return moment.utc(elapsed).format('HH:mm:ss');
   }
 
   formatRecord(time) {
@@ -100,7 +97,7 @@ export default class TrackerPage extends React.Component {
 
     return (
       <div>
-        <h1>{this.formatElapsed(this.state.elapsed)}</h1>
+        <ElapsedTimeDisplay time={this.state.elapsed} />
         <button onClick={this.handleClick} style={style.button}>
           <T>{this.state.running ? 'stop' : 'start'}</T>
         </button>

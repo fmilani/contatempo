@@ -19,3 +19,4 @@ ecmascript              # Enable ECMAScript2015+ syntax in app code
 react-meteor-data
 static-html
 johnantoni:meteor-normalize
+universe:i18n

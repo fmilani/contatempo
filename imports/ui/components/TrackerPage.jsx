@@ -1,7 +1,9 @@
 import React from 'react';
 import moment from 'moment';
+import { i18n } from 'meteor/universe:i18n';
 
 const SECOND = 1000;
+const T = i18n.createComponent(i18n.createTranslator('tracker_page'));
 
 export default class TrackerPage extends React.Component {
 
@@ -95,11 +97,12 @@ export default class TrackerPage extends React.Component {
     };
 
     let id=0;
+
     return (
       <div>
         <h1>{this.formatElapsed(this.state.elapsed)}</h1>
         <button onClick={this.handleClick} style={style.button}>
-          {this.state.running ? "pause" : "start"}
+          <T>{this.state.running ? 'stop' : 'start'}</T>
         </button>
         <button onClick={this.reset} style={style.button}>reset</button>
         <ul style={style.record}>

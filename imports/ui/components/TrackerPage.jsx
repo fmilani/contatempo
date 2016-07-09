@@ -4,6 +4,7 @@ import { i18n } from 'meteor/universe:i18n';
 import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
 import RaisedButton from 'material-ui/RaisedButton';
 import { green700, red700 } from 'material-ui/styles/colors';
+import RecordsList from './RecordsList.jsx'
 
 const SECOND = 1000;
 
@@ -36,10 +37,6 @@ export default class TrackerPage extends React.Component {
     this.setState({elapsed: elapsed});
   }
 
-  formatRecord(time) {
-    return moment(time).format('HH:mm:ss');
-  }
-
   round(time) {
     return Math.floor(time/SECOND)*SECOND;
   }
@@ -61,10 +58,8 @@ export default class TrackerPage extends React.Component {
         diff: elapsed,
       });
       this.state.records.push({
-        label: [
-          this.formatRecord(this.state.start),
-          this.formatRecord(this.state.start.add(this.state.elapsed-this.state.diff))
-        ].join(' - ')
+        begin: this.state.start,
+        end: this.state.start.clone().add(this.state.elapsed-this.state.diff),
       });
     }
   }
@@ -111,11 +106,7 @@ export default class TrackerPage extends React.Component {
             label={this.getButtonLabel()}
             labelStyle={labelStyle}
           />
-          <ul style={style.record}>
-            {this.state.records.map(function(record) {
-              return <li key={id++}>{record.label}</li>;
-            })}
-          </ul>
+        <RecordsList records={this.state.records}/>
         </div>
       </div>
     );

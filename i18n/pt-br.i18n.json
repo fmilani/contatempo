@@ -3,5 +3,13 @@
   "tracker_page": {
     "start": "Começar",
     "stop": "Parar"
+  },
+  "records": {
+    "records": "Registros",
+    "records_tooltip": "Registro das horas",
+    "begin": "Entrada",
+    "begin_tooltip": "Horário de entrada",
+    "end": "Saída",
+    "end_tooltip": "Horário de saída"
   }
 }

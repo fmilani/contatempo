@@ -3,7 +3,7 @@ import moment from 'moment';
 import { i18n } from 'meteor/universe:i18n';
 import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
 import RaisedButton from 'material-ui/RaisedButton';
-import { teal300, teal500, teal700, blueGrey500 } from 'material-ui/styles/colors';
+import { green700, red700 } from 'material-ui/styles/colors';
 
 const SECOND = 1000;
 
@@ -22,7 +22,6 @@ export default class TrackerPage extends React.Component {
     // bindings
     this.tick = this.tick.bind(this);
     this.handleClick = this.handleClick.bind(this);
-    this.reset = this.reset.bind(this);
     this.getButtonLabel = this.getButtonLabel.bind(this);
     this.getButtonColor = this.getButtonColor.bind(this);
   }
@@ -70,23 +69,12 @@ export default class TrackerPage extends React.Component {
     }
   }
 
-  reset() {
-    clearInterval(this.state.timer);
-    this.setState({
-      timer: undefined,
-      running: false,
-      elapsed: 0,
-      diff: 0,
-      records: [],
-    });
-  }
-
   getButtonLabel() {
     return i18n.getTranslation(this.state.running ? 'tracker_page.stop' : 'tracker_page.start');
   }
 
   getButtonColor() {
-    return this.state.running ? '#D32F2F' : '#388E3C';
+    return this.state.running ? red700 : green700;
   }
 
   render() {
@@ -122,9 +110,7 @@ export default class TrackerPage extends React.Component {
             style={style.button}
             label={this.getButtonLabel()}
             labelStyle={labelStyle}
-          >
-          </RaisedButton>
-          <RaisedButton onClick={this.reset} style={style.button}>reset</RaisedButton>
+          />
           <ul style={style.record}>
             {this.state.records.map(function(record) {
               return <li key={id++}>{record.label}</li>;

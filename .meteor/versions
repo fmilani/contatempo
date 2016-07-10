@@ -20,6 +20,7 @@ diff-sequence@1.0.6
 ecmascript@0.4.7
 ecmascript-runtime@0.2.12
 ejson@1.0.12
+email@1.0.15
 es5-shim@4.5.13
 fastclick@1.0.12
 geojson-utils@1.0.9

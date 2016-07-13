@@ -21,7 +21,7 @@ export default class RecordsList extends React.Component {
 
   // formats a record time with the hours, minutes and seconds (HH:mm:ss)
   formatRecordTime(recordTime) {
-    return moment(recordTime).format('HH:mm:ss');
+    return recordTime ? moment(recordTime).format('HH:mm:ss') : '...';
   }
 
   render() {

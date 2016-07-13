@@ -5,12 +5,12 @@ import { Router, Route, IndexRoute, browserHistory } from 'react-router';
 
 // route components
 import AppContainer from '/imports/containers/AppContainer.jsx';
-import TrackerPage from '/imports/ui/components/TrackerPage.jsx';
+import TrackerPageContainer from '/imports/containers/TrackerPageContainer.jsx';
 
 export const renderRoutes = () => (
   <Router history={browserHistory}>
     <Route path="/" component={AppContainer}>
-      <IndexRoute component={TrackerPage} />
+      <IndexRoute component={TrackerPageContainer} />
     </Route>
   </Router>
 );

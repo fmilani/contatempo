@@ -1,5 +1,5 @@
-import { Meteor } from 'meteor/meteor';
-import { Email } from 'meteor/email'
+// import { Meteor } from 'meteor/meteor';
+// import { Email } from 'meteor/email';
 // import React from 'react';
 // import ReactDOMServer from 'react-dom/server';
 // import RecordsList from '../ui/components/RecordsList.jsx';
@@ -7,12 +7,12 @@ import { Email } from 'meteor/email'
 // import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 // import getMuiTheme from 'material-ui/styles/getMuiTheme';
 
-Meteor.methods({
-  'sendEmail'(to, from, subject, content) {
+// Meteor.methods({
+//   'sendEmail'(to, from, subject, content) {
     // TODO: rendering a material-ui component is not working properly
     // (inline styles are missing from the email sent to google inbox)
     // Also translations are not being made
-    
+
     // check([to, from, subject, content], [String]);
 
     // Let other method calls from the same client start running,
@@ -34,5 +34,5 @@ Meteor.methods({
     //     contentType: 'pdf',
     //   }],
     // });
-  }
-});
+//   },
+// });

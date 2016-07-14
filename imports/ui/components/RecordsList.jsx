@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import { i18n } from 'meteor/universe:i18n';
-import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn}
+import { Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn }
   from 'material-ui/Table';
 
 /**
@@ -32,20 +32,20 @@ export default class RecordsList extends React.Component {
             <TableHeaderColumn
               colSpan="2"
               tooltip={this.t('records_tooltip')}
-              style={{textAlign: 'center'}}
+              style={{ textAlign: 'center' }}
             >
               {this.t('records')}
             </TableHeaderColumn>
           </TableRow>
           <TableRow>
             <TableHeaderColumn
-              style={{textAlign: 'center'}}
+              style={{ textAlign: 'center' }}
               tooltip={this.t('begin_tooltip')}
             >
               {this.t('begin')}
             </TableHeaderColumn>
             <TableHeaderColumn
-              style={{textAlign: 'center'}}
+              style={{ textAlign: 'center' }}
               tooltip={this.t('end_tooltip')}
             >
               {this.t('end')}
@@ -53,7 +53,7 @@ export default class RecordsList extends React.Component {
           </TableRow>
         </TableHeader>
         <TableBody displayRowCheckbox={false}>
-          {this.props.records.map( (record, index) => (
+          {this.props.records.map((record, index) => (
             <TableRow key={index}>
               <TableRowColumn style={{ textAlign: 'center' }}>
                 {this.formatRecordTime(record.begin)}

@@ -1,6 +1,5 @@
-import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { check } from 'meteor/check';
+import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 
 /**
  * A record consist of a registered period of time, with the begin and end
@@ -12,9 +11,9 @@ const Records = new Mongo.Collection('records');
 
 // Define the records collection schema
 Records.schema = new SimpleSchema({
-  begin: {type: Date},
-  end: {type: Date, optional: true},
-  userId: {type: String, regEx: SimpleSchema.RegEx.Id, optional: true}
+  begin: { type: Date },
+  end: { type: Date, optional: true },
+  userId: { type: String, regEx: SimpleSchema.RegEx.Id, optional: true },
 });
 
 export default Records;

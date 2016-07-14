@@ -6,7 +6,6 @@ import RaisedButton from 'material-ui/RaisedButton';
 import Loading from 'react-loading';
 import { green700, red700 } from 'material-ui/styles/colors';
 import RecordsListContainer from '../../containers/RecordsListContainer.jsx';
-import Records from '../../api/records/records.js';
 import { insert, complete } from '../../api/records/methods.js';
 
 // the minimum time to record, in milliseconds
@@ -24,7 +23,7 @@ export default class TrackerPage extends React.Component {
     this.state = {
       timer: undefined,
       now: moment(),
-    }
+    };
 
     // bindings
     this.tick = this.tick.bind(this);
@@ -40,8 +39,8 @@ export default class TrackerPage extends React.Component {
     // TODO: This is NOT ideal. the clock start ticking right away to cover the case where
     // the clock is running when the component is mounted (i.e.: there is an incompleteRecord).
     // The right way would be to wait for the subscription to be ready so we can check if the clock
-    // is runin
-    var timer = setInterval(this.tick, 33);
+    // is runing
+    const timer = setInterval(this.tick, 33);
     this.setState({ timer });
   }
 
@@ -50,20 +49,47 @@ export default class TrackerPage extends React.Component {
     this.setState({ timer: undefined });
   }
 
-  tick() {
-    this.setState({ now: moment() });
+  getButtonLabel() {
+    return i18n.getTranslation(this.props.running ? 'tracker_page.stop' : 'tracker_page.start');
+  }
+
+  getButtonColor() {
+    return this.props.running ? red700 : green700;
+  }
+
+  getTotalElapsed() {
+    const finishedElapsed = this.props.records
+      .filter((record) => (this.props.incompleteRecord
+        ? record._id !== this.props.incompleteRecord._id
+        : true))
+      .map(record => moment(record.end).diff(moment(record.begin)))
+      .reduce((l, n) => l + n, 0);
+    const current = this.props.incompleteRecord
+      ? this.state.now.diff(moment(this.props.incompleteRecord.begin))
+      : 0;
+    return this.props.records
+      ? finishedElapsed + current
+      : 0;
+  }
+
+  pastMinimum() {
+    // TODO: instead of blocking the stop button until minimum time is reached,
+    // the ideal would be to discard the record if stopped before the minimum time.
+    return this.props.incompleteRecord
+      ? moment(this.state.now).diff(moment(this.props.incompleteRecord.begin)) > MINIMUM
+      : true;
   }
 
   handleClick() {
-    if(!this.props.running) {
+    if (!this.props.running) {
       // start
       insert.call({
         begin: moment().startOf(PRECISION).toDate(),
         end: null,
       });
-      var timer = setInterval(this.tick, 33);
+      const timer = setInterval(this.tick, 33);
       this.setState({
-        timer: timer,
+        timer,
         start: moment(),
       });
     } else {
@@ -80,47 +106,12 @@ export default class TrackerPage extends React.Component {
     }
   }
 
-  getButtonLabel() {
-    return i18n.getTranslation(this.props.running ? 'tracker_page.stop' : 'tracker_page.start');
+  tick() {
+    this.setState({ now: moment() });
   }
 
-  getButtonColor() {
-    return this.props.running ? red700 : green700;
-  }
-
-  pastMinimum() {
-    // TODO: instead of blocking the stop button until minimum time is reached,
-    // the ideal would be to discard the record if stopped before the minimum time.
-    return this.props.incompleteRecord
-      ? moment(this.state.now).diff(moment(this.props.incompleteRecord.begin)) > MINIMUM
-      : true;
-  }
-
-  getTotalElapsed() {
-    const finishedElapsed = this.props.records
-      .filter((record) => this.props.incompleteRecord
-        ? record._id !== this.props.incompleteRecord._id
-        : true)
-      .map(record => moment(record.end).diff(moment(record.begin)))
-      .reduce((l,n) => l+n, 0);
-    const current = this.props.incompleteRecord
-      ? this.state.now.diff(moment(this.props.incompleteRecord.begin))
-      : 0;
-    return this.props.records
-      ? finishedElapsed + current
-      : 0;
-  }
-
-  render() {
-    const { loading } = this.props;
-
-    return (
-      <div>
-        {
-          loading ? this.renderLoading() : this.renderPage()
-        }
-      </div>
-    );
+  renderLoading() {
+    return (<Loading type="spokes" color="#000" />);
   }
 
   renderPage() {
@@ -135,16 +126,15 @@ export default class TrackerPage extends React.Component {
         fontSize: 28,
         padding: 5,
         listStyleType: 'none',
-      }
+      },
     };
 
     const labelStyle = {
       color: '#fff',
       fontWeight: 'bold',
-      lineHeight: buttonHeight
-    }
+      lineHeight: buttonHeight,
+    };
 
-    let id=0;
     return (
       <div>
         <ElapsedTimeDisplay time={this.getTotalElapsed()} />
@@ -157,13 +147,28 @@ export default class TrackerPage extends React.Component {
             labelStyle={labelStyle}
             disabled={!this.pastMinimum()}
           />
-        <RecordsListContainer />
+          <RecordsListContainer />
         </div>
       </div>
-    )
+    );
   }
 
-  renderLoading() {
-    return (<Loading type="spokes" color="#000" />);
+  render() {
+    const { loading } = this.props;
+
+    return (
+      <div>
+        {
+          loading ? this.renderLoading() : this.renderPage()
+        }
+      </div>
+    );
   }
 }
+
+TrackerPage.propTypes = {
+  loading: React.PropTypes.bool,
+  running: React.PropTypes.bool,
+  incompleteRecord: React.PropTypes.object,
+  records: React.PropTypes.array,
+};

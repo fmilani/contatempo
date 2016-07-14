@@ -2,7 +2,24 @@
   "name": "contatempo",
   "private": true,
   "scripts": {
-    "start": "meteor run"
+    "start": "meteor run",
+    "lint": "eslint . --ext .js,.jsx",
+    "pretest": "npm run lint --silent"
+  },
+  "eslintConfig": {
+    "plugins": [
+      "meteor"
+    ],
+    "extends": [
+      "airbnb",
+      "plugin:meteor/recommended"
+    ],
+    "settings": {
+      "import/resolver": "meteor"
+    },
+    "rules": {
+      "no-underscore-dangle": ["error", { "allow": ["_id"] }]
+    }
   },
   "dependencies": {
     "material-ui": "^0.15.1",
@@ -15,5 +32,13 @@
     "react-router": "^2.4.0",
     "react-tap-event-plugin": "^1.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "eslint": "^2.13.1",
+    "eslint-config-airbnb": "^9.0.1",
+    "eslint-import-resolver-meteor": "^0.2.4",
+    "eslint-plugin-import": "^1.10.3",
+    "eslint-plugin-jsx-a11y": "^1.5.3",
+    "eslint-plugin-meteor": "^3.6.0",
+    "eslint-plugin-react": "^5.2.2"
+  }
 }

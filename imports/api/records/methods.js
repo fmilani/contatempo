@@ -1,5 +1,5 @@
-import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
+import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import Records from './records.js';
 import moment from 'moment';
 /**
@@ -11,7 +11,6 @@ export const insert = new ValidatedMethod({
   name: 'records.insert',
   validate: Records.schema.validator(),
   run({ begin, end }) {
-
     const record = {
       begin,
       end,
@@ -29,15 +28,14 @@ export const insert = new ValidatedMethod({
 export const complete = new ValidatedMethod({
   name: 'records.complete',
   validate: new SimpleSchema({
-    id: {type: String },
+    id: { type: String },
     end: { type: Date },
   }).validator(),
   run({ id, end }) {
-
     Records.update(id, {
       $set: {
         end: moment(end).startOf('seconds').toDate(),
       },
     });
   },
-})
+});

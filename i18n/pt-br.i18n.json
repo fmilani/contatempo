@@ -8,6 +8,7 @@
     "stop": "Parar"
   },
   "records": {
+    "none": "Sem registros",
     "day": "Dia",
     "records": "Registros",
     "begin": "Entrada",

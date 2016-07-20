@@ -2,6 +2,7 @@ import React from 'react';
 import { i18n } from 'meteor/universe:i18n';
 import { List } from 'material-ui/List';
 import RecordItem from './RecordItem.jsx';
+import EmptyRecordsList from './EmptyRecordsList.jsx';
 
 /**
  * Shows time records in a list.
@@ -18,23 +19,36 @@ export default class RecordsList extends React.Component {
     this.t = i18n.createTranslator('records');
   }
 
-  render() {
+  renderRecordsList() {
+    const { records } = this.props;
     const grey500 = '#9E9E9E'; // TODO: use palette (grey500)
+
+    return (
+      <List>
+        <div style={{ display: 'flex', margin: '15px 0px', color: grey500, fontSize: '12px' }}>
+          <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
+            {this.t('begin')}
+          </div>
+          <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
+            {this.t('end')}
+          </div>
+        </div>
+        {records.map((record, index) => (
+          <RecordItem key={index} record={record} />
+        ))}
+      </List>
+    );
+  }
+
+  render() {
+    const { records } = this.props;
     return (
       <div>
-        <List>
-          <div style={{ display: 'flex', margin: '15px 0px', color: grey500, fontSize: '12px' }}>
-            <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
-              {this.t('begin')}
-            </div>
-            <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
-              {this.t('end')}
-            </div>
-          </div>
-          {this.props.records.map((record, index) => (
-            <RecordItem key={index} record={record} />
-          ))}
-        </List>
+        {
+          records.length > 0
+            ? this.renderRecordsList()
+            : <EmptyRecordsList />
+        }
       </div>
     );
   }

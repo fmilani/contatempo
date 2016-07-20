@@ -8,9 +8,6 @@ import TimePicker from 'material-ui/TimePicker';
 import { insert } from '../../../api/records/methods.js';
 import { i18n } from 'meteor/universe:i18n';
 
-// the desired precision (any unit below this will be zero)
-const PRECISION = 'seconds';
-
 /**
  * Component to add a record manually.
  */
@@ -36,13 +33,13 @@ export default class RecordAdd extends React.Component {
       .year(date.year())
       .month(date.month())
       .date(date.date())
-      .startOf(PRECISION)
+      .startOf('minutes')
       .toDate();
     const end = moment(this.refs.endTime.state.time)
       .year(date.year())
       .month(date.month())
       .date(date.date())
-      .startOf(PRECISION)
+      .startOf('minutes')
       .toDate();
 
     insert.call({
@@ -92,6 +89,9 @@ export default class RecordAdd extends React.Component {
             ref="date"
             hintText={this.t('day')}
             textFieldStyle={{ width: '100%' }}
+            DateTimeFormat={Intl.DateTimeFormat}
+            locale={i18n.getLocale()}
+            cancelLabel={i18n.getTranslation('common.cancel')}
           />
           <TimePicker
             ref="beginTime"

@@ -5,6 +5,9 @@ import IconButton from 'material-ui/IconButton';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
 import Divider from 'material-ui/Divider';
 
+/**
+ * Component that shows a record, with its begin and end times.
+ */
 export default class RecordItem extends React.Component {
 
   removeRecord(id) {

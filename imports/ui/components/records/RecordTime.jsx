@@ -4,6 +4,9 @@ import { edit } from '../../../api/records/methods.js';
 import moment from 'moment';
 import TimePicker from 'material-ui/TimePicker';
 
+/**
+ * Component to show (and edit) a single record time (whether it's its begin or end time)
+ */
 export default class RecordTime extends React.Component {
 
   constructor(props) {

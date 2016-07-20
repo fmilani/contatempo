@@ -1,15 +1,19 @@
 {
   "_locale": "pt-BR",
+  "common": {
+    "cancel": "Cancelar"
+  },
   "tracker_page": {
     "start": "Começar",
     "stop": "Parar"
   },
   "records": {
+    "day": "Dia",
     "records": "Registros",
-    "records_tooltip": "Registro das horas",
     "begin": "Entrada",
-    "begin_tooltip": "Horário de entrada",
     "end": "Saída",
-    "end_tooltip": "Horário de saída"
+    "add_button_label": "Esqueci de marcar",
+    "add_title": "Novo horário",
+    "add_submit": "Registrar"
   }
 }

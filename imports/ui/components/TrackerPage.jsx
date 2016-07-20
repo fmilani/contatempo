@@ -6,6 +6,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import Loading from 'react-loading';
 import { green700, red700 } from 'material-ui/styles/colors';
 import RecordsListContainer from '../../containers/RecordsListContainer.jsx';
+import RecordAdd from './records/RecordAdd.jsx';
 import { insert, complete } from '../../api/records/methods.js';
 
 // the minimum time to record, in milliseconds
@@ -119,7 +120,7 @@ export default class TrackerPage extends React.Component {
     const style = {
       button: {
         width: '100%',
-        marginBottom: '10px',
+        marginBottom: '20px',
         height: buttonHeight,
       },
       record: {
@@ -147,6 +148,7 @@ export default class TrackerPage extends React.Component {
             labelStyle={labelStyle}
             disabled={!this.pastMinimum()}
           />
+          <RecordAdd />
           <RecordsListContainer />
         </div>
       </div>

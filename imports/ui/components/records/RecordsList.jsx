@@ -4,7 +4,7 @@ import { List } from 'material-ui/List';
 import RecordItem from './RecordItem.jsx';
 
 /**
- * Shows time records in a table (yes, not a list).
+ * Shows time records in a list.
  *
  * @prop {Object[]} records - the time records to be shown
  * @prop {Object} records[].begin - the begin of the time record (a record time)

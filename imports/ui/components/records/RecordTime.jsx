@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { edit } from '../../../api/records/methods.js';
 import moment from 'moment';
 import TimePicker from 'material-ui/TimePicker';
+import ImageTimer from 'material-ui/svg-icons/image/timer';
 
 /**
  * Component to show (and edit) a single record time (whether it's its begin or end time)
@@ -48,18 +49,34 @@ export default class RecordTime extends React.Component {
   }
 
   render() {
+    const recordTime = this.getValue();
     return (
       <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
-        <TimePicker
-          ref="timePicker"
-          textFieldStyle={{ width: '100%' }}
-          inputStyle={{ textAlign: 'center', fontSize: '13px' }}
-          underlineShow={false}
-          format="24hr"
-          name="recordTime"
-          value={this.getValue()}
-          onChange={(event, date) => { this.editRecord(date); }}
-        />
+        {
+          recordTime ?
+            (<TimePicker
+              ref="timePicker"
+              textFieldStyle={{ width: '100%' }}
+              inputStyle={{ textAlign: 'center', fontSize: '13px' }}
+              underlineShow={false}
+              format="24hr"
+              name="recordTime"
+              value={recordTime}
+              onChange={(event, date) => { this.editRecord(date); }}
+            />) :
+            (<div>
+              <i
+                style={{
+                  verticalAlign: 'middle',
+                  display: 'inline-block',
+                  height: '48px', // TODO: this height cant be fixed. (check texfield input height)
+                }}
+              />
+              <div style={{ verticalAlign: 'middle', display: 'inline-block' }}>
+                <ImageTimer style={{ width: '14px', height: '14px' }} />
+              </div>
+            </div>)
+        }
       </div>
     );
   }

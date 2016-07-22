@@ -12,6 +12,11 @@ export default class App extends React.Component {
     this.handleDrawer = this.handleDrawer.bind(this);
   }
 
+  getChildContext() {
+    // set currentUser to context so it can be accessed throughout the application
+    return { currentUser: this.props.currentUser };
+  }
+
   handleDrawer() {
     this.refs.appDrawer.handleToggle();
   }
@@ -36,8 +41,13 @@ export default class App extends React.Component {
 
 App.propTypes = {
   children: React.PropTypes.element,
+  currentUser: React.PropTypes.object,
 };
 
 App.contextTypes = {
   router: React.PropTypes.object,
+};
+
+App.childContextTypes = {
+  currentUser: React.PropTypes.object,
 };

@@ -23,3 +23,6 @@ universe:i18n
 email
 aldeed:simple-schema
 mdg:validated-method
+accounts-google
+service-configuration
+dapearce:material-icons

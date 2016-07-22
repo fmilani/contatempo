@@ -3,6 +3,10 @@
   "common": {
     "cancel": "Cancelar"
   },
+  "drawer": {
+    "track_time": "Contar tempo",
+    "logout": "Sair"
+  },
   "tracker_page": {
     "start": "Começar",
     "stop": "Parar"

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
-// import { i18n } from 'meteor/universe:i18n';
+import { i18n } from 'meteor/universe:i18n';
 import Drawer from 'material-ui/Drawer';
-// import Avatar from 'material-ui/Avatar';
-// import MenuItem from 'material-ui/MenuItem';
-// import Divider from 'material-ui/Divider';
+import Avatar from 'material-ui/Avatar';
+import MenuItem from 'material-ui/MenuItem';
+import Divider from 'material-ui/Divider';
 
 export default class AppDrawer extends React.Component {
 
@@ -38,7 +38,7 @@ export default class AppDrawer extends React.Component {
   }
 
   render() {
-    // const T = i18n.createComponent();
+    const T = i18n.createComponent();
 
     return (
       <div>
@@ -47,11 +47,11 @@ export default class AppDrawer extends React.Component {
           docked={false}
           onRequestChange={(open) => this.setState({ open })}
         >
-          {/* {Meteor.user() ? (
+          {Meteor.user() ? (
             <div
               style={{
                 padding: '12px',
-                backgroundColor: '#009688', // TODO: primary1Color
+                backgroundColor: '#00BCD4', // TODO: primary1Color
               }}
             >
               <Avatar
@@ -71,20 +71,17 @@ export default class AppDrawer extends React.Component {
               </span>
             </div>
           ) : ''}
-          <MenuItem onTouchTap={() => this.handleRedirect('/myhouse')}>
-            <T>drawer.my_house</T>
-          </MenuItem>
-          <MenuItem onTouchTap={() => this.handleRedirect('/expenses')}>
-            <T>drawer.expenses</T>
+          <MenuItem onTouchTap={() => this.handleRedirect('/')}>
+            <T>drawer.track_time</T>
           </MenuItem>
           {Meteor.user() ? (
-            <div>
+            <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
               <Divider />
               <MenuItem onTouchTap={this.handleLogout}>
                 <T>drawer.logout</T>
               </MenuItem>
             </div>
-          ) : ''}*/}
+          ) : ''}
         </Drawer>
       </div>
     );

@@ -31,7 +31,7 @@ export default class ElapsedTimeDisplay extends React.Component {
     const paperStyle = {
       textAlign: 'center',
       padding: '20px 0px',
-      marginBottom: '20px',
+      margin: '20px 0px',
     };
 
     const secondsStyle = {

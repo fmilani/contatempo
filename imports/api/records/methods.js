@@ -14,11 +14,15 @@ const PRECISION = 'seconds';
  */
 export const insert = new ValidatedMethod({
   name: 'records.insert',
-  validate: Records.schema.validator(),
+  validate: new SimpleSchema({
+    begin: { type: Date },
+    end: { type: Date, optional: true },
+  }).validator(),
   run({ begin, end }) {
     const record = {
       begin,
       end,
+      userId: Meteor.user()._id,
     };
 
     Records.insert(record);

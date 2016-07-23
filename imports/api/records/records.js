@@ -13,7 +13,7 @@ const Records = new Mongo.Collection('records');
 Records.schema = new SimpleSchema({
   begin: { type: Date },
   end: { type: Date, optional: true },
-  userId: { type: String, regEx: SimpleSchema.RegEx.Id, optional: true },
+  userId: { type: String, regEx: SimpleSchema.RegEx.Id },
 });
 
 export default Records;

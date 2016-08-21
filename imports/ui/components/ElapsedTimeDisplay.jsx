@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import Paper from 'material-ui/Paper';
+import 'moment-duration-format';
 
 /**
  * Displays the elapsed time, passed as a prop, with some nice format.
@@ -17,9 +18,9 @@ export default class ElapsedTimeDisplay extends React.Component {
     this.formatSeconds = this.formatSeconds.bind(this);
   }
 
-  // formats the time prop with the hours and minutes (HH:mm)
+  // formats the time prop with the hours and minutes (hh:mm)
   formatHourMinute() {
-    return moment.utc(this.props.time).format('HH:mm');
+    return moment.duration(this.props.time).format('HH:mm', { trim: false });
   }
 
   // formats the time prop with only the seconds (ss)

@@ -5,7 +5,8 @@ import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
 import RaisedButton from 'material-ui/RaisedButton';
 import Loading from 'react-loading';
 import { green700, red700 } from 'material-ui/styles/colors';
-import RecordsListContainer from '../../containers/RecordsListContainer.jsx';
+// import RecordsListContainer from '../../containers/RecordsListContainer.jsx';
+import RecordsList from './records/RecordsList.jsx';
 import RecordAdd from './records/RecordAdd.jsx';
 import { insert, complete } from '../../api/records/methods.js';
 
@@ -91,7 +92,6 @@ export default class TrackerPage extends React.Component {
       const timer = setInterval(this.tick, 33);
       this.setState({
         timer,
-        start: moment(),
       });
     } else {
       // stop
@@ -149,7 +149,7 @@ export default class TrackerPage extends React.Component {
             disabled={!this.pastMinimum()}
           />
           <RecordAdd />
-          <RecordsListContainer />
+          <RecordsList title={i18n.getTranslation('common.today')} records={this.props.records} />
         </div>
       </div>
     );

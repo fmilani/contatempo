@@ -1,6 +1,6 @@
 import React from 'react';
-import { i18n } from 'meteor/universe:i18n';
 import { List } from 'material-ui/List';
+import Subheader from 'material-ui/Subheader';
 import RecordItem from './RecordItem.jsx';
 import EmptyRecordsList from './EmptyRecordsList.jsx';
 
@@ -13,26 +13,12 @@ import EmptyRecordsList from './EmptyRecordsList.jsx';
  */
 export default class RecordsList extends React.Component {
 
-  constructor(props) {
-    super(props);
-
-    this.t = i18n.createTranslator('records');
-  }
-
   renderRecordsList() {
     const { records } = this.props;
-    const grey500 = '#9E9E9E'; // TODO: use palette (grey500)
 
     return (
-      <List>
-        <div style={{ display: 'flex', margin: '15px 0px', color: grey500, fontSize: '12px' }}>
-          <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
-            {this.t('begin')}
-          </div>
-          <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
-            {this.t('end')}
-          </div>
-        </div>
+      <List style={{ marginTop: '10px' }}>
+        <Subheader style={{ fontSize: '16px' }}>{this.props.title}</Subheader>
         {records.map((record, index) => (
           <RecordItem key={index} record={record} />
         ))}
@@ -55,5 +41,6 @@ export default class RecordsList extends React.Component {
 }
 
 RecordsList.propTypes = {
+  title: React.PropTypes.string.isRequired,
   records: React.PropTypes.array,
 };

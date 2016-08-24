@@ -52,11 +52,14 @@ export default class TrackerPage extends React.Component {
   }
 
   getButtonLabel() {
-    return i18n.getTranslation(this.props.running ? 'tracker_page.stop' : 'tracker_page.start');
+    return i18n.getTranslation(this.props.incompleteRecord
+      ? 'tracker_page.stop'
+      : 'tracker_page.start'
+    );
   }
 
   getButtonColor() {
-    return this.props.running ? red700 : green700;
+    return this.props.incompleteRecord ? red700 : green700;
   }
 
   getTotalElapsed() {
@@ -83,7 +86,7 @@ export default class TrackerPage extends React.Component {
   }
 
   handleClick() {
-    if (!this.props.running) {
+    if (!this.props.incompleteRecord) {
       // start
       insert.call({
         begin: moment().startOf(PRECISION).toDate(),
@@ -170,7 +173,6 @@ export default class TrackerPage extends React.Component {
 
 TrackerPage.propTypes = {
   loading: React.PropTypes.bool,
-  running: React.PropTypes.bool,
   incompleteRecord: React.PropTypes.object,
   records: React.PropTypes.array,
 };

@@ -11,18 +11,24 @@ export default createContainer(() => {
 
   const recordsHandle = Meteor.subscribe('records.interval', startOfDay, endOfDay);
   const loading = !recordsHandle.ready();
-  const incompleteRecord = Records.find({ end: null }).fetch()[0];
+  const incompleteRecord = Records.find({
+    begin: {
+      $gte: startOfDay,
+      $lte: endOfDay,
+    },
+    end: null,
+  }, {
+    sort: { begin: 1 },
+  }).fetch()[0];
   const records = Records.find({
     begin: {
       $gte: startOfDay,
       $lte: endOfDay,
     },
   }).fetch();
-  const running = !!incompleteRecord;
 
   return {
     loading,
-    running,
     incompleteRecord,
     records,
   };

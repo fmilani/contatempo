@@ -7,14 +7,14 @@ Meteor.publish('records.all', function recordsAll() {
   return Records.find({ userId: this.userId });
 });
 
-Meteor.publish('records.interval', function recordsInterval(dateFrom, dateTo) {
-  check(dateFrom, Date);
-  check(dateTo, Date);
+Meteor.publish('records.interval', function recordsInterval({ start, end }) {
+  check(start, Date);
+  check(end, Date);
   return Records.find({
     userId: this.userId,
     begin: {
-      $gte: dateFrom,
-      $lte: dateTo,
+      $gte: start,
+      $lte: end,
     },
   });
 });

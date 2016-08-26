@@ -3,18 +3,29 @@ import { createContainer } from 'meteor/react-meteor-data';
 import TrackerPage from '/imports/ui/components/TrackerPage.jsx';
 import Records from '../api/records/records.js';
 import moment from 'moment';
+import { ReactiveVar } from 'meteor/reactive-var';
 
-export default createContainer(() => {
-  const today = moment();
-  const startOfDay = today.startOf('day').toDate();
-  const endOfDay = today.endOf('day').toDate();
 
-  const recordsHandle = Meteor.subscribe('records.interval', startOfDay, endOfDay);
+export default createContainer(({ params }) => {
+  const interval = params.interval || 'day';
+  // reactive var to be update by the TrackerPage component in order to update the subscription
+  // according to params
+  const checkSubscriptionInterval = new ReactiveVar(moment(), (oldValue, newValue) => (
+    oldValue.startOf(interval).isSame(newValue.startOf(interval))
+  ));
+  const subscriptionInterval = moment(checkSubscriptionInterval.get());
+  const startInterval = subscriptionInterval.startOf(interval).toDate();
+  const endInterval = subscriptionInterval.endOf(interval).toDate();
+
+  const recordsHandle = Meteor.subscribe('records.interval', {
+    start: startInterval,
+    end: endInterval,
+  });
   const loading = !recordsHandle.ready();
   const incompleteRecord = Records.find({
     begin: {
-      $gte: startOfDay,
-      $lte: endOfDay,
+      $gte: startInterval,
+      $lte: endInterval,
     },
     end: null,
   }, {
@@ -22,8 +33,8 @@ export default createContainer(() => {
   }).fetch()[0];
   const records = Records.find({
     begin: {
-      $gte: startOfDay,
-      $lte: endOfDay,
+      $gte: startInterval,
+      $lte: endInterval,
     },
   }).fetch();
 
@@ -31,5 +42,6 @@ export default createContainer(() => {
     loading,
     incompleteRecord,
     records,
+    checkSubscriptionInterval,
   };
 }, TrackerPage);

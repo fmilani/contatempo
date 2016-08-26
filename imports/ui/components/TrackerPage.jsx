@@ -27,6 +27,10 @@ export default class TrackerPage extends React.Component {
       now: moment(),
     };
 
+    this.checkSubscriptionTimer = setInterval(() => {
+      this.props.checkSubscriptionInterval.set(moment());
+    }, 1000);
+
     // bindings
     this.tick = this.tick.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -49,6 +53,8 @@ export default class TrackerPage extends React.Component {
   componentWillUnmount() {
     clearInterval(this.state.timer);
     this.setState({ timer: undefined });
+
+    clearInterval(this.checkSubscriptionTimer);
   }
 
   getButtonLabel() {
@@ -175,4 +181,5 @@ TrackerPage.propTypes = {
   loading: React.PropTypes.bool,
   incompleteRecord: React.PropTypes.object,
   records: React.PropTypes.array,
+  checkSubscriptionInterval: React.PropTypes.object,
 };

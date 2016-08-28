@@ -1,5 +1,5 @@
 import React from 'react';
-import Loading from 'react-loading';
+import Spinner from './Spinner.jsx';
 import TrackerPage from './TrackerPage.jsx';
 
 // This component was created to solve the use case where the user starts recording time
@@ -8,7 +8,7 @@ import TrackerPage from './TrackerPage.jsx';
 // when the tracker page is created, we need to wait for the incomplete record data to load.
 const TrackerPageWaiter = (props) => {
   const { loading, ...other } = props;
-  return (loading ? <Loading /> : <TrackerPage { ...other }/>)
+  return (loading ? <Spinner /> : <TrackerPage { ...other }/>);
 };
 
 export default TrackerPageWaiter;

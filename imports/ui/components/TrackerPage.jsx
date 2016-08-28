@@ -3,9 +3,7 @@ import moment from 'moment';
 import { i18n } from 'meteor/universe:i18n';
 import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
 import RaisedButton from 'material-ui/RaisedButton';
-import Loading from 'react-loading';
 import { green700, red700 } from 'material-ui/styles/colors';
-// import RecordsListContainer from '../../containers/RecordsListContainer.jsx';
 import RecordsList from './records/RecordsList.jsx';
 import RecordAdd from './records/RecordAdd.jsx';
 import { insert, complete } from '../../api/records/methods.js';
@@ -22,11 +20,6 @@ export default class TrackerPage extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      timer: undefined,
-      now: moment(),
-    };
-
     this.checkSubscriptionTimer = setInterval(() => {
       this.props.checkSubscriptionInterval.set(moment());
     }, 1000);
@@ -38,16 +31,11 @@ export default class TrackerPage extends React.Component {
     this.getButtonColor = this.getButtonColor.bind(this);
     this.pastMinimum = this.pastMinimum.bind(this);
     this.getTotalElapsed = this.getTotalElapsed.bind(this);
-    this.renderPage = this.renderPage.bind(this);
-  }
 
-  componentDidMount() {
-    // TODO: This is NOT ideal. the clock start ticking right away to cover the case where
-    // the clock is running when the component is mounted (i.e.: there is an incompleteRecord).
-    // The right way would be to wait for the subscription to be ready so we can check if the clock
-    // is runing
-    const timer = setInterval(this.tick, 33);
-    this.setState({ timer });
+    this.state = {
+      timer: this.props.incompleteRecord ? setInterval(this.tick, 33) : null,
+      now: moment(),
+    };
   }
 
   componentWillUnmount() {
@@ -98,16 +86,13 @@ export default class TrackerPage extends React.Component {
         begin: moment().startOf(PRECISION).toDate(),
         end: null,
       });
+      const now = moment();
       const timer = setInterval(this.tick, 33);
-      this.setState({
-        timer,
-      });
+      this.setState({ timer, now });
     } else {
       // stop
       clearInterval(this.state.timer);
-      this.setState({
-        timer: undefined,
-      });
+      this.setState({ timer: undefined });
 
       complete.call({
         id: this.props.incompleteRecord._id,
@@ -120,11 +105,7 @@ export default class TrackerPage extends React.Component {
     this.setState({ now: moment() });
   }
 
-  renderLoading() {
-    return (<Loading type="spokes" color="#000" />);
-  }
-
-  renderPage() {
+  render() {
     const buttonHeight = '50px';
     const style = {
       button: {
@@ -163,22 +144,9 @@ export default class TrackerPage extends React.Component {
       </div>
     );
   }
-
-  render() {
-    const { loading } = this.props;
-
-    return (
-      <div>
-        {
-          loading ? this.renderLoading() : this.renderPage()
-        }
-      </div>
-    );
-  }
 }
 
 TrackerPage.propTypes = {
-  loading: React.PropTypes.bool,
   incompleteRecord: React.PropTypes.object,
   records: React.PropTypes.array,
   checkSubscriptionInterval: React.PropTypes.object,

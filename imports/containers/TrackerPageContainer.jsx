@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { createContainer } from 'meteor/react-meteor-data';
-import TrackerPage from '/imports/ui/components/TrackerPage.jsx';
+import TrackerPageWaiter from '/imports/ui/components/TrackerPageWaiter.jsx';
 import Records from '../api/records/records.js';
 import moment from 'moment';
 import { ReactiveVar } from 'meteor/reactive-var';
@@ -44,4 +44,4 @@ export default createContainer(({ params }) => {
     records,
     checkSubscriptionInterval,
   };
-}, TrackerPage);
+}, TrackerPageWaiter);

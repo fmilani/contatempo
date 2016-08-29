@@ -23,6 +23,7 @@ export const renderRoutes = () => (
     <Route path="/" component={AppContainer}>
       <IndexRoute component={TrackerPageContainer} onEnter={requireAuth} />
       <Route path="/login" component={Login} />
+      <Route path="/:period" component={TrackerPageContainer} onEnter={requireAuth} />
     </Route>
   </Router>
 );

@@ -71,8 +71,11 @@ export default class AppDrawer extends React.Component {
               </span>
             </div>
           ) : ''}
-          <MenuItem onTouchTap={() => this.handleRedirect('/')}>
-            <T>drawer.track_time</T>
+          <MenuItem onTouchTap={() => this.handleRedirect('/day')}>
+            <T>common.today</T>
+          </MenuItem>
+          <MenuItem onTouchTap={() => this.handleRedirect('/month')}>
+            <T>common.this_month</T>
           </MenuItem>
           {Meteor.user() ? (
             <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>

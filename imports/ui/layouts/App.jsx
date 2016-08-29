@@ -2,6 +2,7 @@ import React from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import AppBar from 'material-ui/AppBar';
 import AppDrawer from './AppDrawer.jsx';
+import AppTabs from './AppTabs.jsx';
 
 export default class App extends React.Component {
 
@@ -28,8 +29,10 @@ export default class App extends React.Component {
           <AppBar
             title="Contatempo"
             onLeftIconButtonTouchTap={this.handleDrawer}
+            zDepth={0}
           />
           <AppDrawer ref="appDrawer" />
+          <AppTabs location={this.props.location} />
           <div>
             {this.props.children}
           </div>
@@ -42,6 +45,7 @@ export default class App extends React.Component {
 App.propTypes = {
   children: React.PropTypes.element,
   currentUser: React.PropTypes.object,
+  location: React.PropTypes.object,
 };
 
 App.contextTypes = {

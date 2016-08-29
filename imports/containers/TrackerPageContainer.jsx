@@ -7,15 +7,15 @@ import { ReactiveVar } from 'meteor/reactive-var';
 
 
 export default createContainer(({ params }) => {
-  const interval = params.interval || 'day';
+  const period = params.period || 'day';
   // reactive var to be update by the TrackerPage component in order to update the subscription
   // according to params
   const checkSubscriptionInterval = new ReactiveVar(moment(), (oldValue, newValue) => (
-    oldValue.startOf(interval).isSame(newValue.startOf(interval))
+    oldValue.startOf(period).isSame(newValue.startOf(period))
   ));
   const subscriptionInterval = moment(checkSubscriptionInterval.get());
-  const startInterval = subscriptionInterval.startOf(interval).toDate();
-  const endInterval = subscriptionInterval.endOf(interval).toDate();
+  const startInterval = subscriptionInterval.startOf(period).toDate();
+  const endInterval = subscriptionInterval.endOf(period).toDate();
 
   const recordsHandle = Meteor.subscribe('records.interval', {
     start: startInterval,

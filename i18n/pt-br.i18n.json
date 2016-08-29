@@ -2,7 +2,8 @@
   "_locale": "pt-BR",
   "common": {
     "cancel": "Cancelar",
-    "today": "Hoje"
+    "today": "Hoje",
+    "this_month": "Este mês"
   },
   "drawer": {
     "track_time": "Contar tempo",

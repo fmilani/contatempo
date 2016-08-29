@@ -139,7 +139,7 @@ export default class TrackerPage extends React.Component {
             disabled={!this.pastMinimum()}
           />
           <RecordAdd />
-          <RecordsList title={i18n.getTranslation('common.today')} records={this.props.records} />
+          <RecordsList records={this.props.records} />
         </div>
       </div>
     );

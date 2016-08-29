@@ -1,6 +1,5 @@
 import React from 'react';
 import { List } from 'material-ui/List';
-import Subheader from 'material-ui/Subheader';
 import RecordItem from './RecordItem.jsx';
 import EmptyRecordsList from './EmptyRecordsList.jsx';
 
@@ -18,7 +17,6 @@ export default class RecordsList extends React.Component {
 
     return (
       <List style={{ marginTop: '10px' }}>
-        <Subheader style={{ fontSize: '16px' }}>{this.props.title}</Subheader>
         {records.map((record, index) => (
           <RecordItem key={index} record={record} />
         ))}
@@ -41,6 +39,5 @@ export default class RecordsList extends React.Component {
 }
 
 RecordsList.propTypes = {
-  title: React.PropTypes.string.isRequired,
   records: React.PropTypes.array,
 };

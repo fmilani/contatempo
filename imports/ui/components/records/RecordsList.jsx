@@ -21,7 +21,8 @@ export default class RecordsList extends React.Component {
         {records.map((record, index) => {
           // check if current record's day is the same of previous one to hide the day of the record
           if (index > 0 &&
-            moment(record.begin).startOf('day').isSame(moment(records[index - 1]).startOf('day'))) {
+            moment(record.begin).startOf('day')
+              .isSame(moment(records[index - 1].begin).startOf('day'))) {
             displayDay = false;
           } else {
             displayDay = true;

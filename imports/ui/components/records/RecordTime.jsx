@@ -51,7 +51,7 @@ export default class RecordTime extends React.Component {
   render() {
     const recordTime = this.getValue();
     return (
-      <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
+      <div style={{ flex: '0 0 30%', textAlign: 'center' }}>
         {
           recordTime ?
             (<TimePicker

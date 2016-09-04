@@ -71,6 +71,8 @@ export default createContainer(({ params }) => {
       $gte: startInterval,
       $lte: endInterval,
     },
+  }, {
+    sort: { begin: 1 },
   }).fetch();
 
   return {

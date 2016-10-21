@@ -1,10 +1,24 @@
 import { SyncedCron } from 'meteor/percolate:synced-cron';
 import { sendReports } from '../../api/email/server/reports.js';
+import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
 SyncedCron.add({
-  name: 'Send reports',
+  name: 'Send reports for users with end of month on last day',
   schedule(parser) {
-    // TODO: make the schedule configurable (based on users 'end of month')
+    return parser.recur()
+      .on(1)
+      .dayOfMonth()
+      .on(5)
+      .hour();
+  },
+  job() {
+    sendReports(undefined, EndOfMonthEnum.LAST_DAY);
+  },
+});
+
+SyncedCron.add({
+  name: 'Send reports for users with end of month on day 20',
+  schedule(parser) {
     return parser.recur()
       .on(21)
       .dayOfMonth()
@@ -12,7 +26,7 @@ SyncedCron.add({
       .hour();
   },
   job() {
-    sendReports();
+    sendReports(undefined, EndOfMonthEnum.DAY_20);
   },
 });
 

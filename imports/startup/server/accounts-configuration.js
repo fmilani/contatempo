@@ -33,3 +33,8 @@ Accounts.onCreateUser((options, user) => {
 
   return newUser;
 });
+
+// FIXME: deny user updates and create user api
+Meteor.users.allow({
+  update() { return true; },
+});

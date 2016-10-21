@@ -5,10 +5,15 @@ import { Meteor } from 'meteor/meteor';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router';
 import Login from '../../../imports/ui/components/Login.jsx';
 
-const requireAuth = (nextState, replace) => {
+const requireAuthAndSettings = (nextState, replace) => {
   if (!Meteor.loggingIn() && !Meteor.userId()) {
     replace({
       pathname: '/login',
+      state: { nextPathname: nextState.location.pathname },
+    });
+  } else if (Meteor.user() && !Meteor.user().settings) {
+    replace({
+      pathname: '/settings',
       state: { nextPathname: nextState.location.pathname },
     });
   }
@@ -17,13 +22,16 @@ const requireAuth = (nextState, replace) => {
 // route components
 import AppContainer from '/imports/containers/AppContainer.jsx';
 import TrackerPageContainer from '/imports/containers/TrackerPageContainer.jsx';
+import SettingsContainer from '/imports/containers/SettingsContainer.jsx';
 
+// TODO: rearrange routes (separate login from root path and also separete onEnter function)
 export const renderRoutes = () => (
   <Router history={browserHistory}>
     <Route path="/" component={AppContainer}>
-      <IndexRoute component={TrackerPageContainer} onEnter={requireAuth} />
+      <IndexRoute component={TrackerPageContainer} onEnter={requireAuthAndSettings} />
       <Route path="/login" component={Login} />
-      <Route path="/:period" component={TrackerPageContainer} onEnter={requireAuth} />
+      <Route path="/settings" component={SettingsContainer} />
+      <Route path="/:period" component={TrackerPageContainer} onEnter={requireAuthAndSettings} />
     </Route>
   </Router>
 );

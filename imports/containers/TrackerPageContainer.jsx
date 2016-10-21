@@ -8,6 +8,7 @@ import { getDayInterval, getMonthInterval } from '../api/helpers/date-helpers.js
 
 export default createContainer(({ params }) => {
   const period = params.period || 'day';
+  const settings = Meteor.user().settings;
 
   let getInterval = getDayInterval;
   if (period === 'month') {
@@ -19,8 +20,8 @@ export default createContainer(({ params }) => {
     getInterval(oldValue).start.isSame(getInterval(newValue).start)
   ));
   const subscriptionInterval = moment(checkSubscriptionInterval.get());
-  const startInterval = getInterval(subscriptionInterval).start.toDate();
-  const endInterval = getInterval(subscriptionInterval).end.toDate();
+  const startInterval = getInterval(subscriptionInterval, settings.endOfMonth).start.toDate();
+  const endInterval = getInterval(subscriptionInterval, settings.endOfMonth).end.toDate();
 
   const recordsHandle = Meteor.subscribe('records.interval', {
     start: startInterval,

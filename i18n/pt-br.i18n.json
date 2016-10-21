@@ -3,11 +3,19 @@
   "common": {
     "cancel": "Cancelar",
     "today": "Hoje",
-    "this_month": "Este mês"
+    "this_month": "Este mês",
+    "save": "Salvar",
+    "settings": "Configurações"
   },
   "drawer": {
     "track_time": "Contar tempo",
     "logout": "Sair"
+  },
+  "settings": {
+    "error_msg": "Por favor, indique quando termina o seu mês",
+    "header": "Quando termina o seu mês?",
+    "last_day": "No último dia",
+    "day_20": "No dia 20"
   },
   "tracker_page": {
     "start": "Começar",

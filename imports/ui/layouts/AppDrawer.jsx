@@ -79,6 +79,9 @@ export default class AppDrawer extends React.Component {
           </MenuItem>
           {Meteor.user() ? (
             <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
+              <MenuItem onTouchTap={() => this.handleRedirect('/settings')}>
+                <T>common.settings</T>
+              </MenuItem>
               <Divider />
               <MenuItem onTouchTap={this.handleLogout}>
                 <T>drawer.logout</T>

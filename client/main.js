@@ -12,5 +12,13 @@ Meteor.startup(() => {
   i18n.setLocale('pt-BR');
 
   // wait for locale to be loaded to render the app
-  i18n.onceChangeLocale(() => render(renderRoutes(), document.getElementById('app')));
+  i18n.onceChangeLocale(() => {
+    Meteor.subscribe('user.settings', {
+      // wait for user settings to be available. we need it to decide if we
+      // redirect the user to settings page
+      onReady() {
+        render(renderRoutes(), document.getElementById('app'));
+      },
+    });
+  });
 });

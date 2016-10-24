@@ -2,6 +2,7 @@ import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { i18n } from 'meteor/universe:i18n';
 import Drawer from 'material-ui/Drawer';
+import { indigo500 } from 'material-ui/styles/colors';
 import Avatar from 'material-ui/Avatar';
 import MenuItem from 'material-ui/MenuItem';
 import Divider from 'material-ui/Divider';
@@ -51,7 +52,7 @@ export default class AppDrawer extends React.Component {
             <div
               style={{
                 padding: '12px',
-                backgroundColor: '#00BCD4', // TODO: primary1Color
+                backgroundColor: indigo500, // TODO: get primary1Color from theme
               }}
             >
               <Avatar

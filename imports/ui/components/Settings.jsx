@@ -76,7 +76,7 @@ export default class Settings extends React.Component {
           {i18n.getTranslation('settings.error_msg')}
         </div>
         <RaisedButton
-          secondary
+          primary
           onClick={this.handleSave}
           label={i18n.getTranslation('common.save')}
           style={{

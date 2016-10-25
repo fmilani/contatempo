@@ -1,7 +1,8 @@
 import React from 'react';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
-import RaisedButton from 'material-ui/RaisedButton';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import ContentAdd from 'material-ui/svg-icons/content/add';
 import moment from 'moment';
 import DatePicker from 'material-ui/DatePicker';
 import TimePicker from 'material-ui/TimePicker';
@@ -73,11 +74,18 @@ export default class RecordAdd extends React.Component {
 
     return (
       <div>
-        <RaisedButton
-          style={{ width: '100%' }}
-          label={this.t('add_button_label')}
+        <FloatingActionButton
+          secondary
+          style={{
+            position: 'fixed',
+            bottom: '25px',
+            right: '25px',
+            zIndex: '999',
+          }}
           onTouchTap={this.handleOpen}
-        />
+        >
+          <ContentAdd />
+        </FloatingActionButton>
         <Dialog
           title={this.t('add_title')}
           actions={actions}

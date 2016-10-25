@@ -17,7 +17,9 @@ export default class RecordsList extends React.Component {
     const { records } = this.props;
     let displayDay;
     return (
-      <List style={{ marginTop: '10px' }}>
+      // the marginBottom on the list is due to the RecordAdd's FAB
+      // so the user can see the last item of the list
+      <List style={{ marginTop: '10px', marginBottom: '50px' }}>
         {records.map((record, index) => {
           // check if current record's day is the same of previous one to hide the day of the record
           if (index > 0 &&

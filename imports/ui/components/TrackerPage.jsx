@@ -110,7 +110,6 @@ export default class TrackerPage extends React.Component {
     const style = {
       button: {
         width: '100%',
-        marginBottom: '20px',
         height: buttonHeight,
       },
       record: {

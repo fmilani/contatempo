@@ -1,7 +1,8 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { i18n } from 'meteor/universe:i18n';
-import Subheader from 'material-ui/Subheader';
+// import Subheader from 'material-ui/Subheader';
+import Title from './Title.jsx';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
@@ -48,7 +49,7 @@ export default class Settings extends React.Component {
     };
     return (
       <div style={styles.page}>
-        <Subheader>{i18n.getTranslation('settings.header')}</Subheader>
+        <Title title={i18n.getTranslation('settings.header')} />
         <RadioButtonGroup
           name="endOfMonth"
           defaultSelected={this.state.endOfMonth}

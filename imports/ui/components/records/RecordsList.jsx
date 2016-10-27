@@ -2,6 +2,8 @@ import React from 'react';
 import { List } from 'material-ui/List';
 import RecordItem from './RecordItem.jsx';
 import EmptyRecordsList from './EmptyRecordsList.jsx';
+import Title from '../Title.jsx';
+import Paper from 'material-ui/Paper';
 import moment from 'moment';
 
 /**
@@ -19,7 +21,7 @@ export default class RecordsList extends React.Component {
     return (
       // the marginBottom on the list is due to the RecordAdd's FAB
       // so the user can see the last item of the list
-      <List style={{ marginTop: '10px', marginBottom: '50px' }}>
+      <List style={{ marginBottom: '50px' }}>
         {records.map((record, index) => {
           // check if current record's day is the same of previous one to hide the day of the record
           if (index > 0 &&
@@ -30,7 +32,14 @@ export default class RecordsList extends React.Component {
             displayDay = true;
           }
 
-          return (<RecordItem key={index} record={record} displayDay={displayDay} />);
+          return (
+            <div key={index}>
+              {displayDay ? <Title title={moment(record.begin).calendar()} /> : null}
+              <Paper rounded={false} style={{ marginBottom: '15px' }}>
+                <RecordItem record={record} displayDay={false} />
+              </Paper>
+            </div>
+          );
         })}
       </List>
     );

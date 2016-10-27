@@ -1,7 +1,9 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { edit } from '../../../api/records/methods.js';
+import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment';
+import DatePicker from 'material-ui/DatePicker';
 import TimePicker from 'material-ui/TimePicker';
 import ImageTimer from 'material-ui/svg-icons/image/timer';
 
@@ -24,8 +26,19 @@ export default class RecordTime extends React.Component {
     return type === 'begin' ? record.begin : record.end;
   }
 
-  editRecord(date) {
+  editRecord(newDate, field) {
     const { record, type } = this.props;
+    const newDateMoment = moment(newDate);
+    let date = newDate;
+    if (field === 'date') {
+      // because material-ui's DatePicker set the time to 00:00 when changing
+      // date, we need to explicitly set only the date of the record
+      date = moment(record[type]).set({
+        date: newDateMoment.get('date'),
+        month: newDateMoment.get('month'),
+        year: newDateMoment.get('year'),
+      }).toDate();
+    }
 
     if (type === 'begin') {
       // TODO: refactor this verification as it is the same one in the server
@@ -51,19 +64,39 @@ export default class RecordTime extends React.Component {
   render() {
     const recordTime = this.getValue();
     return (
-      <div style={{ flex: '0 0 30%', textAlign: 'center' }}>
+      <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
         {
           recordTime ?
-            (<TimePicker
-              ref="timePicker"
-              textFieldStyle={{ width: '100%' }}
-              inputStyle={{ textAlign: 'center', fontSize: '13px' }}
-              underlineShow={false}
-              format="24hr"
-              name="recordTime"
-              value={recordTime}
-              onChange={(event, date) => { this.editRecord(date); }}
-            />) :
+            (<div
+              style={{
+                display: 'flex', alignItems: 'center',
+                justifyContent: this.props.type === 'begin' ? 'flex-start' : 'flex-end',
+              }}
+            >
+              <DatePicker
+                style={{ flex: '0 0 40%' }}
+                name="recordDate"
+                textFieldStyle={{ width: '100%' }}
+                inputStyle={{ textAlign: 'center', fontSize: '12px' }}
+                underlineShow={false}
+                DateTimeFormat={Intl.DateTimeFormat}
+                locale={i18n.getLocale()}
+                value={recordTime}
+                onChange={(event, date) => { this.editRecord(date, 'date'); }}
+                formatDate={(date) => moment(date).format('DD/MM')}
+              />
+              <TimePicker
+                style={{ flex: '0 0 40%' }}
+                ref="timePicker"
+                textFieldStyle={{ width: '100%' }}
+                inputStyle={{ textAlign: 'center', fontSize: '16px' }}
+                underlineShow={false}
+                format="24hr"
+                name="recordTime"
+                value={recordTime}
+                onChange={(event, date) => { this.editRecord(date); }}
+              />
+            </div>) :
             (<div>
               <i
                 style={{

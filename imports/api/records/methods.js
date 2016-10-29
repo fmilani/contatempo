@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import Records from './records.js';
+import { isValidInsertion, isValidEdition } from './helpers';
 import moment from 'moment';
 
 // the precision with which the record dates are saved. Any unit below this will be zero
@@ -19,6 +20,11 @@ export const insert = new ValidatedMethod({
     end: { type: Date, optional: true },
   }).validator(),
   run({ begin, end }) {
+    if (!isValidInsertion(begin, end)) {
+      throw new Meteor.Error('records.insert.endMustBeAfterBegin',
+        'The end of the record must be after its begin');
+    }
+
     const record = {
       begin,
       end,
@@ -65,21 +71,17 @@ export const edit = new ValidatedMethod({
   run({ id, field, date }) {
     const record = Records.findOne(id);
 
+    if (!isValidEdition(record, date, field)) {
+      throw new Meteor.Error('records.edit.endMustBeAfterBegin',
+        'The end of the record must be after its begin');
+    }
     if (field === 'begin') {
-      if (moment(date).isAfter(moment(record.end))) {
-        throw new Meteor.Error('records.edit.beginAfterEnd',
-          'Cannot edit record\'s begin to a time after its end');
-      }
       Records.update(id, {
         $set: {
           begin: moment(date).startOf(PRECISION).toDate(),
         },
       });
     } else {
-      if (moment(date).isBefore(moment(record.begin))) {
-        throw new Meteor.Error('records.edit.endBeforeBegin',
-        'Cannot edit record\'s end to a time before its begin');
-      }
       Records.update(id, {
         $set: {
           end: moment(date).startOf(PRECISION).toDate(),

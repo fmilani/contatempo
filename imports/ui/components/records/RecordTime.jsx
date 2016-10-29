@@ -1,11 +1,12 @@
 import React from 'react';
-import { Meteor } from 'meteor/meteor';
 import { edit } from '../../../api/records/methods.js';
 import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment';
 import DatePicker from 'material-ui/DatePicker';
+import Snackbar from 'material-ui/Snackbar';
 import TimePicker from 'material-ui/TimePicker';
 import ImageTimer from 'material-ui/svg-icons/image/timer';
+import { isValidEdition } from '../../../api/records/helpers';
 
 /**
  * Component to show (and edit) a single record time (whether it's its begin or end time)
@@ -15,9 +16,13 @@ export default class RecordTime extends React.Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      errorOnEdition: false,
+    };
     // bindings
     this.getValue = this.getValue.bind(this);
     this.editRecord = this.editRecord.bind(this);
+    this.showErrorOnEdition = this.showErrorOnEdition.bind(this);
   }
 
   getValue() {
@@ -40,31 +45,40 @@ export default class RecordTime extends React.Component {
       }).toDate();
     }
 
-    if (type === 'begin') {
-      // TODO: refactor this verification as it is the same one in the server
-      if (moment(date).isAfter(moment(record.end))) {
-        this.refs.timePicker.setState({ time: record[type] });
-        throw new Meteor.Error('records.edit.beginAfterEnd',
-          'Cannot edit record\'s begin to a time after its end');
-      }
-    } else {
-      if (moment(date).isBefore(moment(record.begin))) {
-        this.refs.timePicker.setState({ time: record[type] });
-        throw new Meteor.Error('records.edit.endBeforeBegin',
-        'Cannot edit record\'s end to a time before its begin');
-      }
+    const errorOnEdition = !isValidEdition(record, date, type);
+    if (errorOnEdition) {
+      this.showErrorOnEdition(record, type);
     }
     edit.call({
       id: record._id,
       field: type,
       date,
+    }, (error) => {
+      if (error) {
+        if (error.error === 'records.edit.endMustBeAfterBegin') {
+          this.showErrorOnEdition(record, type);
+        } else {
+          // unexpected error. TODO: handle properly (and add logs)
+          throw new Error('Unexpected error');
+        }
+      }
     });
+  }
+
+  showErrorOnEdition(record, type) {
+    // if error, set the state value errorOnEdition so the Snackbar is shown
+    this.setState({ errorOnEdition: true });
+    // for some reason, the timepicker still changes its value to the invalid
+    // one so we need to restore it
+    this.refs.timePicker.setState({ time: record[type] });
+    // throw an error so timepicker and datepicker don't dismiss
+    throw new Error('Cannot edit record\'s end to a time before its begin');
   }
 
   render() {
     const recordTime = this.getValue();
     return (
-      <div style={{ flex: '0 0 40%', textAlign: 'center' }}>
+      <div style={{ flex: '0 0 40%' }}>
         {
           recordTime ?
             (<div
@@ -97,7 +111,7 @@ export default class RecordTime extends React.Component {
                 onChange={(event, date) => { this.editRecord(date); }}
               />
             </div>) :
-            (<div>
+            (<div style={{ textAlign: 'center' }}>
               <i
                 style={{
                   verticalAlign: 'middle',
@@ -110,6 +124,12 @@ export default class RecordTime extends React.Component {
               </div>
             </div>)
         }
+        <Snackbar
+          open={this.state.errorOnEdition}
+          message={i18n.getTranslation('records.errorOnDatesMsg')}
+          autoHideDuration={4000}
+          onRequestClose={() => { this.setState({ errorOnEdition: false }); }}
+        />
       </div>
     );
   }

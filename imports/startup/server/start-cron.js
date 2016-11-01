@@ -8,7 +8,7 @@ SyncedCron.add({
     return parser.recur()
       .on(1)
       .dayOfMonth()
-      .on(5)
+      .on(11)
       .hour();
   },
   job() {
@@ -22,7 +22,7 @@ SyncedCron.add({
     return parser.recur()
       .on(21)
       .dayOfMonth()
-      .on(5)
+      .on(11)
       .hour();
   },
   job() {

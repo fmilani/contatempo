@@ -20,7 +20,7 @@ export const insert = new ValidatedMethod({
     end: { type: Date, optional: true },
   }).validator(),
   run({ begin, end }) {
-    if (!isValidInsertion(begin, end)) {
+    if (end && !isValidInsertion(begin, end)) {
       throw new Meteor.Error('records.insert.endMustBeAfterBegin',
         'The end of the record must be after its begin');
     }

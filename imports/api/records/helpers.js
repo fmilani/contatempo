@@ -3,7 +3,8 @@ import moment from 'moment';
 export function isValidEdition(record, editedDate, field) {
   let validEdition;
   if (field === 'begin') {
-    validEdition = moment(editedDate).isBefore(moment(record.end));
+    validEdition =
+      !record.end || moment(editedDate).isBefore(moment(record.end));
   } else {
     validEdition = moment(editedDate).isAfter(moment(record.begin));
   }

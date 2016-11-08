@@ -25,7 +25,8 @@ export default class ElapsedTimeDisplay extends React.Component {
 
   // formats the time prop with only the seconds (ss)
   formatSeconds() {
-    return moment.utc(this.props.time).format(':ss');
+    return moment.duration(this.props.time)
+      .format('HH:mm:ss', { trim: false }).slice(-3);
   }
 
   render() {

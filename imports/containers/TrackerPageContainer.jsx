@@ -4,16 +4,25 @@ import TrackerPageWaiter from '/imports/ui/components/TrackerPageWaiter.jsx';
 import Records from '../api/records/records.js';
 import moment from 'moment';
 import { ReactiveVar } from 'meteor/reactive-var';
-import { getDayInterval, getMonthInterval } from '../api/helpers/date-helpers.js';
+import {
+  getDayInterval,
+  getMonthInterval,
+  getLastMonthInterval,
+} from '../api/helpers/date-helpers.js';
 
 export default createContainer(({ params }) => {
   const period = params.period || 'day';
   const settings = Meteor.user().settings;
 
   let getInterval = getDayInterval;
+  let showTrackerButton = true;
   if (period === 'month') {
     getInterval = getMonthInterval;
+  } else if (period === 'last_month') {
+    getInterval = getLastMonthInterval;
+    showTrackerButton = false;
   }
+
   // reactive var to be update by the TrackerPage component in order to update the subscription
   // according to params
   const checkSubscriptionInterval = new ReactiveVar(moment(), (oldValue, newValue) => (
@@ -51,5 +60,6 @@ export default createContainer(({ params }) => {
     incompleteRecord,
     records,
     checkSubscriptionInterval,
+    showTrackerButton,
   };
 }, TrackerPageWaiter);

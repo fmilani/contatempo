@@ -24,6 +24,11 @@ const AppTabs = (props, context) => (
       onActive={() => { context.router.push('/month'); }}
       value={'/month'}
     />
+    <Tab
+      label={i18n.getTranslation('common.last_month')}
+      onActive={() => { context.router.push('/last_month'); }}
+      value={'/last_month'}
+    />
   </Tabs>
 );
 

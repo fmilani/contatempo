@@ -129,14 +129,19 @@ export default class TrackerPage extends React.Component {
       <div>
         <ElapsedTimeDisplay time={this.getTotalElapsed()} />
         <div style={{ margin: '0 15px' }}>
-          <RaisedButton
-            backgroundColor={this.getButtonColor()}
-            onClick={this.handleClick}
-            style={style.button}
-            label={this.getButtonLabel()}
-            labelStyle={labelStyle}
-            disabled={!this.pastMinimum()}
-          />
+          {
+            this.props.showTrackerButton
+            ? <RaisedButton
+              backgroundColor={this.getButtonColor()}
+              onClick={this.handleClick}
+              style={style.button}
+              label={this.getButtonLabel()}
+              labelStyle={labelStyle}
+              disabled={!this.pastMinimum()}
+            />
+            : null
+
+          }
           <RecordAdd />
           <RecordsList records={this.props.records} />
         </div>
@@ -149,4 +154,5 @@ TrackerPage.propTypes = {
   incompleteRecord: React.PropTypes.object,
   records: React.PropTypes.array,
   checkSubscriptionInterval: React.PropTypes.object,
+  showTrackerButton: React.PropTypes.bool,
 };

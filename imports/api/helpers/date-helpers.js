@@ -39,3 +39,12 @@ export const getMonthInterval = (date, endOfMonth) => {
 
   return { start, end };
 };
+
+/**
+ * Gets the last month interval of the given date
+ * @param {Date} date - the given date
+ * @param {String} endOfMonth - indicates when the month ends
+ * @return {Object} - an object representing the interval with start and end dates
+ */
+export const getLastMonthInterval = (date, endOfMonth) =>
+  getMonthInterval(moment(date).subtract(1, 'month'), endOfMonth);

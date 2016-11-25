@@ -8,7 +8,7 @@ import TrackerPage from './TrackerPage.jsx';
 // when the tracker page is created, we need to wait for the incomplete record data to load.
 const TrackerPageWaiter = (props) => {
   const { loading, ...other } = props;
-  return (loading ? <Spinner /> : <TrackerPage { ...other }/>);
+  return (loading ? <Spinner /> : <TrackerPage {...other} />);
 };
 
 export default TrackerPageWaiter;

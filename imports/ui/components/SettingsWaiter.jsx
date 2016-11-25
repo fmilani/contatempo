@@ -7,7 +7,7 @@ import Settings from './Settings.jsx';
 // initialize the state and control the form
 const SettingsWaiter = (props) => {
   const { loading, ...other } = props;
-  return (loading ? <Spinner /> : <Settings { ...other }/>);
+  return (loading ? <Spinner /> : <Settings {...other} />);
 };
 
 SettingsWaiter.propTypes = {

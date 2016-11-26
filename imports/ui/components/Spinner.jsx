@@ -10,11 +10,11 @@ const Spinner = () => (
     }}
   >
     <div className="clock-wrapper">
-      <div className="top"></div>
-      <div className="button"></div>
+      <div className="top" />
+      <div className="button" />
       <div className="clock">
-        <div className="center"></div>
-        <div className="hand"></div>
+        <div className="center" />
+        <div className="hand" />
       </div>
     </div>
   </div>

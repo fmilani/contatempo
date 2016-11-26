@@ -46,7 +46,7 @@ export default class AppDrawer extends React.Component {
         <Drawer
           open={this.state.open}
           docked={false}
-          onRequestChange={(open) => this.setState({ open })}
+          onRequestChange={open => this.setState({ open })}
         >
           {Meteor.user() ? (
             <div

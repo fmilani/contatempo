@@ -48,7 +48,7 @@ export default class TrackerPage extends React.Component {
   getButtonLabel() {
     return i18n.getTranslation(this.props.incompleteRecord
       ? 'tracker_page.stop'
-      : 'tracker_page.start'
+      : 'tracker_page.start',
     );
   }
 
@@ -58,7 +58,7 @@ export default class TrackerPage extends React.Component {
 
   getTotalElapsed() {
     const finishedElapsed = this.props.records
-      .filter((record) => (this.props.incompleteRecord
+      .filter(record => (this.props.incompleteRecord
         ? record._id !== this.props.incompleteRecord._id
         : true))
       .map(record => moment(record.end).diff(moment(record.begin)))

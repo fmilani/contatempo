@@ -45,7 +45,7 @@ export const sendReports = (date, endOfMonth) => {
     .filter(result =>
       // get only users with the endOfMonthValue setting
       Meteor.users.findOne(result._id).settings.endOfMonth === endOfMonthValue)
-    .map(result => {
+    .map((result) => {
       const user = Meteor.users.findOne(result._id);
       let totalTime = result.records
         .map(record => moment(record.end).diff(moment(record.begin)))
@@ -66,7 +66,7 @@ export const sendReports = (date, endOfMonth) => {
     });
 
   console.log(`${aggregatedRecords.length} users will receive their reports`);
-  aggregatedRecords.forEach(aggregatedRecord => {
+  aggregatedRecords.forEach((aggregatedRecord) => {
     // TODO: add i18n to email sent
     const headersStyle = {
       fontSize: 14,
@@ -137,7 +137,7 @@ export const sendReports = (date, endOfMonth) => {
               </tbody>
             </table>
           </div>
-        </div>
+        </div>,
       ),
     });
   });

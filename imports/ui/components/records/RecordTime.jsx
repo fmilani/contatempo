@@ -97,7 +97,7 @@ export default class RecordTime extends React.Component {
                 locale={i18n.getLocale()}
                 value={recordTime}
                 onChange={(event, date) => { this.editRecord(date, 'date'); }}
-                formatDate={(date) => moment(date).format('DD/MM')}
+                formatDate={date => moment(date).format('DD/MM')}
               />
               <TimePicker
                 style={{ flex: '0 0 40%' }}

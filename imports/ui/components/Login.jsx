@@ -36,7 +36,7 @@ export default class Login extends React.Component {
     return (
       <div style={{ textAlign: 'center', margin: '30px 0' }}>
         <FlatButton
-          icon={<i className="mdi mdi-google"></i>}
+          icon={<i className="mdi mdi-google" />}
           style={{
             color: '#fff',
           }}

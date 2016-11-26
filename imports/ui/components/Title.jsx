@@ -1,7 +1,7 @@
 import React from 'react';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 
-const Title = (props) => (
+const Title = props => (
   <div
     style={{
       fontFamily: props.muiTheme.fontFamily,

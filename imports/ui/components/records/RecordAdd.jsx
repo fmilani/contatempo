@@ -33,14 +33,14 @@ export default class RecordAdd extends React.Component {
   }
 
   addRecord() {
-    const date = moment(this.refs.date.state.date);
-    const begin = moment(this.refs.beginTime.state.time)
+    const date = moment(this.date.state.date);
+    const begin = moment(this.beginTime.state.time)
       .year(date.year())
       .month(date.month())
       .date(date.date())
       .startOf('minutes')
       .toDate();
-    const end = moment(this.refs.endTime.state.time)
+    const end = moment(this.endTime.state.time)
       .year(date.year())
       .month(date.month())
       .date(date.date())
@@ -118,7 +118,7 @@ export default class RecordAdd extends React.Component {
           onRequestClose={this.handleClose}
         >
           <DatePicker
-            ref="date"
+            ref={(c) => { this.date = c; }}
             hintText={this.t('day')}
             textFieldStyle={{ width: '100%' }}
             DateTimeFormat={Intl.DateTimeFormat}
@@ -126,14 +126,14 @@ export default class RecordAdd extends React.Component {
             cancelLabel={i18n.getTranslation('common.cancel')}
           />
           <TimePicker
-            ref="beginTime"
+            ref={(c) => { this.beginTime = c; }}
             hintText={this.t('begin')}
             textFieldStyle={{ width: '100%' }}
             format="24hr"
             name="recordTime"
           />
           <TimePicker
-            ref="endTime"
+            ref={(c) => { this.endTime = c; }}
             hintText={this.t('end')}
             textFieldStyle={{ width: '100%' }}
             format="24hr"

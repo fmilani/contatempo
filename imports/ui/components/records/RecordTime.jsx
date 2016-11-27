@@ -70,7 +70,7 @@ export default class RecordTime extends React.Component {
     this.setState({ errorOnEdition: true });
     // for some reason, the timepicker still changes its value to the invalid
     // one so we need to restore it
-    this.refs.timePicker.setState({ time: record[type] });
+    this.timePicker.setState({ time: record[type] });
     // throw an error so timepicker and datepicker don't dismiss
     throw new Error('Cannot edit record\'s end to a time before its begin');
   }
@@ -83,7 +83,8 @@ export default class RecordTime extends React.Component {
           recordTime ?
             (<div
               style={{
-                display: 'flex', alignItems: 'center',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: this.props.type === 'begin' ? 'flex-start' : 'flex-end',
               }}
             >
@@ -101,7 +102,7 @@ export default class RecordTime extends React.Component {
               />
               <TimePicker
                 style={{ flex: '0 0 40%' }}
-                ref="timePicker"
+                ref={(c) => { this.timePicker = c; }}
                 textFieldStyle={{ width: '100%' }}
                 inputStyle={{ textAlign: 'center', fontSize: '16px' }}
                 underlineShow={false}

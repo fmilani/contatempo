@@ -33,7 +33,7 @@ class App extends React.Component {
   }
 
   handleDrawer() {
-    this.refs.appDrawer.handleToggle();
+    this.appDrawer.handleToggle();
   }
 
   render() {
@@ -45,7 +45,7 @@ class App extends React.Component {
             onLeftIconButtonTouchTap={this.handleDrawer}
             zDepth={0}
           />
-          <AppDrawer ref="appDrawer" />
+          <AppDrawer ref={(c) => { this.appDrawer = c; }} />
           <AppTabs location={this.props.location} />
           <div>
             {this.props.children}

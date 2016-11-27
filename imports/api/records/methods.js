@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import moment from 'moment';
 import Records from './records.js';
 import { isValidInsertion, isValidEdition } from './helpers';
-import moment from 'moment';
 
 // the precision with which the record dates are saved. Any unit below this will be zero
 const PRECISION = 'seconds';

@@ -7,8 +7,8 @@ import Snackbar from 'material-ui/Snackbar';
 import moment from 'moment';
 import DatePicker from 'material-ui/DatePicker';
 import TimePicker from 'material-ui/TimePicker';
-import { insert } from '../../../api/records/methods.js';
 import { i18n } from 'meteor/universe:i18n';
+import { insert } from '../../../api/records/methods.js';
 import { isValidInsertion } from '../../../api/records/helpers';
 
 /**

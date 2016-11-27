@@ -1,14 +1,14 @@
 import React from 'react';
 import AppBar from 'material-ui/AppBar';
-import AppDrawer from './AppDrawer.jsx';
-import AppTabs from './AppTabs.jsx';
-
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import {
   indigo500,
   indigo700,
 } from 'material-ui/styles/colors';
+import AppDrawer from './AppDrawer.jsx';
+import AppTabs from './AppTabs.jsx';
+
 
 const muiTheme = getMuiTheme({
   palette: {

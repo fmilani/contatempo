@@ -1,14 +1,13 @@
 // client entry point, imports all client code
 import { Meteor } from 'meteor/meteor';
 import { render } from 'react-dom';
-import renderRoutes from '/imports/startup/client/routes.jsx';
-import injectTapEventPlugin from 'react-tap-event-plugin';
 import { i18n } from 'meteor/universe:i18n';
-// import { moment } from 'meteor/momentjs:moment';
 import moment from 'moment';
 // FIXME: importing this moment locale is causing a warning on browser's console
 // without this import, setting moment's locale doesn't work
 import 'moment/locale/pt-br';
+import injectTapEventPlugin from 'react-tap-event-plugin';
+import renderRoutes from '../imports/startup/client/routes.jsx';
 
 Meteor.startup(() => {
   injectTapEventPlugin();

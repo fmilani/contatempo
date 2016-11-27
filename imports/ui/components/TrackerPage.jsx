@@ -1,9 +1,9 @@
 import React from 'react';
 import moment from 'moment';
 import { i18n } from 'meteor/universe:i18n';
-import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
 import RaisedButton from 'material-ui/RaisedButton';
 import { green700, red700 } from 'material-ui/styles/colors';
+import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
 import RecordsList from './records/RecordsList.jsx';
 import RecordAdd from './records/RecordAdd.jsx';
 import { insert, complete } from '../../api/records/methods.js';

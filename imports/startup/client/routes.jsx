@@ -3,7 +3,11 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router';
-import Login from '../../../imports/ui/components/Login.jsx';
+import Login from '../../ui/components/Login.jsx';
+// route components
+import AppContainer from '../../containers/AppContainer.jsx';
+import TrackerPageContainer from '../../containers/TrackerPageContainer.jsx';
+import SettingsContainer from '../../containers/SettingsContainer.jsx';
 
 const requireAuthAndSettings = (nextState, replace) => {
   if (!Meteor.loggingIn() && !Meteor.userId()) {
@@ -18,11 +22,6 @@ const requireAuthAndSettings = (nextState, replace) => {
     });
   }
 };
-
-// route components
-import AppContainer from '/imports/containers/AppContainer.jsx';
-import TrackerPageContainer from '/imports/containers/TrackerPageContainer.jsx';
-import SettingsContainer from '/imports/containers/SettingsContainer.jsx';
 
 // TODO: rearrange routes (separate login from root path and also separete onEnter function)
 const renderRoutes = () => (

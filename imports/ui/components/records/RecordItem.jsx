@@ -1,8 +1,8 @@
 import React from 'react';
-import { remove } from '../../../api/records/methods.js';
-import RecordTime from './RecordTime.jsx';
 import IconButton from 'material-ui/IconButton';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
+import { remove } from '../../../api/records/methods.js';
+import RecordTime from './RecordTime.jsx';
 
 /**
  * Component that shows a record, with its begin and end times.

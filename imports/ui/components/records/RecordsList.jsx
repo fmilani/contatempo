@@ -1,10 +1,10 @@
 import React from 'react';
 import { List } from 'material-ui/List';
+import Paper from 'material-ui/Paper';
+import moment from 'moment';
 import RecordItem from './RecordItem.jsx';
 import EmptyRecordsList from './EmptyRecordsList.jsx';
 import Title from '../Title.jsx';
-import Paper from 'material-ui/Paper';
-import moment from 'moment';
 
 /**
  * Shows time records in a list.

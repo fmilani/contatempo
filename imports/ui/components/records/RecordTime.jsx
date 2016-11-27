@@ -1,5 +1,4 @@
 import React from 'react';
-import { edit } from '../../../api/records/methods.js';
 import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment';
 import DatePicker from 'material-ui/DatePicker';
@@ -7,6 +6,7 @@ import Snackbar from 'material-ui/Snackbar';
 import TimePicker from 'material-ui/TimePicker';
 import ImageTimer from 'material-ui/svg-icons/image/timer';
 import { isValidEdition } from '../../../api/records/helpers';
+import { edit } from '../../../api/records/methods.js';
 
 /**
  * Component to show (and edit) a single record time (whether it's its begin or end time)

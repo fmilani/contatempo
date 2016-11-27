@@ -1,10 +1,9 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { i18n } from 'meteor/universe:i18n';
-// import Subheader from 'material-ui/Subheader';
-import Title from './Title.jsx';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import RaisedButton from 'material-ui/RaisedButton';
+import Title from './Title.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
 export default class Settings extends React.Component {

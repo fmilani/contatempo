@@ -1,5 +1,5 @@
 import { SyncedCron } from 'meteor/percolate:synced-cron';
-import { sendReports } from '../../api/email/server/reports.js';
+import sendReports from '../../api/email/server/reports.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
 SyncedCron.add({

@@ -22,6 +22,8 @@
       "import/resolver": "meteor"
     },
     "rules": {
+      "import/no-extraneous-dependencies": "off",
+      "import/extensions": ["off", "never"],
       "no-underscore-dangle": [
         "error",
         {

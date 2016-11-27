@@ -25,7 +25,7 @@ import TrackerPageContainer from '/imports/containers/TrackerPageContainer.jsx';
 import SettingsContainer from '/imports/containers/SettingsContainer.jsx';
 
 // TODO: rearrange routes (separate login from root path and also separete onEnter function)
-export const renderRoutes = () => (
+const renderRoutes = () => (
   <Router history={browserHistory}>
     <Route path="/" component={AppContainer}>
       <IndexRoute component={TrackerPageContainer} onEnter={requireAuthAndSettings} />
@@ -35,3 +35,5 @@ export const renderRoutes = () => (
     </Route>
   </Router>
 );
+
+export default renderRoutes;

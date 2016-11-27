@@ -8,7 +8,7 @@ import { getMonthInterval } from '../../helpers/date-helpers.js';
 import EndOfMonthEnum from '../../settings/EndOfMonthEnum';
 
 // TODO: split this file (maybe generate email template somewhere else?)
-export const sendReports = (date, endOfMonth) => {
+const sendReports = (date, endOfMonth) => {
   const endOfMonthValue = EndOfMonthEnum[endOfMonth] || EndOfMonthEnum.LAST_DAY;
   console.log(`Sending reports to users with end of month ${endOfMonthValue}`);
 
@@ -142,3 +142,5 @@ export const sendReports = (date, endOfMonth) => {
     });
   });
 };
+
+export default sendReports;

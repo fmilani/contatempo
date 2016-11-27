@@ -1,7 +1,7 @@
 // client entry point, imports all client code
 import { Meteor } from 'meteor/meteor';
 import { render } from 'react-dom';
-import { renderRoutes } from '/imports/startup/client/routes.jsx';
+import renderRoutes from '/imports/startup/client/routes.jsx';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 import { i18n } from 'meteor/universe:i18n';
 // import { moment } from 'meteor/momentjs:moment';

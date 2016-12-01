@@ -5,8 +5,6 @@ import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 SyncedCron.add({
   name: 'Send reports for users with end of month on last day',
   schedule(parser) {
-    console.log('ENV=', process.env.REPORTS_HOUR);
-    console.log(typeof process.env.REPORTS_HOUR);
     return parser.recur()
       .on(1)
       .dayOfMonth()

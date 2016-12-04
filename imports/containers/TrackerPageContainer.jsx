@@ -16,11 +16,13 @@ export default createContainer(({ params }) => {
 
   let getInterval = getDayInterval;
   let showTrackerButton = true;
+  let showShareReportButton = false;
   if (period === 'month') {
     getInterval = getMonthInterval;
   } else if (period === 'last_month') {
     getInterval = getLastMonthInterval;
     showTrackerButton = false;
+    showShareReportButton = true;
   }
 
   // reactive var to be update by the TrackerPage component in order to update the subscription
@@ -61,5 +63,6 @@ export default createContainer(({ params }) => {
     records,
     checkSubscriptionInterval,
     showTrackerButton,
+    showShareReportButton,
   };
 }, TrackerPageWaiter);

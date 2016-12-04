@@ -48,3 +48,14 @@ export const getMonthInterval = (date, endOfMonth) => {
  */
 export const getLastMonthInterval = (date, endOfMonth) =>
   getMonthInterval(moment(date).subtract(1, 'month'), endOfMonth);
+
+  /**
+   * Gets a date representing last month relative to given date
+   * @param {Date} date - the given date
+   * @param {String} endOfMonth - indicates when the month ends
+   * @return {Object} - a moment object of the last month
+   */
+export const getLastMonth = (date, endOfMonth) =>
+  (endOfMonth === EndOfMonthEnum.DAY_20
+    ? moment(date).subtract(20, 'days')
+    : moment(date).subtract(1, 'month'));

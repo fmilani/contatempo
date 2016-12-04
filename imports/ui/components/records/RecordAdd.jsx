@@ -142,7 +142,7 @@ export default class RecordAdd extends React.Component {
         </Dialog>
         <Snackbar
           // TODO: try to make this Snackbar reusable, as it is almost the same
-          // as the one on RecordTime component (aside from the state var)
+          // as the one on RecordTime and TrackerPage components
           open={this.state.errorOnInsertion}
           message={i18n.getTranslation('records.errorOnDatesMsg')}
           autoHideDuration={4000}

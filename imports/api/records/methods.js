@@ -4,6 +4,11 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import moment from 'moment';
 import Records from './records.js';
 import { isValidInsertion, isValidEdition } from './helpers';
+import {
+  getLastMonthInterval,
+  getLastMonth,
+} from '../helpers/date-helpers.js';
+import sendReportEmail from '../email/send-report-email.jsx';
 
 // the precision with which the record dates are saved. Any unit below this will be zero
 const PRECISION = 'seconds';
@@ -102,5 +107,73 @@ export const remove = new ValidatedMethod({
   }).validator(),
   run({ id }) {
     Records.remove(id);
+  },
+});
+
+/**
+ * Send the user's last month report via email.
+ * @param {Date} date - the reference date
+ * @param {String} userId - the id of the user
+ */
+export const shareLastMonthReport = new ValidatedMethod({
+  name: 'records.shareLastMonthReport',
+  validate: new SimpleSchema({
+    date: { type: Date },
+    userId: { type: String },
+  }).validator(),
+  run({ date, userId }) {
+    // prevent doing unnecessary client-side work
+    if (!Meteor.isServer) return;
+
+    const user = Meteor.users.findOne(userId);
+    // get the interval for a month before the reference date
+    const interval = getLastMonthInterval(date, user.settings.endOfMonth);
+
+    const lastMonth = getLastMonth(date, user.settings.endOfMonth);
+
+    // the reports counter are indexed by the year and month
+    const reportsSentCounterIndex = `${lastMonth.year()}${lastMonth.month() + 1}`;
+    let reportsSent = user.reportsSentCounter
+      ? user.reportsSentCounter[reportsSentCounterIndex] || 0
+      : 0;
+    const MAX_REPORTS_SEND = process.env.MAX_REPORTS_SEND || 3;
+    if (reportsSent >= MAX_REPORTS_SEND) {
+      throw new Meteor.Error('records.share.limitExceeded',
+        'The user already sent it\'s maximum of reports this month');
+    }
+    reportsSent += 1;
+    const string = `reportsSentCounter.${reportsSentCounterIndex}`;
+
+    // in case user doesn't still have any reports counter, we create the root
+    // object
+    let setObject = {
+      reportsSentCounter: { [reportsSentCounterIndex]: reportsSent },
+    };
+    // in case it does, we just update it
+    if (user.reportsSentCounter) {
+      setObject = {
+        [string]: reportsSent,
+      };
+    }
+    Meteor.users.update(user._id, {
+      $set: setObject,
+    });
+
+    // get the records for that interval
+    const records = Records.find({
+      begin: {
+        $gte: interval.start.toDate(),
+        $lte: interval.end.toDate(),
+      },
+      userId: user._id,
+    }, {
+      sort: { begin: 1 },
+    }).fetch();
+
+    sendReportEmail({
+      userName: user.profile.name,
+      monthString: lastMonth.format('MMMM'),
+      records,
+    });
   },
 });

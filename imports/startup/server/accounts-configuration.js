@@ -35,6 +35,7 @@ Accounts.onCreateUser((options, user) => {
 });
 
 // FIXME: deny user updates and create user api
+// (currently needed so users can update their settings)
 Meteor.users.allow({
   update() { return true; },
 });

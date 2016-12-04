@@ -19,6 +19,7 @@
     "day_20": "No dia 20"
   },
   "tracker_page": {
+    "share_report": "Enviar horas",
     "start": "Começar",
     "stop": "Parar"
   },
@@ -27,6 +28,8 @@
     "none": "Sem registros",
     "day": "Dia",
     "records": "Registros",
+    "reportsSentFeedback": "Relatório de horas enviado",
+    "sharelimitExceeded": "Limite de envios excedido",
     "begin": "Entrada",
     "end": "Saída",
     "add_title": "Novo horário",

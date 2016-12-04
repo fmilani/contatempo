@@ -25,6 +25,9 @@ Meteor.startup(() => {
   });
   i18n.setLocale('pt-BR');
 
+  // subscribe to how many reports the user has sent
+  Meteor.subscribe('user.reportsSentCounter');
+
   // wait for locale to be loaded to render the app
   i18n.onceChangeLocale(() => {
     Meteor.subscribe('user.settings', {

@@ -1,14 +1,17 @@
 {
   "name": "Contatempo",
-  "short_name": "Contatempo",
-  "start_url": ".",
+  "default_locale": "en-US",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#3F51B5",
   "theme_color": "#3F51B5",
   "description": "A simple time tracker app.",
   "lang": "en-US",
-  ​​"orientation": "portrait-primary",
   "icons": [{
+    "src": "/favicon64.png",
+    "sizes": "64x64",
+    "type": "image/png"
+    }, {
     "src": "/favicon72.png",
     "sizes": "72x72",
     "type": "image/png"

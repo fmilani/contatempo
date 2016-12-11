@@ -54,7 +54,7 @@ export default createContainer(({ params }) => {
       $lte: endInterval,
     },
   }, {
-    sort: { begin: 1 },
+    sort: { begin: -1 },
   }).fetch();
 
   return {

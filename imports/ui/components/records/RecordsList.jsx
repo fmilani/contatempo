@@ -1,11 +1,8 @@
 import React from 'react';
 import { List } from 'material-ui/List';
-import Paper from 'material-ui/Paper';
 import moment from 'moment';
-import RecordItem from './RecordItem.jsx';
 import EmptyRecordsList from './EmptyRecordsList.jsx';
-import Title from '../Title.jsx';
-
+import GroupedRecords from './GroupedRecords.jsx';
 /**
  * Shows time records in a list.
  *
@@ -17,30 +14,31 @@ export default class RecordsList extends React.Component {
 
   renderRecordsList() {
     const { records } = this.props;
-    let displayDay;
-    return (
-      // the marginBottom on the list is due to the RecordAdd's FAB
-      // so the user can see the last item of the list
-      <List style={{ marginBottom: '50px' }}>
-        {records.map((record, index) => {
-          // check if current record's day is the same of previous one to hide the day of the record
-          if (index > 0 &&
-            moment(record.begin).startOf('day')
-              .isSame(moment(records[index - 1].begin).startOf('day'))) {
-            displayDay = false;
-          } else {
-            displayDay = true;
-          }
+    const groupedRecords = [];
 
-          return (
+    let length;
+    records.forEach((record, index) => {
+      if (index > 0 &&
+        moment(record.begin).startOf('day')
+          .isSame(moment(records[index - 1].begin).startOf('day'))) {
+        groupedRecords[length - 1].push(record);
+      } else {
+        length = groupedRecords.push([]);
+        groupedRecords[length - 1].push(record);
+      }
+    });
+
+    return (
+      // the margin on bottom on the list is due to the RecordAdd's FAB
+      // so the user can see the last item of the list
+      <List style={{ margin: '15px 0px 70px' }}>
+        {
+          groupedRecords.map((sameDayRecords, index) =>
             <div key={index}>
-              {displayDay ? <Title title={moment(record.begin).calendar()} /> : null}
-              <Paper rounded={false} style={{ marginBottom: '15px' }}>
-                <RecordItem record={record} displayDay={false} />
-              </Paper>
-            </div>
-          );
-        })}
+              <GroupedRecords records={sameDayRecords} />
+            </div>,
+          )
+        }
       </List>
     );
   }
@@ -60,5 +58,8 @@ export default class RecordsList extends React.Component {
 }
 
 RecordsList.propTypes = {
-  records: React.PropTypes.array,
+  records: React.PropTypes.arrayOf(React.PropTypes.shape({
+    begin: React.PropTypes.instanceOf(Date),
+    end: React.PropTypes.instanceOf(Date),
+  })),
 };

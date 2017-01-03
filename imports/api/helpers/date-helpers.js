@@ -24,18 +24,20 @@ export const getDayInterval = (date) => {
 export const getMonthInterval = (date, endOfMonth) => {
   const endOfMonthValue = EndOfMonthEnum[endOfMonth] || EndOfMonthEnum.LAST_DAY;
   const ref = moment(date);
+
   const currentMonth = endOfMonthValue === EndOfMonthEnum.DAY_20
     ? moment(ref).subtract(20, 'days').add(1, 'month')
-        .month()
-    : moment(ref).month();
+    : moment(ref);
+
   const start = endOfMonthValue === EndOfMonthEnum.DAY_20
-    ? moment(ref).month(currentMonth - 1).date(21)
+    ? moment(currentMonth).subtract(1, 'month').date(21)
         .startOf('day')
-    : moment(ref).startOf('month');
+    : moment(currentMonth).startOf('month');
+
   const end = endOfMonthValue === EndOfMonthEnum.DAY_20
-    ? moment(ref).month(currentMonth).date(20)
+    ? moment(currentMonth).date(20)
         .endOf('day')
-    : moment(ref).endOf('month');
+    : moment(currentMonth).endOf('month');
 
   return { start, end };
 };

@@ -28,7 +28,8 @@ export default createContainer(({ params }) => {
   // reactive var to be update by the TrackerPage component in order to update the subscription
   // according to params
   const checkSubscriptionInterval = new ReactiveVar(moment(), (oldValue, newValue) => (
-    getInterval(oldValue).start.isSame(getInterval(newValue).start)
+    getInterval(oldValue, settings.endOfMonth).start
+      .isSame(getInterval(newValue, settings.endOfMonth).start)
   ));
   const subscriptionInterval = moment(checkSubscriptionInterval.get());
   const startInterval = getInterval(subscriptionInterval, settings.endOfMonth).start.toDate();

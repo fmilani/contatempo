@@ -11,7 +11,7 @@ if (Meteor.isServer) {
   chai.use(chaiDatetime);
   const expect = chai.expect;
 
-  describe('date-helpers', () => {
+  describe('helpers/date-helpers', () => {
     describe('getDayInterval', () => {
       // jan 18, 2016 00:00:00.000
       const expectedStart = new Date(2016, 0, 18, 0, 0, 0, 0);

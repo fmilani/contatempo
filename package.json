@@ -23,7 +23,10 @@
     },
     "rules": {
       "import/no-extraneous-dependencies": "off",
-      "import/extensions": ["off", "never"],
+      "import/extensions": [
+        "off",
+        "never"
+      ],
       "no-underscore-dangle": [
         "error",
         {
@@ -47,6 +50,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
+    "chai-datetime": "^1.4.1",
     "eslint": "^3.11.0",
     "eslint-config-airbnb": "^13.0.0",
     "eslint-import-resolver-meteor": "^0.3.4",

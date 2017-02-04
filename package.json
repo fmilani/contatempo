@@ -4,7 +4,8 @@
   "scripts": {
     "start": "meteor run",
     "lint": "eslint . --ext .js,.jsx",
-    "test": "spacejam test --driver-package practicalmeteor:mocha"
+    "test": "spacejam test --driver-package practicalmeteor::mocha-console-runner --coverage out_lcovonly",
+    "tdd": "meteor test --driver-package practicalmeteor:mocha --settings settings.coverage.json"
   },
   "eslintConfig": {
     "parser": "babel-eslint",
@@ -51,6 +52,7 @@
   "devDependencies": {
     "babel-eslint": "^7.1.1",
     "chai-datetime": "^1.4.1",
+    "coveralls": "^2.11.15",
     "eslint": "^3.11.0",
     "eslint-config-airbnb": "^13.0.0",
     "eslint-import-resolver-meteor": "^0.3.4",

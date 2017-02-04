@@ -4,7 +4,7 @@
   "scripts": {
     "start": "meteor run",
     "lint": "eslint . --ext .js,.jsx",
-    "pretest": "npm run lint --silent"
+    "test": "spacejam test --driver-package practicalmeteor:mocha"
   },
   "eslintConfig": {
     "parser": "babel-eslint",

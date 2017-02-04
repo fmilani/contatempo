@@ -4,7 +4,7 @@
   "scripts": {
     "start": "meteor run",
     "lint": "eslint . --ext .js,.jsx",
-    "test": "spacejam test --driver-package practicalmeteor::mocha-console-runner --coverage out_lcovonly",
+    "test": "spacejam test --driver-package practicalmeteor:mocha-console-runner --coverage out_lcovonly",
     "tdd": "meteor test --driver-package practicalmeteor:mocha --settings settings.coverage.json"
   },
   "eslintConfig": {

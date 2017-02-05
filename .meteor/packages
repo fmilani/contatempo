@@ -30,3 +30,7 @@ check@1.2.4
 shell-server@0.2.1
 percolate:synced-cron
 meteorhacks:aggregate
+practicalmeteor:mocha
+practicalmeteor:chai
+practicalmeteor:mocha-console-runner
+lmieulet:meteor-coverage

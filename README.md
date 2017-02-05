@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/fmilani/contatempo.svg?branch=master)](https://travis-ci.org/fmilani/contatempo)
+[![Coverage Status](https://coveralls.io/repos/github/fmilani/contatempo/badge.svg)](https://coveralls.io/github/fmilani/contatempo)
 # Contatempo
 
 A simple time tracker

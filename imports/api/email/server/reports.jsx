@@ -47,6 +47,7 @@ const sendReports = (date, endOfMonth) => {
 
       return {
         userName: user.profile.name,
+        userTimezone: user.settings.timezone,
         userEmail: user.profile.email,
         records: result.records,
       };
@@ -79,6 +80,7 @@ export const sendUserReport = (date, userId) => {
 
   sendReportEmail({
     userName: user.profile.name,
+    userTimezone: user.settings.timezone,
     monthString: lastMonth.format('MMMM'), // FIXME: this will print wrong month,
     records,
   });

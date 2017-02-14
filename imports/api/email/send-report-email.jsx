@@ -5,7 +5,7 @@ import { renderToString } from 'react-dom/server';
 import moment from 'moment';
 
 // TODO: split this file (maybe generate email template somewhere else?)
-const sendReportEmail = ({ userName, monthString, records }) => {
+const sendReportEmail = ({ userName, userTimezone, monthString, records }) => {
   // prevent calling Email method from client-side
   if (!Meteor.isServer) return;
 
@@ -78,9 +78,9 @@ const sendReportEmail = ({ userName, monthString, records }) => {
               {
                 records.map((record, index) => (
                   <tr key={index}>
-                    <td style={rowsStyle}>{moment(record.begin).format('DD/MM')}</td>
-                    <td style={rowsStyle}>{moment(record.begin).format('HH:mm')}</td>
-                    <td style={rowsStyle}>{moment(record.end).format('HH:mm')}</td>
+                    <td style={rowsStyle}>{moment(record.begin).tz(userTimezone).format('DD/MM')}</td>
+                    <td style={rowsStyle}>{moment(record.begin).tz(userTimezone).format('HH:mm')}</td>
+                    <td style={rowsStyle}>{moment(record.end).tz(userTimezone).format('HH:mm')}</td>
                   </tr>
                 ))
               }

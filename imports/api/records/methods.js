@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import Records from './records.js';
 import { isValidInsertion, isValidEdition } from './helpers';
 import {
@@ -129,6 +129,11 @@ export const shareLastMonthReport = new ValidatedMethod({
     // get the interval for a month before the reference date
     const interval = getLastMonthInterval(date, user.settings.endOfMonth);
 
+    // get the user timezone so we can calculate the correct records interval
+    const userTimezone = user.settings.timezone;
+    const timezoneOffset = moment.tz.zone(userTimezone).offset(moment(date).valueOf());
+    console.log('offset = ', timezoneOffset);
+
     const lastMonth = getLastMonth(date, user.settings.endOfMonth);
 
     // the reports counter are indexed by the year and month
@@ -159,11 +164,11 @@ export const shareLastMonthReport = new ValidatedMethod({
       $set: setObject,
     });
 
-    // get the records for that interval
+    // get the records for that interval (taking user timezone into account)
     const records = Records.find({
       begin: {
-        $gte: interval.start.toDate(),
-        $lte: interval.end.toDate(),
+        $gte: interval.start.add(timezoneOffset, 'minutes').toDate(),
+        $lte: interval.end.add(timezoneOffset, 'minutes').toDate(),
       },
       userId: user._id,
     }, {
@@ -172,6 +177,7 @@ export const shareLastMonthReport = new ValidatedMethod({
 
     sendReportEmail({
       userName: user.profile.name,
+      userTimezone,
       monthString: lastMonth.format('MMMM'),
       records,
     });

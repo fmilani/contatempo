@@ -1,8 +1,11 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { i18n } from 'meteor/universe:i18n';
+import moment from 'moment-timezone';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import RaisedButton from 'material-ui/RaisedButton';
+import AutoComplete from 'material-ui/AutoComplete';
+import Snackbar from 'material-ui/Snackbar';
 import Title from './Title.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
@@ -11,29 +14,65 @@ export default class Settings extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = props.settings || {};
-    this.state.showError = false;
+    const { endOfMonth, timezone } = props.settings;
+
+    this.state = {
+      endOfMonth,
+      showEndOfMonthError: !endOfMonth,
+      showTimezoneError: !timezone,
+      showSettingsSavedFeedback: false,
+    };
+    if (timezone) {
+      this.state.timezone = {
+        text: props.settings.timezone.replace(/_/g, ' ').replace(/\//g, ' - '),
+        value: props.settings.timezone,
+      };
+    }
 
     this.handleEndOfMonthChange = this.handleEndOfMonthChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
+    this.onNewRequest = this.onNewRequest.bind(this);
+  }
+
+  onNewRequest(changeRequest, index) {
+    if (index !== -1) {
+      this.setState({
+        timezone: changeRequest,
+        showTimezoneError: false,
+      });
+    } else {
+      // the user didn't select a valid timezone
+      this.setState({
+        timezone: null,
+        showTimezoneError: true,
+      });
+    }
   }
 
   handleEndOfMonthChange(event, value) {
-    this.setState({ endOfMonth: value, showError: false });
+    this.setState({ endOfMonth: value, showEndOfMonthError: false });
   }
 
   handleSave() {
-    if (!this.state.endOfMonth) {
-      this.setState({ showError: true });
+    this.setState({
+      showEndOfMonthError: !this.state.endOfMonth,
+      showTimezoneError: !this.state.timezone,
+    });
+    if (!this.state.endOfMonth || !this.state.timezone) {
       return;
     }
-    this.setState({ showError: false });
 
     const settings = {
       endOfMonth: this.state.endOfMonth,
+      timezone: this.state.timezone.value,
     };
     Meteor.users.update(Meteor.userId(), {
       $set: { settings },
+    }, (error) => {
+      if (!error) {
+        this.setState({ showSettingsSavedFeedback: true });
+        // this.context.router.push('/');
+      }
     });
   }
 
@@ -46,6 +85,9 @@ export default class Settings extends React.Component {
         marginBottom: 16,
       },
     };
+
+    let { timezone } = this.props.settings;
+    timezone = timezone || '';
     return (
       <div style={styles.page}>
         <Title title={i18n.getTranslation('settings.header')} />
@@ -67,13 +109,37 @@ export default class Settings extends React.Component {
         </RadioButtonGroup>
         <div
           style={{
-            visibility: this.state.showError ? 'visible' : 'hidden',
+            visibility: this.state.showEndOfMonthError ? 'visible' : 'hidden',
             fontSize: '14px',
             marginBottom: '20px',
             color: '#F44336', // TODO: red500
           }}
         >
-          {i18n.getTranslation('settings.error_msg')}
+          {i18n.getTranslation('settings.no_end_of_month_msg')}
+        </div>
+        <div>
+          <AutoComplete
+            floatingLabelText={i18n.getTranslation('settings.timezone_label')}
+            hintText={i18n.getTranslation('settings.timezone_hint')}
+            filter={AutoComplete.fuzzyFilter}
+            dataSource={moment.tz.names().map(tzName => ({
+              text: `${tzName.replace(/_/g, ' ').replace(/\//g, ' - ')}`,
+              value: tzName,
+            }))}
+            maxSearchResults={5}
+            onNewRequest={this.onNewRequest}
+            searchText={timezone.replace(/_/g, ' ').replace(/\//g, ' - ')}
+          />
+        </div>
+        <div
+          style={{
+            visibility: this.state.showTimezoneError ? 'visible' : 'hidden',
+            fontSize: '14px',
+            marginBottom: '20px',
+            color: '#F44336', // TODO: red500
+          }}
+        >
+          {i18n.getTranslation('settings.no_timezone_msg')}
         </div>
         <RaisedButton
           primary
@@ -83,6 +149,19 @@ export default class Settings extends React.Component {
             marginTop: '20px',
           }}
         />
+        <Snackbar
+          open={this.state.showSettingsSavedFeedback}
+          message={i18n.getTranslation('settings.save_success')}
+          autoHideDuration={2000}
+          onRequestClose={() => {
+            this.setState({ showSettingsSavedFeedback: false });
+            // TODO: we're changing route here so the Snackbar has a chance
+            // to appear to the user (ideally we want to change route right after
+            // settings are saved, but then we need another way to show a
+            // feedback to the user)
+            this.context.router.push('/');
+          }}
+        />
       </div>
     );
   }
@@ -90,4 +169,8 @@ export default class Settings extends React.Component {
 
 Settings.propTypes = {
   settings: React.PropTypes.object,
+};
+
+Settings.contextTypes = {
+  router: React.PropTypes.object,
 };

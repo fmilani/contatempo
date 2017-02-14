@@ -9,13 +9,20 @@ import AppContainer from '../../containers/AppContainer.jsx';
 import TrackerPageContainer from '../../containers/TrackerPageContainer.jsx';
 import SettingsContainer from '../../containers/SettingsContainer.jsx';
 
+// checks if user has all needed settings set
+const userHasAllSettings = () => {
+  const { endOfMonth, timezone } = Meteor.user().settings;
+
+  return endOfMonth && timezone;
+};
+
 const requireAuthAndSettings = (nextState, replace) => {
   if (!Meteor.loggingIn() && !Meteor.userId()) {
     replace({
       pathname: '/login',
       state: { nextPathname: nextState.location.pathname },
     });
-  } else if (Meteor.user() && !Meteor.user().settings) {
+  } else if (Meteor.user() && !userHasAllSettings()) {
     replace({
       pathname: '/settings',
       state: { nextPathname: nextState.location.pathname },

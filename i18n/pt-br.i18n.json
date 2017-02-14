@@ -13,7 +13,11 @@
     "logout": "Sair"
   },
   "settings": {
-    "error_msg": "Por favor, indique quando termina o seu mês",
+    "no_end_of_month_msg": "Por favor, indique quando termina o seu mês",
+    "no_timezone_msg": "Por favor, indique seu fuso horário desejado",
+    "timezone_label": "Fuso horário",
+    "timezone_hint": "ex.: Sao Paulo",
+    "save_success": "Configurações salvas com sucesso",
     "header": "Quando termina o seu mês?",
     "last_day": "No último dia",
     "day_20": "No dia 20"

@@ -31,6 +31,9 @@ Accounts.onCreateUser((options, user) => {
     newUser.profile.email = data.email;
   });
 
+  // create the user settings
+  newUser.settings = {};
+
   return newUser;
 });
 

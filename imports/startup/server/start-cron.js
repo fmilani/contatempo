@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import { SyncedCron } from 'meteor/percolate:synced-cron';
 import sendReports from '../../api/email/server/reports.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
@@ -8,7 +9,7 @@ SyncedCron.add({
     return parser.recur()
       .on(1)
       .dayOfMonth()
-      .on(Number(process.env.REPORTS_HOUR))
+      .on(Meteor.settings.private.reportsHour)
       .hour();
   },
   job() {
@@ -22,7 +23,7 @@ SyncedCron.add({
     return parser.recur()
       .on(21)
       .dayOfMonth()
-      .on(Number(process.env.REPORTS_HOUR))
+      .on(Meteor.settings.private.reportsHour)
       .hour();
   },
   job() {

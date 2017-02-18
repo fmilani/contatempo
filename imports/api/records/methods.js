@@ -141,8 +141,7 @@ export const shareLastMonthReport = new ValidatedMethod({
     let reportsSent = user.reportsSentCounter
       ? user.reportsSentCounter[reportsSentCounterIndex] || 0
       : 0;
-    const MAX_REPORTS_SEND = process.env.MAX_REPORTS_SEND || 3;
-    if (reportsSent >= MAX_REPORTS_SEND) {
+    if (reportsSent >= Meteor.settings.public.maxReportsSend) {
       throw new Meteor.Error('records.share.limitExceeded',
         'The user already sent it\'s maximum of reports this month');
     }

@@ -45,11 +45,11 @@ const sendReportEmail = ({ userName, userTimezone, monthString, records }) => {
     verticalAlign: 'top',
   };
 
-  console.log(`Sending ${userName} report to ${process.env.REPORTS_MAIL}`);
+  console.log(`Sending ${userName} report to ${Meteor.settings.private.reportsMail}`);
 
   Email.send({
     from: 'Contatempo@contatempo.com',
-    to: [process.env.REPORTS_MAIL, process.env.REPORTS_MAIL_2],
+    to: [Meteor.settings.private.reportsMail, Meteor.settings.private.reportsMail2],
     subject: `Relatório de horas - ${userName} - ${monthString}`,
     html: renderToString(
       <div>

@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "start": "meteor run",
+    "dev": "TZ=Europe/London meteor --settings settings.json",
     "lint": "eslint . --ext .js,.jsx",
     "test": "spacejam test --driver-package practicalmeteor:mocha-console-runner --coverage out_lcovonly",
     "tdd": "meteor test --driver-package practicalmeteor:mocha --settings settings.coverage.json"

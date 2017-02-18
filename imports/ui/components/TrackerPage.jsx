@@ -149,10 +149,9 @@ export default class TrackerPage extends React.Component {
       lineHeight: buttonHeight,
     };
 
-    // TODO: create a config object that holds all env var and their defaults
-    const MAX_REPORTS_SEND = process.env.MAX_REPORTS_SEND || 3;
-    const reportsLeft =
-      MAX_REPORTS_SEND - this.context.currentUser.reportsSentCounter;
+    const maxReportsSend = Meteor.settings.public.maxReportsSend;
+    const reportsSentCounter = this.context.currentUser.reportsSentCounter;
+    const reportsLeft = maxReportsSend - reportsSentCounter;
 
     const shareReportButtonLabel =
       `${i18n.getTranslation('tracker_page.share_report')} (${reportsLeft})`;

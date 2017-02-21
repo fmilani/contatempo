@@ -15,8 +15,8 @@ const sendReports = (date, endOfMonth) => {
   const interval = getMonthInterval(actualDate, endOfMonthValue);
   console.log(`
     The reports will include records starting
-    from: ${interval.start.format('DD/MM')}
-    to: ${interval.end.format('DD/MM')}
+    from: ${interval.start.format('DD/MM/YYYY')}
+    to: ${interval.end.format('DD/MM/YYYY')}
   `);
   const results = Records.aggregate([{
     $match: {
@@ -50,6 +50,10 @@ const sendReports = (date, endOfMonth) => {
         userTimezone: user.settings.timezone,
         userEmail: user.profile.email,
         records: result.records,
+        interval: {
+          start: interval.start.format('DD/MM/YYYY'),
+          end: interval.end.format('DD/MM/YYYY'),
+        },
       };
     });
 
@@ -83,5 +87,9 @@ export const sendUserReport = (date, userId) => {
     userTimezone: user.settings.timezone,
     monthString: lastMonth.format('MMMM'), // FIXME: this will print wrong month,
     records,
+    interval: {
+      start: interval.start.format('DD/MM/YYYY'),
+      end: interval.end.format('DD/MM/YYYY'),
+    },
   });
 };

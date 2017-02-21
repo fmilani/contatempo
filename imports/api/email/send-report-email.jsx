@@ -1,49 +1,17 @@
 import { Meteor } from 'meteor/meteor';
 import { Email } from 'meteor/email';
-import React from 'react';
-import { renderToString } from 'react-dom/server';
-import moment from 'moment';
+import reportEmail from './report-email.jsx';
 
 // TODO: split this file (maybe generate email template somewhere else?)
-const sendReportEmail = ({ userName, userTimezone, monthString, records }) => {
+const sendReportEmail = ({
+  userName,
+  userTimezone,
+  monthString,
+  records,
+  interval,
+}) => {
   // prevent calling Email method from client-side
   if (!Meteor.isServer) return;
-
-  let totalTime = records
-    .map(record => moment(record.end).diff(moment(record.begin)))
-    .reduce((l, n) => l + n, 0);
-  totalTime = totalTime / 1000 / 60 / 60;
-  totalTime = Math.round(totalTime * 100) / 100;
-  // TODO: add i18n to email sent (including date formats)
-
-  const headersStyle = {
-    fontSize: 14,
-    fontWeight: 'bold',
-    padding: '10px 5px',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    overflow: 'hidden',
-    wordBreak: 'normal',
-    borderColor: '#999',
-    color: '#fff',
-    backgroundColor: '#26ADE4',
-    textAlign: 'center',
-    verticalAlign: 'top',
-  };
-
-  const rowsStyle = {
-    fontSize: 12,
-    padding: '10px 5px',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    overflow: 'hidden',
-    wordBreak: 'normal',
-    borderColor: '#999',
-    color: '#444',
-    backgroundColor: '#F7FDFA',
-    textAlign: 'center',
-    verticalAlign: 'top',
-  };
 
   console.log(`Sending ${userName} report to ${Meteor.settings.private.reportsMail}`);
 
@@ -51,44 +19,7 @@ const sendReportEmail = ({ userName, userTimezone, monthString, records }) => {
     from: 'Contatempo@contatempo.com',
     to: [Meteor.settings.private.reportsMail, Meteor.settings.private.reportsMail2],
     subject: `Relatório de horas - ${userName} - ${monthString}`,
-    html: renderToString(
-      <div>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, user-scalable=no" />
-        <title />
-        <div style={{ maxWidth: 600, margin: '0px auto', backgroundColor: 'white', padding: 10 }}>
-          <p>
-            Total de horas trabalhadas:
-            <strong style={{ fontSize: 26 }}>{totalTime}</strong>
-          </p>
-          <table
-            style={{
-              borderCollapse: 'collapse',
-              borderSpacing: 0,
-              borderColor: '#999',
-              margin: '0px auto',
-            }}
-          >
-            <tbody>
-              <tr>
-                <th style={headersStyle}>Dia</th>
-                <th style={headersStyle}>Entrada</th>
-                <th style={headersStyle}>Saída</th>
-              </tr>
-              {
-                records.map((record, index) => (
-                  <tr key={index}>
-                    <td style={rowsStyle}>{moment(record.begin).tz(userTimezone).format('DD/MM')}</td>
-                    <td style={rowsStyle}>{moment(record.begin).tz(userTimezone).format('HH:mm')}</td>
-                    <td style={rowsStyle}>{moment(record.end).tz(userTimezone).format('HH:mm')}</td>
-                  </tr>
-                ))
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>,
-    ),
+    html: reportEmail({ userName, userTimezone, records, interval }),
   });
 };
 

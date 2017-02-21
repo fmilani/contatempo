@@ -131,8 +131,8 @@ export const shareLastMonthReport = new ValidatedMethod({
 
     // get the user timezone so we can calculate the correct records interval
     const userTimezone = user.settings.timezone;
-    const timezoneOffset = moment.tz.zone(userTimezone).offset(moment(date).valueOf());
-    console.log('offset = ', timezoneOffset);
+    const timezoneOffset = moment.tz.zone(userTimezone)
+      .offset(moment(date).valueOf());
 
     const lastMonth = getLastMonth(date, user.settings.endOfMonth);
 
@@ -179,6 +179,10 @@ export const shareLastMonthReport = new ValidatedMethod({
       userTimezone,
       monthString: lastMonth.format('MMMM'),
       records,
+      interval: {
+        start: interval.start.format('DD/MM/YYYY'),
+        end: interval.end.format('DD/MM/YYYY'),
+      },
     });
   },
 });

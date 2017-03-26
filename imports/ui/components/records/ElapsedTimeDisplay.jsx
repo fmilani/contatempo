@@ -1,6 +1,5 @@
 import React from 'react';
 import moment from 'moment';
-import Paper from 'material-ui/Paper';
 import 'moment-duration-format';
 
 /**
@@ -14,12 +13,12 @@ export default class ElapsedTimeDisplay extends React.Component {
     super(props);
 
     // bindings
-    this.formatHourMinute = this.formatHourMinute.bind(this);
+    this.formatHourAndMinute = this.formatHourAndMinute.bind(this);
     this.formatSeconds = this.formatSeconds.bind(this);
   }
 
   // formats the time prop with the hours and minutes (hh:mm)
-  formatHourMinute() {
+  formatHourAndMinute() {
     return moment.duration(this.props.time).format('HH:mm', { trim: false });
   }
 
@@ -30,24 +29,28 @@ export default class ElapsedTimeDisplay extends React.Component {
   }
 
   render() {
-    const paperStyle = {
-      textAlign: 'center',
-      padding: '20px 0px',
-      margin: '20px 0px',
-    };
-
-    const secondsStyle = {
-      fontSize: '18px',
+    const styles = {
+      hoursMinutes: {
+        fontSize: 24,
+      },
+      seconds: {
+        fontSize: 14,
+      },
     };
 
     return (
-      <Paper style={paperStyle}>
-        <h1>{this.formatHourMinute()}<span style={secondsStyle}>{this.formatSeconds()}</span></h1>
-      </Paper>
+      <div>
+        <span style={styles.hoursMinutes}>{this.formatHourAndMinute()}</span>
+        <span style={styles.seconds}>{this.formatSeconds()}</span>
+      </div>
     );
   }
 }
 
 ElapsedTimeDisplay.propTypes = {
   time: React.PropTypes.number,
+};
+
+ElapsedTimeDisplay.defaultProps = {
+  time: 0,
 };

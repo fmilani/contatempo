@@ -6,7 +6,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import { green700, red700 } from 'material-ui/styles/colors';
 import { _ } from 'lodash';
 import Snackbar from 'material-ui/Snackbar';
-import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
+import ElapsedTimeDisplay from './records/ElapsedTimeDisplay.jsx';
 import RecordsList from './records/RecordsList.jsx';
 import RecordAdd from './records/RecordAdd.jsx';
 import { insert, complete, shareLastMonthReport } from '../../api/records/methods.js';

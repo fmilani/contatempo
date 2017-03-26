@@ -18,3 +18,10 @@ Meteor.publish('records.interval', function recordsInterval({ start, end }) {
     },
   });
 });
+
+Meteor.publish('records.incomplete', function incomplete() {
+  return Records.find({
+    userId: this.userId,
+    end: null,
+  });
+});

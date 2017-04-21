@@ -1,7 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 import { createContainer } from 'meteor/react-meteor-data';
-import moment from 'moment';
-import { ReactiveVar } from 'meteor/reactive-var';
 import Now from '../ui/components/records/Now.jsx';
 import Records from '../api/records/records.js';
 

@@ -1,6 +1,8 @@
 import React from 'react';
+import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment';
 import Paper from 'material-ui/Paper';
+import Subheader from 'material-ui/Subheader';
 import 'moment-duration-format';
 import Spinner from '../Spinner.jsx';
 import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
@@ -19,6 +21,10 @@ export default class Now extends React.Component {
       timer: null,
       now: moment(),
     };
+
+    // the minimum time needed so user can stop recording after it started
+    this.MINIMUM_TIME_TO_STOP = 1000;
+
     // bindings
     this.tick = this.tick.bind(this);
   }
@@ -66,8 +72,7 @@ export default class Now extends React.Component {
       paper: {
         display: 'flex',
         alignItems: 'center',
-        padding: 10,
-        margin: '20px 0px',
+        padding: '10px 16px',
       },
       nowText: {
         fontSize: 16,
@@ -80,20 +85,22 @@ export default class Now extends React.Component {
 
     return (
       loading ? <Spinner /> :
-      <Paper style={styles.paper}>
-        <span style={styles.nowText}>Agora:</span>
-        <ElapsedTimeDisplay time={elapsedTime} />
-        <div style={styles.buttonWrapper}>
-          {
-            currentRecord ?
-              <StopButton
-                currentRecordId={currentRecord._id}
-                canStop={now.diff(currentRecord.begin) >= 1000}
-              /> :
-              <StartButton />
-          }
-        </div>
-      </Paper>
+      <div>
+        <Subheader>{i18n.getTranslation('common.now')}</Subheader>
+        <Paper style={styles.paper}>
+          <ElapsedTimeDisplay time={elapsedTime} />
+          <div style={styles.buttonWrapper}>
+            {
+              currentRecord ?
+                <StopButton
+                  currentRecordId={currentRecord._id}
+                  canStop={now.diff(currentRecord.begin) >= this.MINIMUM_TIME_TO_STOP}
+                /> :
+                <StartButton />
+            }
+          </div>
+        </Paper>
+      </div>
     );
   }
 }

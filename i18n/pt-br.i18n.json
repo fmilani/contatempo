@@ -2,11 +2,12 @@
   "_locale": "pt-BR",
   "common": {
     "cancel": "Cancelar",
-    "today": "Hoje",
-    "this_month": "Este mês",
     "last_month": "Último mês",
+    "now": "Agora",
     "save": "Salvar",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "this_month": "Este mês",
+    "today": "Hoje"
   },
   "drawer": {
     "track_time": "Contar tempo",

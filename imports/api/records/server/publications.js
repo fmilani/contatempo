@@ -23,5 +23,7 @@ Meteor.publish('records.incomplete', function incomplete() {
   return Records.find({
     userId: this.userId,
     end: null,
+  }, {
+    sort: { begin: 1 },
   });
 });

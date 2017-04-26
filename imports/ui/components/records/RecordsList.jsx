@@ -1,6 +1,7 @@
 import React from 'react';
 import { List } from 'material-ui/List';
 import moment from 'moment';
+import Subheader from 'material-ui/Subheader';
 import EmptyRecordsList from './EmptyRecordsList.jsx';
 import GroupedRecords from './GroupedRecords.jsx';
 /**
@@ -13,7 +14,7 @@ import GroupedRecords from './GroupedRecords.jsx';
 export default class RecordsList extends React.Component {
 
   renderRecordsList() {
-    const { records } = this.props;
+    const { records, title } = this.props;
     const groupedRecords = [];
 
     let length;
@@ -32,6 +33,7 @@ export default class RecordsList extends React.Component {
       // the margin on bottom on the list is due to the RecordAdd's FAB
       // so the user can see the last item of the list
       <List style={{ margin: '15px 0px 70px' }}>
+        { title ? <Subheader>{title}</Subheader> : null }
         {
           groupedRecords.map((sameDayRecords, index) =>
             <div key={index}>
@@ -62,4 +64,10 @@ RecordsList.propTypes = {
     begin: React.PropTypes.instanceOf(Date),
     end: React.PropTypes.instanceOf(Date),
   })),
+  title: React.PropTypes.string,
+};
+
+RecordsList.defaultProps = {
+  records: [],
+  title: undefined,
 };

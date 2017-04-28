@@ -27,7 +27,7 @@ export default class GroupedRecords extends React.Component {
   render() {
     const { records } = this.props;
     return (
-      <Card style={{ marginBottom: '15px' }}>
+      <Card rounded={false}>
         <CardHeader
           title={moment(records[0].begin).calendar()}
           subtitle={moment.duration(this.getCompleteElapsed()).format('HH:mm:ss', { trim: false })}
@@ -36,8 +36,8 @@ export default class GroupedRecords extends React.Component {
         />
         <CardText expandable>
           {
-            records.map((record, index) =>
-              <RecordItem key={index} record={record} displayDay={false} />,
+            records.map(record =>
+              <RecordItem key={record._id} record={record} displayDay={false} />,
             )
           }
         </CardText>
@@ -50,5 +50,5 @@ GroupedRecords.propTypes = {
   records: React.PropTypes.arrayOf(React.PropTypes.shape({
     begin: React.PropTypes.instanceOf(Date),
     end: React.PropTypes.instanceOf(Date),
-  })),
+  })).isRequired,
 };

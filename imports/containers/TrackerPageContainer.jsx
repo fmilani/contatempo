@@ -4,6 +4,7 @@ import moment from 'moment';
 import { ReactiveVar } from 'meteor/reactive-var';
 import TrackerPageWaiter from '../ui/components/TrackerPageWaiter.jsx';
 import Records from '../api/records/records.js';
+import intervalRecords from '../queries/records/interval-records';
 import {
   getDayInterval,
   getMonthInterval,
@@ -49,14 +50,8 @@ export default createContainer(({ params }) => {
   }, {
     sort: { begin: 1 },
   }).fetch()[0];
-  const records = Records.find({
-    begin: {
-      $gte: startInterval,
-      $lte: endInterval,
-    },
-  }, {
-    sort: { begin: -1 },
-  }).fetch();
+  const query = intervalRecords({ start: startInterval, end: endInterval });
+  const records = Records.find(query.find, query.options).fetch();
 
   return {
     loading,

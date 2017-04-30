@@ -8,6 +8,7 @@ import Login from '../../ui/components/Login.jsx';
 import AppContainer from '../../containers/AppContainer.jsx';
 import TrackerPageContainer from '../../containers/TrackerPageContainer.jsx';
 import SettingsContainer from '../../containers/SettingsContainer.jsx';
+import NowPage from '../../ui/components/records/NowPage.jsx';
 
 // checks if user has all needed settings set
 const userHasAllSettings = () => {
@@ -37,6 +38,7 @@ const renderRoutes = () => (
       <IndexRoute component={TrackerPageContainer} onEnter={requireAuthAndSettings} />
       <Route path="/login" component={Login} />
       <Route path="/settings" component={SettingsContainer} />
+      <Route path="/now" component={NowPage} onEnter={requireAuthAndSettings} />
       <Route path="/:period" component={TrackerPageContainer} onEnter={requireAuthAndSettings} />
     </Route>
   </Router>

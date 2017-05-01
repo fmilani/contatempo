@@ -75,7 +75,7 @@ export default class AppDrawer extends React.Component {
           <MenuItem onTouchTap={() => this.handleRedirect('/day')}>
             <T>common.today</T>
           </MenuItem>
-          <MenuItem onTouchTap={() => this.handleRedirect('/month')}>
+          <MenuItem onTouchTap={() => this.handleRedirect('/this_month')}>
             <T>common.this_month</T>
           </MenuItem>
           <MenuItem onTouchTap={() => this.handleRedirect('/last_month')}>

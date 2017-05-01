@@ -18,7 +18,7 @@ export default createContainer(({ params }) => {
   let getInterval = getDayInterval;
   let showTrackerButton = true;
   let showShareReportButton = false;
-  if (period === 'month') {
+  if (period === 'this_month') {
     getInterval = getMonthInterval;
   } else if (period === 'last_month') {
     getInterval = getLastMonthInterval;

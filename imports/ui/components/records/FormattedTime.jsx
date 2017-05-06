@@ -3,11 +3,12 @@ import moment from 'moment';
 import 'moment-duration-format';
 
 /**
- * Displays the elapsed time, passed as a prop, with some nice format.
+ * Displays a time with some nice format.
  *
- * @prop {number} time - the elapsed time, in milliseconds
+ * @prop {number} time - the time to be formatted, in milliseconds
+ * @prop {number} size - the display size of the formatted time
  */
-export default class ElapsedTimeDisplay extends React.Component {
+export default class FormattedTime extends React.Component {
 
   constructor(props) {
     super(props);
@@ -29,12 +30,13 @@ export default class ElapsedTimeDisplay extends React.Component {
   }
 
   render() {
+    const { size } = this.props;
     const styles = {
       hoursMinutes: {
-        fontSize: 24,
+        fontSize: size,
       },
       seconds: {
-        fontSize: 14,
+        fontSize: size - 12,
       },
     };
 
@@ -47,10 +49,12 @@ export default class ElapsedTimeDisplay extends React.Component {
   }
 }
 
-ElapsedTimeDisplay.propTypes = {
+FormattedTime.propTypes = {
   time: React.PropTypes.number,
+  size: React.PropTypes.number,
 };
 
-ElapsedTimeDisplay.defaultProps = {
+FormattedTime.defaultProps = {
   time: 0,
+  size: 24,
 };

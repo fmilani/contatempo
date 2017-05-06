@@ -5,7 +5,7 @@ import Paper from 'material-ui/Paper';
 import Subheader from 'material-ui/Subheader';
 import 'moment-duration-format';
 import Spinner from '../Spinner.jsx';
-import ElapsedTimeDisplay from './ElapsedTimeDisplay.jsx';
+import FormattedTime from './FormattedTime.jsx';
 import StartButton from './StartButton.jsx';
 import StopButton from './StopButton.jsx';
 
@@ -88,7 +88,7 @@ export default class Now extends React.Component {
       <div>
         <Subheader>{i18n.getTranslation('common.now')}</Subheader>
         <Paper style={styles.paper}>
-          <ElapsedTimeDisplay time={elapsedTime} />
+          <FormattedTime time={elapsedTime} />
           <div style={styles.buttonWrapper}>
             {
               currentRecord ?

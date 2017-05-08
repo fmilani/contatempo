@@ -14,6 +14,12 @@
     "track_time": "Contar tempo",
     "logout": "Sair"
   },
+  "period": {
+    "last_month": "Último mês",
+    "last_week": "Última semana",
+    "this_month": "Este mês",
+    "this_week": "Esta semana"
+  },
   "settings": {
     "no_end_of_month_msg": "Por favor, indique quando termina o seu mês",
     "no_timezone_msg": "Por favor, indique seu fuso horário desejado",

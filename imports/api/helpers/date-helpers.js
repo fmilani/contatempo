@@ -16,6 +16,20 @@ export const getDayInterval = (date) => {
 };
 
 /**
+ * Gets the week interval of the given date
+ * @param {Date} date - the given date
+ * @return {Object} - an object representing the interval with start and end dates
+ */
+export const getWeekInterval = (date) => {
+  const ref = moment(date);
+
+  const start = moment(ref).startOf('week');
+  const end = moment(ref).endOf('week');
+
+  return { start, end };
+};
+
+/**
  * Gets the month interval of the given date
  * @param {Date} date - the given date
  * @param {String} endOfMonth - indicates when the month ends
@@ -38,6 +52,20 @@ export const getMonthInterval = (date, endOfMonth) => {
     ? moment(currentMonth).date(20)
         .endOf('day')
     : moment(currentMonth).endOf('month');
+
+  return { start, end };
+};
+
+/**
+ * Gets the last week interval of the given date
+ * @param {Date} date - the given date
+ * @return {Object} - an object representing the interval with start and end dates
+ */
+export const getLastWeekInterval = (date) => {
+  const ref = moment(date);
+
+  const start = moment(ref).subtract(7, 'days').startOf('week');
+  const end = moment(ref).subtract(7, 'days').endOf('week');
 
   return { start, end };
 };

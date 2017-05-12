@@ -30,9 +30,7 @@ export default class RecordsList extends React.Component {
     });
 
     return (
-      // the margin on bottom on the list is due to the RecordAdd's FAB
-      // so the user can see the last item of the list
-      <List style={{ margin: '15px 0px 70px' }}>
+      <List style={{ padding: 0 }}>
         { title ? <Subheader>{title}</Subheader> : null }
         {
           groupedRecords.map((sameDayRecords, index) =>

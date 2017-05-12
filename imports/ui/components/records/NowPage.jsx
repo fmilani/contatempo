@@ -8,7 +8,9 @@ import RecentRecordsContainer from '../../../containers/RecentRecordsContainer.j
 const NowPage = () => (
   <div>
     <NowContainer />
-    <RecentRecordsContainer />
+    <div style={{ marginTop: 15 }}>
+      <RecentRecordsContainer />
+    </div>
   </div>
 );
 

@@ -47,6 +47,7 @@ export default class AppDrawer extends React.Component {
           open={this.state.open}
           docked={false}
           onRequestChange={open => this.setState({ open })}
+          containerStyle={{ zIndex: 10000 }}
         >
           {Meteor.user() ? (
             <div

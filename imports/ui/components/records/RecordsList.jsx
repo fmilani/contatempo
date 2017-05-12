@@ -33,8 +33,8 @@ export default class RecordsList extends React.Component {
       <List style={{ padding: 0 }}>
         { title ? <Subheader>{title}</Subheader> : null }
         {
-          groupedRecords.map((sameDayRecords, index) =>
-            <div key={index}>
+          groupedRecords.map(sameDayRecords =>
+            <div key={sameDayRecords[0]._id}>
               <GroupedRecords records={sameDayRecords} />
             </div>,
           )

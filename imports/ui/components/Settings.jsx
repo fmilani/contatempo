@@ -1,5 +1,6 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
+import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment-timezone';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
@@ -9,7 +10,7 @@ import Snackbar from 'material-ui/Snackbar';
 import Title from './Title.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
-export default class Settings extends React.Component {
+class Settings extends React.Component {
 
   constructor(props) {
     super(props);
@@ -71,7 +72,6 @@ export default class Settings extends React.Component {
     }, (error) => {
       if (!error) {
         this.setState({ showSettingsSavedFeedback: true });
-        // this.context.router.push('/');
       }
     });
   }
@@ -159,7 +159,7 @@ export default class Settings extends React.Component {
             // to appear to the user (ideally we want to change route right after
             // settings are saved, but then we need another way to show a
             // feedback to the user)
-            this.context.router.push('/');
+            this.props.router.push('/');
           }}
         />
       </div>
@@ -168,9 +168,13 @@ export default class Settings extends React.Component {
 }
 
 Settings.propTypes = {
-  settings: React.PropTypes.object,
+  router: React.PropTypes.shape({
+    push: React.PropTypes.func,
+  }).isRequired,
+  settings: React.PropTypes.shape({
+    endOfMonth: React.PropTypes.string,
+    timezone: React.PropTypes.string,
+  }).isRequired,
 };
 
-Settings.contextTypes = {
-  router: React.PropTypes.object,
-};
+export default withRouter(Settings);

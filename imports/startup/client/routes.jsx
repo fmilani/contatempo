@@ -9,7 +9,7 @@ import Login from '../../ui/components/Login.jsx';
 import AppContainer from '../../containers/AppContainer.jsx';
 import HistoryPageContainer from '../../containers/HistoryPageContainer.jsx';
 import SettingsContainer from '../../containers/SettingsContainer.jsx';
-import NowPage from '../../ui/components/records/NowPage.jsx';
+import NowPage from '../../ui/pages/NowPage.jsx';
 
 // checks if user has all needed settings set
 const userHasAllSettings = () => {

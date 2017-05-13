@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { createContainer } from 'meteor/react-meteor-data';
 import moment from 'moment';
-import HistoryPage from '../ui/components/HistoryPage.jsx';
+import HistoryPage from '../ui/pages/HistoryPage.jsx';
 import Records from '../api/records/records.js';
 import intervalRecords from '../queries/records/interval-records';
 import {

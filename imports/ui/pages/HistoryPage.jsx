@@ -1,9 +1,9 @@
 import React from 'react';
 import moment from 'moment';
 import { i18n } from 'meteor/universe:i18n';
-import BigTimeDisplay from './records/BigTimeDisplay.jsx';
-import RecordsList from './records/RecordsList.jsx';
-import Spinner from './Spinner.jsx';
+import BigTimeDisplay from '../components/records/BigTimeDisplay.jsx';
+import RecordsList from '../components/records/RecordsList.jsx';
+import Spinner from '../components/Spinner.jsx';
 
 /**
  * Component to display the user's history of records
@@ -25,7 +25,7 @@ export default class HistoryPage extends React.Component {
   }
 
   render() {
-    const { loading } = this.props;
+    const { loading, records } = this.props;
     return (
       <div>
         <BigTimeDisplay
@@ -36,7 +36,7 @@ export default class HistoryPage extends React.Component {
           {
             loading
               ? <Spinner />
-              : <RecordsList records={this.props.records} />
+              : <RecordsList records={records} />
           }
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
+import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import Drawer from 'material-ui/Drawer';
 import { List, ListItem } from 'material-ui/List';
@@ -11,8 +12,7 @@ import HistoryIcon from 'material-ui/svg-icons/action/history';
 import Divider from 'material-ui/Divider';
 import URLS from '../../api/helpers/urls.js';
 
-
-export default class AppDrawer extends React.Component {
+class AppDrawer extends React.Component {
 
   constructor(props) {
     super(props);
@@ -26,7 +26,7 @@ export default class AppDrawer extends React.Component {
   }
 
   handleRedirect(route) {
-    this.context.router.push(route);
+    this.props.router.push(route);
     this.handleClose();
   }
 
@@ -137,6 +137,9 @@ export default class AppDrawer extends React.Component {
 }
 
 AppDrawer.propTypes = {
+  router: React.PropTypes.shape({
+    push: React.PropTypes.func,
+  }).isRequired,
   userName: React.PropTypes.string,
   userPictureUrl: React.PropTypes.string,
 };
@@ -146,6 +149,4 @@ AppDrawer.defaultProps = {
   userPictureUrl: null,
 };
 
-AppDrawer.contextTypes = {
-  router: React.PropTypes.object,
-};
+export default withRouter(AppDrawer, { withRef: true });

@@ -97,7 +97,7 @@ class App extends React.Component {
             />
           </Headroom>
           <AppDrawer
-            ref={(c) => { this.appDrawer = c; }}
+            ref={(c) => { this.appDrawer = c ? c.getWrappedInstance() : null; }}
             userName={currentUser.name}
             userPictureUrl={currentUser.picture}
           />

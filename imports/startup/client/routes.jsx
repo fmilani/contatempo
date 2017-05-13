@@ -2,11 +2,12 @@
 // defines all the routes
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
-import { Router, Route, IndexRoute, browserHistory } from 'react-router';
-import Login from '../../ui/components/Login.jsx';
+import { Router, Route, Redirect, IndexRedirect, browserHistory } from 'react-router';
+import URLS from '../../api/helpers/urls.js';
 // route components
+import Login from '../../ui/components/Login.jsx';
 import AppContainer from '../../containers/AppContainer.jsx';
-import TrackerPageContainer from '../../containers/TrackerPageContainer.jsx';
+import HistoryPageContainer from '../../containers/HistoryPageContainer.jsx';
 import SettingsContainer from '../../containers/SettingsContainer.jsx';
 import NowPage from '../../ui/components/records/NowPage.jsx';
 
@@ -20,12 +21,12 @@ const userHasAllSettings = () => {
 const requireAuthAndSettings = (nextState, replace) => {
   if (!Meteor.loggingIn() && !Meteor.userId()) {
     replace({
-      pathname: '/login',
+      pathname: URLS.LOGIN,
       state: { nextPathname: nextState.location.pathname },
     });
   } else if (Meteor.user() && !userHasAllSettings()) {
     replace({
-      pathname: '/settings',
+      pathname: URLS.SETTINGS,
       state: { nextPathname: nextState.location.pathname },
     });
   }
@@ -34,12 +35,20 @@ const requireAuthAndSettings = (nextState, replace) => {
 // TODO: rearrange routes (separate login from root path and also separete onEnter function)
 const renderRoutes = () => (
   <Router history={browserHistory}>
-    <Route path="/" component={AppContainer}>
-      <IndexRoute component={TrackerPageContainer} onEnter={requireAuthAndSettings} />
-      <Route path="/login" component={Login} />
-      <Route path="/settings" component={SettingsContainer} />
-      <Route path="/now" component={NowPage} onEnter={requireAuthAndSettings} />
-      <Route path="/:period" component={TrackerPageContainer} onEnter={requireAuthAndSettings} />
+    <Route path={URLS.ROOT} component={AppContainer}>
+      <IndexRedirect to={URLS.NOW} />
+
+      <Route path={URLS.LOGIN} component={Login} />
+      <Route path={URLS.SETTINGS} component={SettingsContainer} />
+
+      <Route path={URLS.NOW} component={NowPage} onEnter={requireAuthAndSettings} />
+
+      <Route
+        path={`${URLS.HISTORY.ROOT}/:period`}
+        component={HistoryPageContainer}
+        onEnter={requireAuthAndSettings}
+      />
+      <Redirect from={URLS.HISTORY.ROOT} to={`${URLS.HISTORY.LAST_MONTH}`} />
     </Route>
   </Router>
 );

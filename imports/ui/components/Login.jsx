@@ -1,8 +1,9 @@
 import React from 'react';
+import { withRouter } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import FlatButton from 'material-ui/FlatButton';
 
-export default class Login extends React.Component {
+class Login extends React.Component {
 
   constructor(props) {
     super(props);
@@ -18,13 +19,14 @@ export default class Login extends React.Component {
 
     Meteor[`loginWith${service}`](options, (error) => {
       if (error) {
+        // TODO: add proper logging
         console.log(error.message);
       } else {
         const { location } = this.props;
         if (location.state && location.state.nextPathname) {
-          this.context.router.push(location.state.nextPathname);
+          this.props.router.push(location.state.nextPathname);
         } else {
-          this.context.router.push('/');
+          this.props.router.push('/');
         }
       }
     });
@@ -51,9 +53,14 @@ export default class Login extends React.Component {
 }
 
 Login.propTypes = {
-  location: React.PropTypes.object,
+  location: React.PropTypes.shape({
+    state: React.PropTypes.shape({
+      nextPathname: React.PropTypes.string,
+    }),
+  }).isRequired,
+  router: React.PropTypes.shape({
+    push: React.PropTypes.func,
+  }).isRequired,
 };
 
-Login.contextTypes = {
-  router: React.PropTypes.object,
-};
+export default withRouter(Login);

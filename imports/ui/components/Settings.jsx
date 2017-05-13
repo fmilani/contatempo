@@ -7,6 +7,8 @@ import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import AutoComplete from 'material-ui/AutoComplete';
 import Snackbar from 'material-ui/Snackbar';
+import muiThemeable from 'material-ui/styles/muiThemeable';
+import Spinner from './Spinner.jsx';
 import Title from './Title.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
@@ -15,24 +17,32 @@ class Settings extends React.Component {
   constructor(props) {
     super(props);
 
-    const { endOfMonth, timezone } = props.settings;
-
     this.state = {
-      endOfMonth,
-      showEndOfMonthError: !endOfMonth,
-      showTimezoneError: !timezone,
       showSettingsSavedFeedback: false,
     };
-    if (timezone) {
-      this.state.timezone = {
-        text: props.settings.timezone.replace(/_/g, ' ').replace(/\//g, ' - '),
-        value: props.settings.timezone,
-      };
-    }
 
+    // bindings
     this.handleEndOfMonthChange = this.handleEndOfMonthChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.onNewRequest = this.onNewRequest.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { endOfMonth, timezone } = nextProps.settings;
+    this.setState({
+      endOfMonth,
+      showEndOfMonthError: !endOfMonth,
+      showTimezoneError: !timezone,
+    });
+
+    if (timezone) {
+      this.setState({
+        timezone: {
+          text: timezone.replace(/_/g, ' ').replace(/\//g, ' - '),
+          value: timezone,
+        },
+      });
+    }
   }
 
   onNewRequest(changeRequest, index) {
@@ -76,7 +86,7 @@ class Settings extends React.Component {
     });
   }
 
-  render() {
+  renderPage() {
     const styles = {
       page: {
         margin: '20px',
@@ -86,8 +96,9 @@ class Settings extends React.Component {
       },
     };
 
-    let { timezone } = this.props.settings;
-    timezone = timezone || '';
+    const { settings, muiTheme } = this.props;
+    const timezone = settings.timezone || '';
+
     return (
       <div style={styles.page}>
         <Title title={i18n.getTranslation('settings.header')} />
@@ -161,13 +172,29 @@ class Settings extends React.Component {
             // feedback to the user)
             this.props.router.push('/');
           }}
+          style={{
+            bottom: muiTheme.bottomNavigation.height,
+          }}
         />
       </div>
+    );
+  }
+
+  render() {
+    const { loading } = this.props;
+    return (
+      loading
+        ? <Spinner />
+        : this.renderPage()
     );
   }
 }
 
 Settings.propTypes = {
+  loading: React.PropTypes.bool.isRequired,
+  muiTheme: React.PropTypes.shape({
+    bottomNavigation: React.PropTypes.object,
+  }).isRequired,
   router: React.PropTypes.shape({
     push: React.PropTypes.func,
   }).isRequired,
@@ -177,4 +204,4 @@ Settings.propTypes = {
   }).isRequired,
 };
 
-export default withRouter(Settings);
+export default withRouter(muiThemeable()(Settings));

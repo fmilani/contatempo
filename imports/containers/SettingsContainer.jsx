@@ -1,8 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { createContainer } from 'meteor/react-meteor-data';
-import SettingsWaiter from '../../imports/ui/components/SettingsWaiter.jsx';
+import Settings from '../../imports/ui/components/Settings.jsx';
 
-// Pass meteor data to the App component
 export default createContainer(() => {
   const userSettingsHandler = Meteor.subscribe('user.settings');
 
@@ -11,6 +10,5 @@ export default createContainer(() => {
   return {
     settings,
     loading: !userSettingsHandler.ready(),
-    // loading: false,
   };
-}, SettingsWaiter);
+}, Settings);

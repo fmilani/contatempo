@@ -46,6 +46,8 @@ export default class AppDrawer extends React.Component {
   render() {
     const T = i18n.createComponent();
 
+    const { userName, userPictureUrl } = this.props;
+
     return (
       <div>
         <Drawer
@@ -62,7 +64,7 @@ export default class AppDrawer extends React.Component {
               }}
             >
               <Avatar
-                src={this.context.currentUser.picture}
+                src={userPictureUrl}
                 style={{
                   verticalAlign: 'middle',
                 }}
@@ -74,7 +76,7 @@ export default class AppDrawer extends React.Component {
                   verticalAlign: 'middle',
                 }}
               >
-                {this.context.currentUser.name}
+                {userName}
               </span>
             </div>
           ) : ''}
@@ -134,7 +136,16 @@ export default class AppDrawer extends React.Component {
   }
 }
 
+AppDrawer.propTypes = {
+  userName: React.PropTypes.string,
+  userPictureUrl: React.PropTypes.string,
+};
+
+AppDrawer.defaultProps = {
+  userName: 'Login',
+  userPictureUrl: null,
+};
+
 AppDrawer.contextTypes = {
   router: React.PropTypes.object,
-  currentUser: React.PropTypes.object,
 };

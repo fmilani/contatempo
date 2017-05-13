@@ -56,7 +56,3 @@ HistoryPage.defaultProps = {
   loading: false,
   records: [],
 };
-
-HistoryPage.contextTypes = {
-  currentUser: React.PropTypes.object,
-};

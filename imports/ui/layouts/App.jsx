@@ -46,11 +46,6 @@ class App extends React.Component {
     this.shareLastMonthReport = this.shareLastMonthReport.bind(this);
   }
 
-  getChildContext() {
-    // set currentUser to context so it can be accessed throughout the application
-    return { currentUser: this.props.currentUser };
-  }
-
   handleDrawer() {
     this.appDrawer.handleToggle();
   }
@@ -77,6 +72,9 @@ class App extends React.Component {
     // this margin is needed so the content of the app doesn't
     // touch the bottom navigation
     const bottomNavigationMargin = muiTheme.bottomNavigation.height + 15;
+
+    const { currentUser } = this.props;
+
     return (
       <MuiThemeProvider muiTheme={muiTheme}>
         <div>
@@ -98,7 +96,11 @@ class App extends React.Component {
               }
             />
           </Headroom>
-          <AppDrawer ref={(c) => { this.appDrawer = c; }} />
+          <AppDrawer
+            ref={(c) => { this.appDrawer = c; }}
+            userName={currentUser.name}
+            userPictureUrl={currentUser.picture}
+          />
           <div style={{ marginBottom: bottomNavigationMargin }}>
             {this.props.children}
           </div>
@@ -133,14 +135,20 @@ class App extends React.Component {
 
 App.propTypes = {
   children: React.PropTypes.element.isRequired,
-  currentUser: React.PropTypes.object,
+  currentUser: React.PropTypes.shape({
+    name: React.PropTypes.string,
+    picture: React.PropTypes.string,
+  }),
   location: React.PropTypes.shape({
     pathname: React.PropTypes.string,
   }).isRequired,
 };
 
-App.childContextTypes = {
-  currentUser: React.PropTypes.object,
+App.defaultProps = {
+  currentUser: {
+    name: 'Login',
+    picture: null,
+  },
 };
 
 export default App;

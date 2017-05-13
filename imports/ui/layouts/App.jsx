@@ -139,10 +139,6 @@ App.propTypes = {
   }).isRequired,
 };
 
-App.contextTypes = {
-  router: React.PropTypes.object,
-};
-
 App.childContextTypes = {
   currentUser: React.PropTypes.object,
 };

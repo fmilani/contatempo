@@ -2,10 +2,15 @@ import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { i18n } from 'meteor/universe:i18n';
 import Drawer from 'material-ui/Drawer';
+import { List, ListItem } from 'material-ui/List';
 import { indigo500 } from 'material-ui/styles/colors';
 import Avatar from 'material-ui/Avatar';
 import MenuItem from 'material-ui/MenuItem';
+import PlayIcon from 'material-ui/svg-icons/av/play-arrow';
+import HistoryIcon from 'material-ui/svg-icons/action/history';
 import Divider from 'material-ui/Divider';
+import URLS from '../../api/helpers/urls.js';
+
 
 export default class AppDrawer extends React.Component {
 
@@ -73,15 +78,45 @@ export default class AppDrawer extends React.Component {
               </span>
             </div>
           ) : ''}
-          <MenuItem onTouchTap={() => this.handleRedirect('/day')}>
-            <T>common.today</T>
-          </MenuItem>
-          <MenuItem onTouchTap={() => this.handleRedirect('/this_month')}>
-            <T>common.this_month</T>
-          </MenuItem>
-          <MenuItem onTouchTap={() => this.handleRedirect('/last_month')}>
-            <T>common.last_month</T>
-          </MenuItem>
+          <List>
+            <ListItem
+              primaryText={i18n.getTranslation('common.now')}
+              leftIcon={<PlayIcon />}
+              onTouchTap={() => this.handleRedirect(URLS.NOW)}
+            />
+            <ListItem
+              primaryText={i18n.getTranslation('common.history')}
+              leftIcon={<HistoryIcon />}
+              initiallyOpen
+              primaryTogglesNestedList
+              nestedItems={[
+                <MenuItem
+                  key={1}
+                  primaryText={i18n.getTranslation('period.this_week')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.THIS_WEEK)}
+                  insetChildren
+                />,
+                <MenuItem
+                  key={2}
+                  primaryText={i18n.getTranslation('period.this_month')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.THIS_MONTH)}
+                  insetChildren
+                />,
+                <MenuItem
+                  key={3}
+                  primaryText={i18n.getTranslation('period.last_week')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.LAST_WEEK)}
+                  insetChildren
+                />,
+                <MenuItem
+                  key={4}
+                  primaryText={i18n.getTranslation('period.last_month')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.LAST_MONTH)}
+                  insetChildren
+                />,
+              ]}
+            />
+          </List>
           {Meteor.user() ? (
             <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
               <MenuItem onTouchTap={() => this.handleRedirect('/settings')}>

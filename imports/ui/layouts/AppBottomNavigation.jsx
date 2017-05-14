@@ -6,6 +6,8 @@ import { BottomNavigation, BottomNavigationItem } from 'material-ui/BottomNaviga
 import PlayIcon from 'material-ui/svg-icons/av/play-arrow';
 import HistoryIcon from 'material-ui/svg-icons/action/history';
 import SettingsIcon from 'material-ui/svg-icons/action/settings';
+import PlanningIcon from 'material-ui/svg-icons/action/event';
+import Konami from 'react-konami';
 import URLS from '../../api/helpers/urls';
 import { AppSession, AppSessionFields } from '../../session/session';
 
@@ -28,39 +30,76 @@ const getIndexForPath = path => MAP_PATH_TO_INDEX[`/${path.split('/')[1]}`];
 /**
  * The app bottom navigation
  */
-const AppBottomNavigation = props => (
-  <Paper
-    style={{
-      width: '100%',
-      position: 'fixed',
-      bottom: 0,
-      zIndex: 9999,
-    }}
-    zDepth={2}
-  >
-    <BottomNavigation selectedIndex={getIndexForPath(props.location.pathname)}>
+class AppBottomNavigation extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      showPlanningButton: false,
+    };
+  }
+
+  getItems() {
+    const items = [];
+    items.push(
       <BottomNavigationItem
+        key={0}
         label={i18n.getTranslation('common.now')}
         icon={<PlayIcon />}
-        onTouchTap={() => props.router.push(URLS.NOW)}
-      />
+        onTouchTap={() => this.props.router.push(URLS.NOW)}
+      />,
       <BottomNavigationItem
+        key={1}
         label={i18n.getTranslation('common.history')}
         icon={<HistoryIcon />}
         onTouchTap={() => {
-          props.router.push(AppSession.get(
+          this.props.router.push(AppSession.get(
             AppSessionFields.LAST_HISTORY_PERIOD) || URLS.HISTORY.LAST_MONTH,
           );
         }}
-      />
+      />,
       <BottomNavigationItem
+        key={2}
         label={i18n.getTranslation('common.settings_short')}
         icon={<SettingsIcon />}
-        onTouchTap={() => props.router.push(URLS.SETTINGS)}
-      />
-    </BottomNavigation>
-  </Paper>
-);
+        onTouchTap={() => this.props.router.push(URLS.SETTINGS)}
+      />,
+    );
+
+    if (this.state.showPlanningButton) {
+      items.push(
+        <BottomNavigationItem
+          key={3}
+          label={i18n.getTranslation('Planejar')}
+          icon={<PlanningIcon />}
+          onTouchTap={() => alert('Erro 4612: Você não tem planos')}
+        />,
+      );
+    }
+    return items;
+  }
+
+  render() {
+    return (
+      <Paper
+        style={{
+          width: '100%',
+          position: 'fixed',
+          bottom: 0,
+          zIndex: 9999,
+        }}
+        zDepth={2}
+      >
+        <BottomNavigation selectedIndex={getIndexForPath(this.props.location.pathname)}>
+          {
+            this.getItems().map(item => item)
+          }
+        </BottomNavigation>
+        <Konami easterEgg={() => this.setState({ showPlanningButton: true })} />
+      </Paper>
+    );
+  }
+}
 
 AppBottomNavigation.propTypes = {
   location: React.PropTypes.shape({

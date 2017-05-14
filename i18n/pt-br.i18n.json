@@ -2,15 +2,26 @@
   "_locale": "pt-BR",
   "common": {
     "cancel": "Cancelar",
-    "today": "Hoje",
-    "this_month": "Este mês",
+    "history": "Histórico",
+    "last_days": "Últimos dias",
     "last_month": "Último mês",
+    "now": "Agora",
     "save": "Salvar",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "settings_short": "Config.",
+    "this_month": "Este mês",
+    "today": "Hoje",
+    "total": "Total"
   },
   "drawer": {
     "track_time": "Contar tempo",
     "logout": "Sair"
+  },
+  "period": {
+    "last_month": "Último mês",
+    "last_week": "Última semana",
+    "this_month": "Este mês",
+    "this_week": "Esta semana"
   },
   "settings": {
     "no_end_of_month_msg": "Por favor, indique quando termina o seu mês",

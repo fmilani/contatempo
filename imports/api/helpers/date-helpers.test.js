@@ -3,7 +3,12 @@ import { chai } from 'meteor/practicalmeteor:chai';
 import { describe, it } from 'meteor/practicalmeteor:mocha';
 import EndOfMonthEnum from '../settings/EndOfMonthEnum';
 
-import { getDayInterval, getMonthInterval } from './date-helpers';
+import {
+  getDayInterval,
+  getWeekInterval,
+  getMonthInterval,
+  getLastWeekInterval,
+} from './date-helpers';
 
 const chaiDatetime = require('chai-datetime');
 
@@ -39,6 +44,40 @@ if (Meteor.isServer) {
         const testDate = new Date(2016, 0, 18, 0, 0, 0, 0);
 
         const { start, end } = getDayInterval(testDate);
+
+        expect(start.toDate()).to.equalTime(expectedStart);
+        expect(end.toDate()).to.equalTime(expectedEnd);
+      });
+    });
+
+    describe('getWeekInterval', () => {
+      // jan 08, 2017 00:00:00.000
+      const expectedStart = new Date(2017, 0, 8, 0, 0, 0, 0);
+      // jan 14, 2017 23:59:59.999
+      const expectedEnd = new Date(2017, 0, 14, 23, 59, 59, 999);
+
+      it('should return the correct start and the end of the week of a given day', () => {
+        // jan 13, 2017 04:56:16.123
+        const testDate = new Date(2017, 0, 13, 4, 56, 16, 123);
+
+        const { start, end } = getWeekInterval(testDate);
+
+        expect(start.toDate()).to.equalTime(expectedStart);
+        expect(end.toDate()).to.equalTime(expectedEnd);
+      });
+    });
+
+    describe('getLastWeekInterval', () => {
+      // jan 08, 2017 00:00:00.000
+      const expectedStart = new Date(2017, 0, 8, 0, 0, 0, 0);
+      // jan 14, 2017 23:59:59.999
+      const expectedEnd = new Date(2017, 0, 14, 23, 59, 59, 999);
+
+      it('should return the correct start and the end of the last week of a given day', () => {
+        // jan 20, 2017 04:56:16.123
+        const testDate = new Date(2017, 0, 20, 4, 56, 16, 123);
+
+        const { start, end } = getLastWeekInterval(testDate);
 
         expect(start.toDate()).to.equalTime(expectedStart);
         expect(end.toDate()).to.equalTime(expectedEnd);

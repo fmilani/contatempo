@@ -1,4 +1,5 @@
 import React from 'react';
+import { i18n } from 'meteor/universe:i18n';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
@@ -7,14 +8,14 @@ import Snackbar from 'material-ui/Snackbar';
 import moment from 'moment';
 import DatePicker from 'material-ui/DatePicker';
 import TimePicker from 'material-ui/TimePicker';
-import { i18n } from 'meteor/universe:i18n';
+import muiThemeable from 'material-ui/styles/muiThemeable';
 import { insert } from '../../../api/records/methods.js';
 import { isValidInsertion } from '../../../api/records/helpers';
 
 /**
  * Component to add a record manually.
  */
-export default class RecordAdd extends React.Component {
+class RecordAdd extends React.Component {
 
   constructor(props) {
     super(props);
@@ -96,14 +97,15 @@ export default class RecordAdd extends React.Component {
       />,
     ];
 
+    const { muiTheme } = this.props;
     return (
       <div>
         <FloatingActionButton
           secondary
           style={{
             position: 'fixed',
-            bottom: '25px',
-            right: '25px',
+            bottom: muiTheme.bottomNavigation.height + 10,
+            right: 25,
             zIndex: '999',
           }}
           onTouchTap={this.handleOpen}
@@ -124,6 +126,12 @@ export default class RecordAdd extends React.Component {
             DateTimeFormat={Intl.DateTimeFormat}
             locale={i18n.getLocale()}
             cancelLabel={i18n.getTranslation('common.cancel')}
+            dialogContainerStyle={{
+              top: -75,
+            }}
+            firstDayOfWeek={0}
+            defaultDate={moment().toDate()}
+            autoOk
           />
           <TimePicker
             ref={(c) => { this.beginTime = c; }}
@@ -131,6 +139,7 @@ export default class RecordAdd extends React.Component {
             textFieldStyle={{ width: '100%' }}
             format="24hr"
             name="recordTime"
+            autoOk
           />
           <TimePicker
             ref={(c) => { this.endTime = c; }}
@@ -138,6 +147,7 @@ export default class RecordAdd extends React.Component {
             textFieldStyle={{ width: '100%' }}
             format="24hr"
             name="recordTime"
+            autoOk
           />
         </Dialog>
         <Snackbar
@@ -147,8 +157,19 @@ export default class RecordAdd extends React.Component {
           message={i18n.getTranslation('records.errorOnDatesMsg')}
           autoHideDuration={4000}
           onRequestClose={() => { this.setState({ errorOnInsertion: false }); }}
+          style={{
+            bottom: muiTheme.bottomNavigation.height,
+          }}
         />
       </div>
     );
   }
 }
+
+RecordAdd.propTypes = {
+  muiTheme: React.PropTypes.shape({
+    bottomNavigation: React.PropTypes.object,
+  }).isRequired,
+};
+
+export default muiThemeable()(RecordAdd);

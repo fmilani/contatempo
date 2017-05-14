@@ -1,13 +1,19 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
+import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import Drawer from 'material-ui/Drawer';
+import { List, ListItem } from 'material-ui/List';
 import { indigo500 } from 'material-ui/styles/colors';
 import Avatar from 'material-ui/Avatar';
 import MenuItem from 'material-ui/MenuItem';
+import PlayIcon from 'material-ui/svg-icons/av/play-arrow';
+import HistoryIcon from 'material-ui/svg-icons/action/history';
 import Divider from 'material-ui/Divider';
+import URLS from '../../api/helpers/urls.js';
+import { AppSession, AppSessionFields } from '../../session/session';
 
-export default class AppDrawer extends React.Component {
+class AppDrawer extends React.Component {
 
   constructor(props) {
     super(props);
@@ -21,7 +27,8 @@ export default class AppDrawer extends React.Component {
   }
 
   handleRedirect(route) {
-    this.context.router.push(route);
+    AppSession.set(AppSessionFields.LAST_HISTORY_PERIOD, route);
+    this.props.router.push(route);
     this.handleClose();
   }
 
@@ -41,12 +48,15 @@ export default class AppDrawer extends React.Component {
   render() {
     const T = i18n.createComponent();
 
+    const { userName, userPictureUrl } = this.props;
+
     return (
       <div>
         <Drawer
           open={this.state.open}
           docked={false}
           onRequestChange={open => this.setState({ open })}
+          containerStyle={{ zIndex: 10000 }}
         >
           {Meteor.user() ? (
             <div
@@ -56,7 +66,7 @@ export default class AppDrawer extends React.Component {
               }}
             >
               <Avatar
-                src={this.context.currentUser.picture}
+                src={userPictureUrl}
                 style={{
                   verticalAlign: 'middle',
                 }}
@@ -68,19 +78,49 @@ export default class AppDrawer extends React.Component {
                   verticalAlign: 'middle',
                 }}
               >
-                {this.context.currentUser.name}
+                {userName}
               </span>
             </div>
           ) : ''}
-          <MenuItem onTouchTap={() => this.handleRedirect('/day')}>
-            <T>common.today</T>
-          </MenuItem>
-          <MenuItem onTouchTap={() => this.handleRedirect('/month')}>
-            <T>common.this_month</T>
-          </MenuItem>
-          <MenuItem onTouchTap={() => this.handleRedirect('/last_month')}>
-            <T>common.last_month</T>
-          </MenuItem>
+          <List>
+            <ListItem
+              primaryText={i18n.getTranslation('common.now')}
+              leftIcon={<PlayIcon />}
+              onTouchTap={() => this.handleRedirect(URLS.NOW)}
+            />
+            <ListItem
+              primaryText={i18n.getTranslation('common.history')}
+              leftIcon={<HistoryIcon />}
+              initiallyOpen
+              primaryTogglesNestedList
+              nestedItems={[
+                <MenuItem
+                  key={1}
+                  primaryText={i18n.getTranslation('period.this_week')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.THIS_WEEK)}
+                  insetChildren
+                />,
+                <MenuItem
+                  key={2}
+                  primaryText={i18n.getTranslation('period.this_month')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.THIS_MONTH)}
+                  insetChildren
+                />,
+                <MenuItem
+                  key={3}
+                  primaryText={i18n.getTranslation('period.last_week')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.LAST_WEEK)}
+                  insetChildren
+                />,
+                <MenuItem
+                  key={4}
+                  primaryText={i18n.getTranslation('period.last_month')}
+                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.LAST_MONTH)}
+                  insetChildren
+                />,
+              ]}
+            />
+          </List>
           {Meteor.user() ? (
             <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
               <MenuItem onTouchTap={() => this.handleRedirect('/settings')}>
@@ -98,7 +138,17 @@ export default class AppDrawer extends React.Component {
   }
 }
 
-AppDrawer.contextTypes = {
-  router: React.PropTypes.object,
-  currentUser: React.PropTypes.object,
+AppDrawer.propTypes = {
+  router: React.PropTypes.shape({
+    push: React.PropTypes.func,
+  }).isRequired,
+  userName: React.PropTypes.string,
+  userPictureUrl: React.PropTypes.string,
 };
+
+AppDrawer.defaultProps = {
+  userName: 'Login',
+  userPictureUrl: null,
+};
+
+export default withRouter(AppDrawer, { withRef: true });

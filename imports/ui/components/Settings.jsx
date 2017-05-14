@@ -1,37 +1,48 @@
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
+import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment-timezone';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import AutoComplete from 'material-ui/AutoComplete';
 import Snackbar from 'material-ui/Snackbar';
+import muiThemeable from 'material-ui/styles/muiThemeable';
+import Spinner from './Spinner.jsx';
 import Title from './Title.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
-export default class Settings extends React.Component {
+class Settings extends React.Component {
 
   constructor(props) {
     super(props);
 
-    const { endOfMonth, timezone } = props.settings;
-
     this.state = {
-      endOfMonth,
-      showEndOfMonthError: !endOfMonth,
-      showTimezoneError: !timezone,
       showSettingsSavedFeedback: false,
     };
-    if (timezone) {
-      this.state.timezone = {
-        text: props.settings.timezone.replace(/_/g, ' ').replace(/\//g, ' - '),
-        value: props.settings.timezone,
-      };
-    }
 
+    // bindings
     this.handleEndOfMonthChange = this.handleEndOfMonthChange.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.onNewRequest = this.onNewRequest.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { endOfMonth, timezone } = nextProps.settings;
+    this.setState({
+      endOfMonth,
+      showEndOfMonthError: !endOfMonth,
+      showTimezoneError: !timezone,
+    });
+
+    if (timezone) {
+      this.setState({
+        timezone: {
+          text: timezone.replace(/_/g, ' ').replace(/\//g, ' - '),
+          value: timezone,
+        },
+      });
+    }
   }
 
   onNewRequest(changeRequest, index) {
@@ -71,12 +82,11 @@ export default class Settings extends React.Component {
     }, (error) => {
       if (!error) {
         this.setState({ showSettingsSavedFeedback: true });
-        // this.context.router.push('/');
       }
     });
   }
 
-  render() {
+  renderPage() {
     const styles = {
       page: {
         margin: '20px',
@@ -86,8 +96,9 @@ export default class Settings extends React.Component {
       },
     };
 
-    let { timezone } = this.props.settings;
-    timezone = timezone || '';
+    const { settings, muiTheme } = this.props;
+    const timezone = settings.timezone || '';
+
     return (
       <div style={styles.page}>
         <Title title={i18n.getTranslation('settings.header')} />
@@ -159,18 +170,38 @@ export default class Settings extends React.Component {
             // to appear to the user (ideally we want to change route right after
             // settings are saved, but then we need another way to show a
             // feedback to the user)
-            this.context.router.push('/');
+            this.props.router.push('/');
+          }}
+          style={{
+            bottom: muiTheme.bottomNavigation.height,
           }}
         />
       </div>
     );
   }
+
+  render() {
+    const { loading } = this.props;
+    return (
+      loading
+        ? <Spinner />
+        : this.renderPage()
+    );
+  }
 }
 
 Settings.propTypes = {
-  settings: React.PropTypes.object,
+  loading: React.PropTypes.bool.isRequired,
+  muiTheme: React.PropTypes.shape({
+    bottomNavigation: React.PropTypes.object,
+  }).isRequired,
+  router: React.PropTypes.shape({
+    push: React.PropTypes.func,
+  }).isRequired,
+  settings: React.PropTypes.shape({
+    endOfMonth: React.PropTypes.string,
+    timezone: React.PropTypes.string,
+  }).isRequired,
 };
 
-Settings.contextTypes = {
-  router: React.PropTypes.object,
-};
+export default withRouter(muiThemeable()(Settings));

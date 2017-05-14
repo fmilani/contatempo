@@ -5,6 +5,7 @@ import Paper from 'material-ui/Paper';
 import { BottomNavigation, BottomNavigationItem } from 'material-ui/BottomNavigation';
 import PlayIcon from 'material-ui/svg-icons/av/play-arrow';
 import HistoryIcon from 'material-ui/svg-icons/action/history';
+import SettingsIcon from 'material-ui/svg-icons/action/settings';
 import URLS from '../../api/helpers/urls';
 import { AppSession, AppSessionFields } from '../../session/session';
 
@@ -15,6 +16,7 @@ const MAP_PATH_TO_INDEX = {
   [URLS.ROO]: 0,
   [URLS.NOW]: 0,
   [URLS.HISTORY.ROOT]: 1,
+  [URLS.SETTINGS]: 2,
 };
 
 /**
@@ -50,6 +52,11 @@ const AppBottomNavigation = props => (
             AppSessionFields.LAST_HISTORY_PERIOD) || URLS.HISTORY.LAST_MONTH,
           );
         }}
+      />
+      <BottomNavigationItem
+        label={i18n.getTranslation('common.settings_short')}
+        icon={<SettingsIcon />}
+        onTouchTap={() => props.router.push(URLS.SETTINGS)}
       />
     </BottomNavigation>
   </Paper>

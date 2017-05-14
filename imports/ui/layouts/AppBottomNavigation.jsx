@@ -6,6 +6,7 @@ import { BottomNavigation, BottomNavigationItem } from 'material-ui/BottomNaviga
 import PlayIcon from 'material-ui/svg-icons/av/play-arrow';
 import HistoryIcon from 'material-ui/svg-icons/action/history';
 import URLS from '../../api/helpers/urls';
+import { AppSession, AppSessionFields } from '../../session/session';
 
 /**
  * Maps each path to the index in the bottom navigation
@@ -44,7 +45,11 @@ const AppBottomNavigation = props => (
       <BottomNavigationItem
         label={i18n.getTranslation('common.history')}
         icon={<HistoryIcon />}
-        onTouchTap={() => props.router.push(URLS.HISTORY.LAST_MONTH)}
+        onTouchTap={() => {
+          props.router.push(AppSession.get(
+            AppSessionFields.LAST_HISTORY_PERIOD) || URLS.HISTORY.LAST_MONTH,
+          );
+        }}
       />
     </BottomNavigation>
   </Paper>

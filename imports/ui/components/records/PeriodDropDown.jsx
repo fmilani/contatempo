@@ -4,6 +4,7 @@ import { i18n } from 'meteor/universe:i18n';
 import DropDownMenu from 'material-ui/DropDownMenu';
 import MenuItem from 'material-ui/MenuItem';
 import URLS from '../../../api/helpers/urls.js';
+import { AppSession, AppSessionFields } from '../../../session/session';
 
 /**
  * Component for a list of history periods.
@@ -16,6 +17,7 @@ class PeriodDropDown extends Component {
   }
 
   onSelectPeriod(event, index, value) {
+    AppSession.set(AppSessionFields.LAST_HISTORY_PERIOD, value);
     this.props.router.push(value);
   }
 

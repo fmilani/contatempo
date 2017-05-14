@@ -34,3 +34,4 @@ practicalmeteor:mocha
 practicalmeteor:chai
 practicalmeteor:mocha-console-runner
 lmieulet:meteor-coverage
+reactive-dict

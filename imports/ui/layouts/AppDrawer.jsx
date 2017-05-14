@@ -11,6 +11,7 @@ import PlayIcon from 'material-ui/svg-icons/av/play-arrow';
 import HistoryIcon from 'material-ui/svg-icons/action/history';
 import Divider from 'material-ui/Divider';
 import URLS from '../../api/helpers/urls.js';
+import { AppSession, AppSessionFields } from '../../session/session';
 
 class AppDrawer extends React.Component {
 
@@ -26,6 +27,7 @@ class AppDrawer extends React.Component {
   }
 
   handleRedirect(route) {
+    AppSession.set(AppSessionFields.LAST_HISTORY_PERIOD, route);
     this.props.router.push(route);
     this.handleClose();
   }

@@ -16,6 +16,7 @@ import {
 } from 'material-ui/styles/colors';
 import AppDrawer from './AppDrawer.jsx';
 import AppBottomNavigation from './AppBottomNavigation.jsx';
+import RecordAdd from '../components/records/RecordAdd.jsx';
 import PeriodDropDown from '../components/records/PeriodDropDown.jsx';
 import { shareLastMonthReport } from '../../api/records/methods.js';
 import URLS from '../../api/helpers/urls.js';
@@ -68,10 +69,20 @@ class App extends React.Component {
     });
   }
 
+  shouldShowRecordAddComponent() {
+    return this.props.location.pathname === URLS.NOW
+      || isOnHistoryPage(this.props.location.pathname);
+  }
+
   render() {
     // this margin is needed so the content of the app doesn't
     // touch the bottom navigation
     const bottomNavigationMargin = muiTheme.bottomNavigation.height + 15;
+
+    let childrenMarginBottom = bottomNavigationMargin;
+    if (this.shouldShowRecordAddComponent()) {
+      childrenMarginBottom += muiTheme.floatingActionButton.buttonSize;
+    }
 
     const { currentUser } = this.props;
 
@@ -101,9 +112,12 @@ class App extends React.Component {
             userName={currentUser.name}
             userPictureUrl={currentUser.picture}
           />
-          <div style={{ marginBottom: bottomNavigationMargin }}>
+          <div style={{ marginBottom: childrenMarginBottom }}>
             {this.props.children}
           </div>
+          {
+            this.shouldShowRecordAddComponent() ? <RecordAdd /> : null
+          }
           <AppBottomNavigation />
           <Snackbar
             open={this.state.showReportsSentFeedback}

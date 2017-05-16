@@ -19,6 +19,7 @@ export default class HistoryPage extends React.Component {
 
   getTotalElapsed() {
     const finishedElapsed = this.props.records
+      .filter(record => record.end)
       .map(record => moment(record.end).diff(moment(record.begin)))
       .reduce((l, n) => l + n, 0);
     return finishedElapsed;

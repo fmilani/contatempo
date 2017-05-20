@@ -5,7 +5,7 @@ import FormattedTime from './FormattedTime.jsx';
 /**
  * Component used to display a big card with a formatted time
  */
-const BigTimeDisplay = (props) => {
+const BigTimeDisplay = props => {
   const { time } = props;
 
   return (

@@ -9,7 +9,6 @@ import 'moment-duration-format';
  * @prop {number} size - the display size of the formatted time
  */
 export default class FormattedTime extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -25,8 +24,10 @@ export default class FormattedTime extends React.Component {
 
   // formats the time prop with only the seconds (ss)
   formatSeconds() {
-    return moment.duration(this.props.time)
-      .format('HH:mm:ss', { trim: false }).slice(-3);
+    return moment
+      .duration(this.props.time)
+      .format('HH:mm:ss', { trim: false })
+      .slice(-3);
   }
 
   render() {

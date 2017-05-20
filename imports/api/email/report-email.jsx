@@ -69,7 +69,9 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
             fontWeight: 'bold',
           }}
         >
-          Relatório de horas<br /><span style={{ fontSize: 18 }}>{userName}</span>
+          Relatório de horas
+          <br />
+          <span style={{ fontSize: 18 }}>{userName}</span>
         </div>
         <div
           style={{
@@ -85,7 +87,9 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
                 fontSize: 20,
                 color: '#3F51B5',
               }}
-            > {interval.start} </span>
+            >
+              {' '}{interval.start}{' '}
+            </span>
             à
             <span
               style={{
@@ -93,7 +97,9 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
                 fontSize: 20,
                 color: '#3F51B5',
               }}
-            > {interval.end}</span>
+            >
+              {' '}{interval.end}
+            </span>
           </p>
           <p style={{ marginTop: 20 }}>
             Total de horas trabalhadas:
@@ -103,7 +109,8 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
                 fontSize: 20,
                 color: '#3F51B5',
               }}
-            > {totalTime}
+            >
+              {' '}{totalTime}
             </span>
           </p>
           <p style={{ marginTop: 50 }}>
@@ -124,15 +131,19 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
               </tr>
             </thead>
             <tbody>
-              {
-                records.map((record, index) => (
-                  <tr key={index}>
-                    <td style={rowsStyle}>{moment(record.begin).tz(userTimezone).format('DD/MM/YY')}</td>
-                    <td style={rowsStyle}>{moment(record.begin).tz(userTimezone).format('HH:mm:ss')}</td>
-                    <td style={rowsStyle}>{moment(record.end).tz(userTimezone).format('HH:mm:ss')}</td>
-                  </tr>
-                ))
-              }
+              {records.map((record, index) => (
+                <tr key={index}>
+                  <td style={rowsStyle}>
+                    {moment(record.begin).tz(userTimezone).format('DD/MM/YY')}
+                  </td>
+                  <td style={rowsStyle}>
+                    {moment(record.begin).tz(userTimezone).format('HH:mm:ss')}
+                  </td>
+                  <td style={rowsStyle}>
+                    {moment(record.end).tz(userTimezone).format('HH:mm:ss')}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

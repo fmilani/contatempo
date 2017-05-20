@@ -2,7 +2,13 @@
 // defines all the routes
 import React from 'react';
 import { Meteor } from 'meteor/meteor';
-import { Router, Route, Redirect, IndexRedirect, browserHistory } from 'react-router';
+import {
+  Router,
+  Route,
+  Redirect,
+  IndexRedirect,
+  browserHistory,
+} from 'react-router';
 import URLS from '../../api/helpers/urls.js';
 // route components
 import Login from '../../ui/components/Login.jsx';
@@ -41,7 +47,11 @@ const renderRoutes = () => (
       <Route path={URLS.LOGIN} component={Login} />
       <Route path={URLS.SETTINGS} component={SettingsContainer} />
 
-      <Route path={URLS.NOW} component={NowPage} onEnter={requireAuthAndSettings} />
+      <Route
+        path={URLS.NOW}
+        component={NowPage}
+        onEnter={requireAuthAndSettings}
+      />
 
       <Route
         path={`${URLS.HISTORY.ROOT}/:period`}

@@ -9,7 +9,6 @@ import Spinner from '../components/Spinner.jsx';
  * Component to display the user's history of records
  */
 export default class HistoryPage extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -34,11 +33,7 @@ export default class HistoryPage extends React.Component {
           title={i18n.getTranslation('common.total')}
         />
         <div style={{ marginTop: 15 }}>
-          {
-            loading
-              ? <Spinner />
-              : <RecordsList records={records} />
-          }
+          {loading ? <Spinner /> : <RecordsList records={records} />}
         </div>
       </div>
     );
@@ -47,10 +42,12 @@ export default class HistoryPage extends React.Component {
 
 HistoryPage.propTypes = {
   loading: React.PropTypes.bool,
-  records: React.PropTypes.arrayOf(React.PropTypes.shape({
-    begin: React.PropTypes.instanceOf(Date),
-    end: React.PropTypes.instanceOf(Date),
-  })),
+  records: React.PropTypes.arrayOf(
+    React.PropTypes.shape({
+      begin: React.PropTypes.instanceOf(Date),
+      end: React.PropTypes.instanceOf(Date),
+    }),
+  ),
 };
 
 HistoryPage.defaultProps = {

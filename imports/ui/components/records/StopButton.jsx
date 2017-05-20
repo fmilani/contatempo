@@ -6,7 +6,7 @@ import { red700 } from 'material-ui/styles/colors';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 import { complete } from '../../../api/records/methods.js';
 
-const stopRecording = (currentRecordId) => {
+const stopRecording = currentRecordId => {
   complete.call({
     id: currentRecordId,
     end: moment().startOf('seconds').toDate(),
@@ -27,7 +27,9 @@ const StopButton = props => (
       height: size,
       padding: 0,
     }}
-    onTouchTap={() => { stopRecording(props.currentRecordId); }}
+    onTouchTap={() => {
+      stopRecording(props.currentRecordId);
+    }}
     disabled={!props.canStop}
   >
     <ContentAdd color={red700} />

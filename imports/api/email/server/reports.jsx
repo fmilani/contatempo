@@ -18,31 +18,38 @@ const sendReports = (date, endOfMonth) => {
     from: ${interval.start.format('DD/MM/YYYY')}
     to: ${interval.end.format('DD/MM/YYYY')}
   `);
-  const results = Records.aggregate([{
-    $match: {
-      begin: {
-        $gte: interval.start.toDate(),
-        $lte: interval.end.toDate(),
-      },
-    },
-  }, {
-    $sort: { begin: 1 },
-  }, {
-    $group: {
-      _id: '$userId',
-      records: {
-        $push: {
-          begin: '$begin',
-          end: '$end',
+  const results = Records.aggregate([
+    {
+      $match: {
+        begin: {
+          $gte: interval.start.toDate(),
+          $lte: interval.end.toDate(),
         },
       },
     },
-  }]);
+    {
+      $sort: { begin: 1 },
+    },
+    {
+      $group: {
+        _id: '$userId',
+        records: {
+          $push: {
+            begin: '$begin',
+            end: '$end',
+          },
+        },
+      },
+    },
+  ]);
   const aggregatedRecords = results
-    .filter(result =>
-      // get only users with the endOfMonthValue setting
-      Meteor.users.findOne(result._id).settings.endOfMonth === endOfMonthValue)
-    .map((result) => {
+    .filter(
+      result =>
+        // get only users with the endOfMonthValue setting
+        Meteor.users.findOne(result._id).settings.endOfMonth ===
+        endOfMonthValue,
+    )
+    .map(result => {
       const user = Meteor.users.findOne(result._id);
 
       return {
@@ -58,7 +65,7 @@ const sendReports = (date, endOfMonth) => {
     });
 
   console.log(`${aggregatedRecords.length} users will receive their reports`);
-  aggregatedRecords.forEach((aggregatedRecord) => {
+  aggregatedRecords.forEach(aggregatedRecord => {
     sendReportEmail({ ...aggregatedRecord, monthString });
   });
 };
@@ -72,15 +79,18 @@ export const sendUserReport = (date, userId) => {
   const interval = getMonthInterval(lastMonth, user.settings.endOfMonth);
 
   // get the records for that interval
-  const records = Records.find({
-    begin: {
-      $gte: interval.start.toDate(),
-      $lte: interval.end.toDate(),
+  const records = Records.find(
+    {
+      begin: {
+        $gte: interval.start.toDate(),
+        $lte: interval.end.toDate(),
+      },
+      userId: user._id,
     },
-    userId: user._id,
-  }, {
-    sort: { begin: 1 },
-  }).fetch();
+    {
+      sort: { begin: 1 },
+    },
+  ).fetch();
 
   sendReportEmail({
     userName: user.profile.name,

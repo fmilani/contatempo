@@ -4,7 +4,6 @@ import { Meteor } from 'meteor/meteor';
 import FlatButton from 'material-ui/FlatButton';
 
 class Login extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -17,7 +16,7 @@ class Login extends React.Component {
       requestPermissions: ['email'],
     };
 
-    Meteor[`loginWith${service}`](options, (error) => {
+    Meteor[`loginWith${service}`](options, error => {
       if (error) {
         // TODO: add proper logging
         console.log(error.message);

@@ -6,7 +6,8 @@ import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 SyncedCron.add({
   name: 'Send reports for users with end of month on last day',
   schedule(parser) {
-    return parser.recur()
+    return parser
+      .recur()
       .on(1)
       .dayOfMonth()
       .on(Meteor.settings.private.reportsHour)
@@ -20,7 +21,8 @@ SyncedCron.add({
 SyncedCron.add({
   name: 'Send reports for users with end of month on day 20',
   schedule(parser) {
-    return parser.recur()
+    return parser
+      .recur()
       .on(21)
       .dayOfMonth()
       .on(Meteor.settings.private.reportsHour)

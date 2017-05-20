@@ -9,8 +9,4 @@ const AppSessionFields = {
   LAST_HISTORY_PERIOD: 'LAST_HISTORY_PERIOD',
 };
 
-
-export {
-  AppSession,
-  AppSessionFields,
-};
+export { AppSession, AppSessionFields };

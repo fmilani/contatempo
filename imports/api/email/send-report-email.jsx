@@ -13,11 +13,16 @@ const sendReportEmail = ({
   // prevent calling Email method from client-side
   if (!Meteor.isServer) return;
 
-  console.log(`Sending ${userName} report to ${Meteor.settings.private.reportsMail}`);
+  console.log(
+    `Sending ${userName} report to ${Meteor.settings.private.reportsMail}`,
+  );
 
   Email.send({
     from: 'Contatempo@contatempo.com',
-    to: [Meteor.settings.private.reportsMail, Meteor.settings.private.reportsMail2],
+    to: [
+      Meteor.settings.private.reportsMail,
+      Meteor.settings.private.reportsMail2,
+    ],
     subject: `Relatório de horas - ${userName} - ${monthString}`,
     html: reportEmail({ userName, userTimezone, records, interval }),
   });

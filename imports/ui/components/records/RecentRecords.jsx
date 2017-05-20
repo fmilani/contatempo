@@ -13,10 +13,12 @@ const RecentRecords = props => (
 );
 
 RecentRecords.propTypes = {
-  recentRecords: React.PropTypes.arrayOf(React.PropTypes.shape({
-    begin: React.PropTypes.instanceOf(Date),
-    end: React.PropTypes.instanceOf(Date),
-  })),
+  recentRecords: React.PropTypes.arrayOf(
+    React.PropTypes.shape({
+      begin: React.PropTypes.instanceOf(Date),
+      end: React.PropTypes.instanceOf(Date),
+    }),
+  ),
 };
 
 RecentRecords.defaultProps = {

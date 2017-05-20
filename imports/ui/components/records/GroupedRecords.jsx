@@ -12,7 +12,6 @@ import RecordItem from './RecordItem.jsx';
  * @prop {Object} records[].end - the end of the time record (a record time)
  */
 export default class GroupedRecords extends React.Component {
-
   /**
    * Gets the total time elapsed of the completed records
    */
@@ -30,16 +29,16 @@ export default class GroupedRecords extends React.Component {
       <Card rounded={false}>
         <CardHeader
           title={moment(records[0].begin).calendar()}
-          subtitle={moment.duration(this.getCompleteElapsed()).format('HH:mm:ss', { trim: false })}
+          subtitle={moment
+            .duration(this.getCompleteElapsed())
+            .format('HH:mm:ss', { trim: false })}
           actAsExpander
           showExpandableButton
         />
         <CardText expandable>
-          {
-            records.map(record =>
-              <RecordItem key={record._id} record={record} displayDay={false} />,
-            )
-          }
+          {records.map(record => (
+            <RecordItem key={record._id} record={record} displayDay={false} />
+          ))}
         </CardText>
       </Card>
     );
@@ -47,8 +46,10 @@ export default class GroupedRecords extends React.Component {
 }
 
 GroupedRecords.propTypes = {
-  records: React.PropTypes.arrayOf(React.PropTypes.shape({
-    begin: React.PropTypes.instanceOf(Date),
-    end: React.PropTypes.instanceOf(Date),
-  })).isRequired,
+  records: React.PropTypes.arrayOf(
+    React.PropTypes.shape({
+      begin: React.PropTypes.instanceOf(Date),
+      end: React.PropTypes.instanceOf(Date),
+    }),
+  ).isRequired,
 };

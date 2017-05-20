@@ -16,7 +16,6 @@ import { isValidInsertion } from '../../../api/records/helpers';
  * Component to add a record manually.
  */
 class RecordAdd extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -52,19 +51,22 @@ class RecordAdd extends React.Component {
       this.showErrorOnInsertion();
     }
 
-    insert.call({
-      begin,
-      end,
-    }, (error) => {
-      if (error) {
-        if (error.error === 'records.insert.endMustBeAfterBegin') {
-          this.showErrorOnInsertion();
-        } else {
-          // unexpected error. TODO: handle properly (and add logs)
-          throw new Error('Unexpected error');
+    insert.call(
+      {
+        begin,
+        end,
+      },
+      error => {
+        if (error) {
+          if (error.error === 'records.insert.endMustBeAfterBegin') {
+            this.showErrorOnInsertion();
+          } else {
+            // unexpected error. TODO: handle properly (and add logs)
+            throw new Error('Unexpected error');
+          }
         }
-      }
-    });
+      },
+    );
 
     this.handleClose();
   }
@@ -73,7 +75,7 @@ class RecordAdd extends React.Component {
     // if error, set the state value errorOnInsertion so the Snackbar is shown
     this.setState({ errorOnInsertion: true });
     // throw an error so that the modal doesn't dismiss
-    throw new Error('Cannot edit record\'s end to a time before its begin');
+    throw new Error("Cannot edit record's end to a time before its begin");
   }
 
   handleOpen() {
@@ -120,7 +122,9 @@ class RecordAdd extends React.Component {
           onRequestClose={this.handleClose}
         >
           <DatePicker
-            ref={(c) => { this.date = c; }}
+            ref={c => {
+              this.date = c;
+            }}
             hintText={this.t('day')}
             textFieldStyle={{ width: '100%' }}
             DateTimeFormat={Intl.DateTimeFormat}
@@ -134,7 +138,9 @@ class RecordAdd extends React.Component {
             autoOk
           />
           <TimePicker
-            ref={(c) => { this.beginTime = c; }}
+            ref={c => {
+              this.beginTime = c;
+            }}
             hintText={this.t('begin')}
             textFieldStyle={{ width: '100%' }}
             format="24hr"
@@ -142,7 +148,9 @@ class RecordAdd extends React.Component {
             autoOk
           />
           <TimePicker
-            ref={(c) => { this.endTime = c; }}
+            ref={c => {
+              this.endTime = c;
+            }}
             hintText={this.t('end')}
             textFieldStyle={{ width: '100%' }}
             format="24hr"
@@ -156,7 +164,9 @@ class RecordAdd extends React.Component {
           open={this.state.errorOnInsertion}
           message={i18n.getTranslation('records.errorOnDatesMsg')}
           autoHideDuration={4000}
-          onRequestClose={() => { this.setState({ errorOnInsertion: false }); }}
+          onRequestClose={() => {
+            this.setState({ errorOnInsertion: false });
+          }}
           style={{
             bottom: muiTheme.bottomNavigation.height,
           }}

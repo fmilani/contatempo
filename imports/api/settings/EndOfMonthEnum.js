@@ -1,4 +1,3 @@
-
 /**
  * The enum with options for users' end of month
  */

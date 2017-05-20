@@ -8,7 +8,6 @@ import RecordTime from './RecordTime.jsx';
  * Component that shows a record, with its begin and end times.
  */
 export default class RecordItem extends React.Component {
-
   removeRecord(id) {
     remove.call({ id });
   }
@@ -18,12 +17,20 @@ export default class RecordItem extends React.Component {
     const grey500 = '#9E9E9E'; // TODO: use palette (grey500)
 
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+        }}
+      >
         <RecordTime type="begin" record={record} />
         <RecordTime type="end" record={record} />
         <div style={{ flex: '0 0 20%', textAlign: 'center' }}>
           <IconButton
-            onClick={() => { this.removeRecord(record._id); }}
+            onClick={() => {
+              this.removeRecord(record._id);
+            }}
             iconStyle={{ color: grey500, width: '20px', height: '20px' }}
           >
             <ActionDelete />

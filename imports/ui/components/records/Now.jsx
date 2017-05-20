@@ -13,7 +13,6 @@ import StopButton from './StopButton.jsx';
  * Component that handles the on-going record
  */
 export default class Now extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -83,25 +82,24 @@ export default class Now extends React.Component {
       },
     };
 
-    return (
-      loading ? <Spinner /> :
-      <div>
-        <Subheader>{i18n.getTranslation('common.now')}</Subheader>
-        <Paper style={styles.paper}>
-          <FormattedTime time={elapsedTime} />
-          <div style={styles.buttonWrapper}>
-            {
-              currentRecord ?
-                <StopButton
-                  currentRecordId={currentRecord._id}
-                  canStop={now.diff(currentRecord.begin) >= this.MINIMUM_TIME_TO_STOP}
-                /> :
-                <StartButton />
-            }
-          </div>
-        </Paper>
-      </div>
-    );
+    return loading
+      ? <Spinner />
+      : <div>
+          <Subheader>{i18n.getTranslation('common.now')}</Subheader>
+          <Paper style={styles.paper}>
+            <FormattedTime time={elapsedTime} />
+            <div style={styles.buttonWrapper}>
+              {currentRecord
+                ? <StopButton
+                    currentRecordId={currentRecord._id}
+                    canStop={
+                      now.diff(currentRecord.begin) >= this.MINIMUM_TIME_TO_STOP
+                    }
+                  />
+                : <StartButton />}
+            </div>
+          </Paper>
+        </div>;
   }
 }
 

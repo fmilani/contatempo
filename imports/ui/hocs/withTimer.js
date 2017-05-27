@@ -6,7 +6,7 @@ import moment from 'moment';
  * time, a handler to keep udpating it and a handler to stop the update.
  */
 const withTimer = compose(
-  withState('now', 'updateNow', moment()),
+  withState('now', 'updateNow', moment().toDate()),
   withState('timer', 'updateTimer', null),
   withHandlers({
     startTimer: ({ timer, updateNow, updateTimer }) => () => {
@@ -15,8 +15,8 @@ const withTimer = compose(
         // one running =)
         return;
       }
-      updateNow(moment());
-      updateTimer(setInterval(() => updateNow(moment()), 1000));
+      updateNow(moment().toDate());
+      updateTimer(setInterval(() => updateNow(moment().toDate()), 1000));
     },
     stopTimer: ({ timer }) => () => {
       if (timer) {

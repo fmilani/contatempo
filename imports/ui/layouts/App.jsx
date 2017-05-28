@@ -10,10 +10,7 @@ import ShareIcon from 'material-ui/svg-icons/social/share';
 import IconButton from 'material-ui/IconButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import {
-  indigo500,
-  indigo700,
-} from 'material-ui/styles/colors';
+import { indigo500, indigo700 } from 'material-ui/styles/colors';
 import AppDrawer from './AppDrawer.jsx';
 import AppBottomNavigation from './AppBottomNavigation.jsx';
 import RecordAdd from '../components/records/RecordAdd.jsx';
@@ -33,7 +30,6 @@ const isOnHistoryPage = path => `/${path.split('/')[1]}` === URLS.HISTORY.ROOT;
 const isOnLastMonthHistoryPage = path => path === URLS.HISTORY.LAST_MONTH;
 
 class App extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -52,26 +48,31 @@ class App extends React.Component {
   }
 
   shareLastMonthReport() {
-    shareLastMonthReport.call({
-      date: moment().toDate(),
-      userId: Meteor.user()._id,
-    }, (error) => {
-      if (error) {
-        if (error.error === 'records.share.limitExceeded') {
-          this.setState({ showShareLimitExceededWarning: true });
+    shareLastMonthReport.call(
+      {
+        date: moment().toDate(),
+        userId: Meteor.user()._id,
+      },
+      error => {
+        if (error) {
+          if (error.error === 'records.share.limitExceeded') {
+            this.setState({ showShareLimitExceededWarning: true });
+          } else {
+            // unexpected error. TODO: handle properly (and add logs)
+            throw new Error('Unexpected error');
+          }
         } else {
-          // unexpected error. TODO: handle properly (and add logs)
-          throw new Error('Unexpected error');
+          this.setState({ showReportsSentFeedback: true });
         }
-      } else {
-        this.setState({ showReportsSentFeedback: true });
-      }
-    });
+      },
+    );
   }
 
   shouldShowRecordAddComponent() {
-    return this.props.location.pathname === URLS.NOW
-      || isOnHistoryPage(this.props.location.pathname);
+    return (
+      this.props.location.pathname === URLS.NOW ||
+      isOnHistoryPage(this.props.location.pathname)
+    );
   }
 
   render() {
@@ -99,25 +100,26 @@ class App extends React.Component {
               onLeftIconButtonTouchTap={this.handleDrawer}
               iconElementRight={
                 isOnLastMonthHistoryPage(this.props.location.pathname)
-                ?
-                  <IconButton onTouchTap={_.debounce(this.shareLastMonthReport, 500)}>
-                    <ShareIcon />
-                  </IconButton>
-                : null
+                  ? <IconButton
+                      onTouchTap={_.debounce(this.shareLastMonthReport, 500)}
+                    >
+                      <ShareIcon />
+                    </IconButton>
+                  : null
               }
             />
           </Headroom>
           <AppDrawer
-            ref={(c) => { this.appDrawer = c ? c.getWrappedInstance() : null; }}
+            ref={c => {
+              this.appDrawer = c ? c.getWrappedInstance() : null;
+            }}
             userName={currentUser.name}
             userPictureUrl={currentUser.picture}
           />
           <div style={{ marginBottom: childrenMarginBottom }}>
             {this.props.children}
           </div>
-          {
-            this.shouldShowRecordAddComponent() ? <RecordAdd /> : null
-          }
+          {this.shouldShowRecordAddComponent() ? <RecordAdd /> : null}
           <AppBottomNavigation />
           <Snackbar
             open={this.state.showReportsSentFeedback}

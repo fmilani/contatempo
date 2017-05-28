@@ -13,7 +13,6 @@ import Title from './Title.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 
 class Settings extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -77,13 +76,17 @@ class Settings extends React.Component {
       endOfMonth: this.state.endOfMonth,
       timezone: this.state.timezone.value,
     };
-    Meteor.users.update(Meteor.userId(), {
-      $set: { settings },
-    }, (error) => {
-      if (!error) {
-        this.setState({ showSettingsSavedFeedback: true });
-      }
-    });
+    Meteor.users.update(
+      Meteor.userId(),
+      {
+        $set: { settings },
+      },
+      error => {
+        if (!error) {
+          this.setState({ showSettingsSavedFeedback: true });
+        }
+      },
+    );
   }
 
   renderPage() {
@@ -182,11 +185,7 @@ class Settings extends React.Component {
 
   render() {
     const { loading } = this.props;
-    return (
-      loading
-        ? <Spinner />
-        : this.renderPage()
-    );
+    return loading ? <Spinner /> : this.renderPage();
   }
 }
 

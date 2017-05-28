@@ -8,9 +8,12 @@ const services = Meteor.settings.private.oAuth;
 (() => {
   if (services) {
     _.forOwn(services, (data, service) => {
-      ServiceConfiguration.configurations.upsert({ service }, {
-        $set: data,
-      });
+      ServiceConfiguration.configurations.upsert(
+        { service },
+        {
+          $set: data,
+        },
+      );
     });
   }
 })();
@@ -25,7 +28,7 @@ Accounts.onCreateUser((options, user) => {
   }
 
   // copy the profile picture and email to the users' meteor profile
-  _.forOwn(newUser.services, (data) => {
+  _.forOwn(newUser.services, data => {
     // although this is a for loop, a user should only have 1 service
     newUser.profile.picture = data.picture;
     newUser.profile.email = data.email;
@@ -40,5 +43,7 @@ Accounts.onCreateUser((options, user) => {
 // FIXME: deny user updates and create user api
 // (currently needed so users can update their settings)
 Meteor.users.allow({
-  update() { return true; },
+  update() {
+    return true;
+  },
 });

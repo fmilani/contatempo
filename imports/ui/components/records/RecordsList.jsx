@@ -12,16 +12,18 @@ import GroupedRecords from './GroupedRecords.jsx';
  * @prop {Object} records[].end - the end of the time record (a record time)
  */
 export default class RecordsList extends React.Component {
-
   renderRecordsList() {
     const { records, title } = this.props;
     const groupedRecords = [];
 
     let length;
     records.forEach((record, index) => {
-      if (index > 0 &&
-        moment(record.begin).startOf('day')
-          .isSame(moment(records[index - 1].begin).startOf('day'))) {
+      if (
+        index > 0 &&
+        moment(record.begin)
+          .startOf('day')
+          .isSame(moment(records[index - 1].begin).startOf('day'))
+      ) {
         groupedRecords[length - 1].push(record);
       } else {
         length = groupedRecords.push([]);
@@ -31,14 +33,12 @@ export default class RecordsList extends React.Component {
 
     return (
       <List style={{ padding: 0 }}>
-        { title ? <Subheader>{title}</Subheader> : null }
-        {
-          groupedRecords.map(sameDayRecords =>
-            <div key={sameDayRecords[0]._id}>
-              <GroupedRecords records={sameDayRecords} />
-            </div>,
-          )
-        }
+        {title ? <Subheader>{title}</Subheader> : null}
+        {groupedRecords.map(sameDayRecords => (
+          <div key={sameDayRecords[0]._id}>
+            <GroupedRecords records={sameDayRecords} />
+          </div>
+        ))}
       </List>
     );
   }
@@ -47,21 +47,19 @@ export default class RecordsList extends React.Component {
     const { records } = this.props;
     return (
       <div>
-        {
-          records.length > 0
-            ? this.renderRecordsList()
-            : <EmptyRecordsList />
-        }
+        {records.length > 0 ? this.renderRecordsList() : <EmptyRecordsList />}
       </div>
     );
   }
 }
 
 RecordsList.propTypes = {
-  records: React.PropTypes.arrayOf(React.PropTypes.shape({
-    begin: React.PropTypes.instanceOf(Date),
-    end: React.PropTypes.instanceOf(Date),
-  })),
+  records: React.PropTypes.arrayOf(
+    React.PropTypes.shape({
+      begin: React.PropTypes.instanceOf(Date),
+      end: React.PropTypes.instanceOf(Date),
+    }),
+  ),
   title: React.PropTypes.string,
 };
 

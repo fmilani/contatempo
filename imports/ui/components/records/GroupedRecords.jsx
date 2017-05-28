@@ -2,6 +2,7 @@ import React from 'react';
 import moment from 'moment';
 import 'moment-duration-format';
 import { Card, CardHeader, CardText } from 'material-ui/Card';
+import withTimer from '../../hocs/withTimer';
 import RecordItem from './RecordItem.jsx';
 
 /**
@@ -11,17 +12,42 @@ import RecordItem from './RecordItem.jsx';
  * @prop {Object} records[].begin - the begin of the time record (a record time)
  * @prop {Object} records[].end - the end of the time record (a record time)
  */
-export default class GroupedRecords extends React.Component {
+class GroupedRecords extends React.Component {
+  componentDidMount() {
+    const ongoingRecord = this.props.records.filter(record => !record.end)[0];
+    if (ongoingRecord) {
+      this.props.startTimer();
+    }
+  }
+
+  componentWillUpdate(nextProps) {
+    const ongoingRecord = nextProps.records.filter(record => !record.end)[0];
+    if (!ongoingRecord) {
+      this.props.stopTimer();
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.stopTimer();
+  }
 
   /**
    * Gets the total time elapsed of the completed records
    */
   getCompleteElapsed() {
-    const { records } = this.props;
-    return records
+    const { now, records } = this.props;
+
+    const ongoingRecord = records.filter(record => !record.end)[0];
+    const ongoingTime = ongoingRecord
+      ? moment(now).diff(ongoingRecord.begin)
+      : 0;
+
+    const completedTime = records
       .filter(record => record.end)
       .map(record => moment(record.end).diff(moment(record.begin)))
       .reduce((l, n) => l + n, 0);
+
+    return ongoingTime + completedTime;
   }
 
   render() {
@@ -30,16 +56,16 @@ export default class GroupedRecords extends React.Component {
       <Card rounded={false}>
         <CardHeader
           title={moment(records[0].begin).calendar()}
-          subtitle={moment.duration(this.getCompleteElapsed()).format('HH:mm:ss', { trim: false })}
+          subtitle={moment
+            .duration(this.getCompleteElapsed())
+            .format('HH:mm:ss', { trim: false })}
           actAsExpander
           showExpandableButton
         />
         <CardText expandable>
-          {
-            records.map(record =>
-              <RecordItem key={record._id} record={record} displayDay={false} />,
-            )
-          }
+          {records.map(record => (
+            <RecordItem key={record._id} record={record} displayDay={false} />
+          ))}
         </CardText>
       </Card>
     );
@@ -47,8 +73,15 @@ export default class GroupedRecords extends React.Component {
 }
 
 GroupedRecords.propTypes = {
-  records: React.PropTypes.arrayOf(React.PropTypes.shape({
-    begin: React.PropTypes.instanceOf(Date),
-    end: React.PropTypes.instanceOf(Date),
-  })).isRequired,
+  records: React.PropTypes.arrayOf(
+    React.PropTypes.shape({
+      begin: React.PropTypes.instanceOf(Date),
+      end: React.PropTypes.instanceOf(Date),
+    }),
+  ).isRequired,
+  now: React.PropTypes.shape().isRequired,
+  startTimer: React.PropTypes.func.isRequired,
+  stopTimer: React.PropTypes.func.isRequired,
 };
+
+export default withTimer(GroupedRecords);

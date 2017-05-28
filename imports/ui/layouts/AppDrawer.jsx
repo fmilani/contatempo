@@ -14,7 +14,6 @@ import URLS from '../../api/helpers/urls.js';
 import { AppSession, AppSessionFields } from '../../session/session';
 
 class AppDrawer extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = { open: false };
@@ -58,30 +57,30 @@ class AppDrawer extends React.Component {
           onRequestChange={open => this.setState({ open })}
           containerStyle={{ zIndex: 10000 }}
         >
-          {Meteor.user() ? (
-            <div
-              style={{
-                padding: '12px',
-                backgroundColor: indigo500, // TODO: get primary1Color from theme
-              }}
-            >
-              <Avatar
-                src={userPictureUrl}
+          {Meteor.user()
+            ? <div
                 style={{
-                  verticalAlign: 'middle',
-                }}
-              />
-              <span
-                style={{
-                  marginLeft: '15px',
-                  color: '#fff',
-                  verticalAlign: 'middle',
+                  padding: '12px',
+                  backgroundColor: indigo500, // TODO: get primary1Color from theme
                 }}
               >
-                {userName}
-              </span>
-            </div>
-          ) : ''}
+                <Avatar
+                  src={userPictureUrl}
+                  style={{
+                    verticalAlign: 'middle',
+                  }}
+                />
+                <span
+                  style={{
+                    marginLeft: '15px',
+                    color: '#fff',
+                    verticalAlign: 'middle',
+                  }}
+                >
+                  {userName}
+                </span>
+              </div>
+            : ''}
           <List>
             <ListItem
               primaryText={i18n.getTranslation('common.now')}
@@ -103,7 +102,8 @@ class AppDrawer extends React.Component {
                 <MenuItem
                   key={2}
                   primaryText={i18n.getTranslation('period.this_month')}
-                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.THIS_MONTH)}
+                  onTouchTap={() =>
+                    this.handleRedirect(URLS.HISTORY.THIS_MONTH)}
                   insetChildren
                 />,
                 <MenuItem
@@ -115,23 +115,24 @@ class AppDrawer extends React.Component {
                 <MenuItem
                   key={4}
                   primaryText={i18n.getTranslation('period.last_month')}
-                  onTouchTap={() => this.handleRedirect(URLS.HISTORY.LAST_MONTH)}
+                  onTouchTap={() =>
+                    this.handleRedirect(URLS.HISTORY.LAST_MONTH)}
                   insetChildren
                 />,
               ]}
             />
           </List>
-          {Meteor.user() ? (
-            <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
-              <MenuItem onTouchTap={() => this.handleRedirect('/settings')}>
-                <T>common.settings</T>
-              </MenuItem>
-              <Divider />
-              <MenuItem onTouchTap={this.handleLogout}>
-                <T>drawer.logout</T>
-              </MenuItem>
-            </div>
-          ) : ''}
+          {Meteor.user()
+            ? <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
+                <MenuItem onTouchTap={() => this.handleRedirect('/settings')}>
+                  <T>common.settings</T>
+                </MenuItem>
+                <Divider />
+                <MenuItem onTouchTap={this.handleLogout}>
+                  <T>drawer.logout</T>
+                </MenuItem>
+              </div>
+            : ''}
         </Drawer>
       </div>
     );

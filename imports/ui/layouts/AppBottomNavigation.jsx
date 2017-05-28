@@ -2,7 +2,10 @@ import React from 'react';
 import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import Paper from 'material-ui/Paper';
-import { BottomNavigation, BottomNavigationItem } from 'material-ui/BottomNavigation';
+import {
+  BottomNavigation,
+  BottomNavigationItem,
+} from 'material-ui/BottomNavigation';
 import PlayIcon from 'material-ui/svg-icons/av/play-arrow';
 import HistoryIcon from 'material-ui/svg-icons/action/history';
 import SettingsIcon from 'material-ui/svg-icons/action/settings';
@@ -53,8 +56,9 @@ class AppBottomNavigation extends React.Component {
         label={i18n.getTranslation('common.history')}
         icon={<HistoryIcon />}
         onTouchTap={() => {
-          this.props.router.push(AppSession.get(
-            AppSessionFields.LAST_HISTORY_PERIOD) || URLS.HISTORY.LAST_MONTH,
+          this.props.router.push(
+            AppSession.get(AppSessionFields.LAST_HISTORY_PERIOD) ||
+              URLS.HISTORY.LAST_MONTH,
           );
         }}
       />,
@@ -90,10 +94,10 @@ class AppBottomNavigation extends React.Component {
         }}
         zDepth={2}
       >
-        <BottomNavigation selectedIndex={getIndexForPath(this.props.location.pathname)}>
-          {
-            this.getItems().map(item => item)
-          }
+        <BottomNavigation
+          selectedIndex={getIndexForPath(this.props.location.pathname)}
+        >
+          {this.getItems().map(item => item)}
         </BottomNavigation>
         <Konami easterEgg={() => this.setState({ showPlanningButton: true })} />
       </Paper>

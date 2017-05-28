@@ -6,11 +6,14 @@ import Records from '../api/records/records.js';
 export default createContainer(() => {
   const recordsHandle = Meteor.subscribe('records.incomplete');
   const loading = !recordsHandle.ready();
-  const currentRecord = Records.find({
-    end: null,
-  }, {
-    sort: { begin: 1 },
-  }).fetch()[0];
+  const currentRecord = Records.find(
+    {
+      end: null,
+    },
+    {
+      sort: { begin: 1 },
+    },
+  ).fetch()[0];
 
   return {
     loading,

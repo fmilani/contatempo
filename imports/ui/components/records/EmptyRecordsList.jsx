@@ -13,7 +13,9 @@ const EmptyRecordsList = () => (
       fontFamily: 'Roboto, sans-serif',
     }}
   >
-    <div style={{ marginBottom: '20px' }}>{i18n.getTranslation('records.none')}</div>
+    <div style={{ marginBottom: '20px' }}>
+      {i18n.getTranslation('records.none')}
+    </div>
     <ImageTimer style={{ width: '96px', height: '96px' }} color={grey500} />
   </div>
 );

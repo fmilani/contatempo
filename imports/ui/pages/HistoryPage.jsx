@@ -1,44 +1,45 @@
 import React from 'react';
-import moment from 'moment';
 import { i18n } from 'meteor/universe:i18n';
 import BigTimeDisplay from '../components/records/BigTimeDisplay.jsx';
 import RecordsList from '../components/records/RecordsList.jsx';
 import Spinner from '../components/Spinner.jsx';
+import { getTotalElapsedTime } from '../../api/helpers/date-helpers';
+import withTimer from '../hocs/withTimer.js';
 
 /**
  * Component to display the user's history of records
  */
-export default class HistoryPage extends React.Component {
-
-  constructor(props) {
-    super(props);
-
-    // bindings
-    this.getTotalElapsed = this.getTotalElapsed.bind(this);
+class HistoryPage extends React.Component {
+  componentDidMount() {
+    const ongoingRecord = this.props.records.filter(record => !record.end)[0];
+    if (ongoingRecord) {
+      this.props.startTimer();
+    }
   }
 
-  getTotalElapsed() {
-    const finishedElapsed = this.props.records
-      .filter(record => record.end)
-      .map(record => moment(record.end).diff(moment(record.begin)))
-      .reduce((l, n) => l + n, 0);
-    return finishedElapsed;
+  componentWillReceiveProps(nextProps) {
+    const ongoingRecord = nextProps.records.filter(record => !record.end)[0];
+    if (ongoingRecord) {
+      this.props.startTimer();
+    } else {
+      this.props.stopTimer();
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.stopTimer();
   }
 
   render() {
-    const { loading, records } = this.props;
+    const { loading, records, now } = this.props;
     return (
       <div>
         <BigTimeDisplay
-          time={this.getTotalElapsed()}
+          time={getTotalElapsedTime(records, now)}
           title={i18n.getTranslation('common.total')}
         />
         <div style={{ marginTop: 15 }}>
-          {
-            loading
-              ? <Spinner />
-              : <RecordsList records={records} />
-          }
+          {loading ? <Spinner /> : <RecordsList records={records} />}
         </div>
       </div>
     );
@@ -47,13 +48,20 @@ export default class HistoryPage extends React.Component {
 
 HistoryPage.propTypes = {
   loading: React.PropTypes.bool,
-  records: React.PropTypes.arrayOf(React.PropTypes.shape({
-    begin: React.PropTypes.instanceOf(Date),
-    end: React.PropTypes.instanceOf(Date),
-  })),
+  records: React.PropTypes.arrayOf(
+    React.PropTypes.shape({
+      begin: React.PropTypes.instanceOf(Date),
+      end: React.PropTypes.instanceOf(Date),
+    }),
+  ),
+  now: React.PropTypes.shape().isRequired,
+  startTimer: React.PropTypes.func.isRequired,
+  stopTimer: React.PropTypes.func.isRequired,
 };
 
 HistoryPage.defaultProps = {
   loading: false,
   records: [],
 };
+
+export default withTimer(HistoryPage);

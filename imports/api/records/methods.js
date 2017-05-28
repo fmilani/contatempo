@@ -4,10 +4,7 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import moment from 'moment-timezone';
 import Records from './records.js';
 import { isValidInsertion, isValidEdition } from './helpers';
-import {
-  getLastMonthInterval,
-  getLastMonth,
-} from '../helpers/date-helpers.js';
+import { getLastMonthInterval, getLastMonth } from '../helpers/date-helpers.js';
 import sendReportEmail from '../email/send-report-email.jsx';
 
 // the precision with which the record dates are saved. Any unit below this will be zero
@@ -26,8 +23,10 @@ export const insert = new ValidatedMethod({
   }).validator(),
   run({ begin, end }) {
     if (end && !isValidInsertion(begin, end)) {
-      throw new Meteor.Error('records.insert.endMustBeAfterBegin',
-        'The end of the record must be after its begin');
+      throw new Meteor.Error(
+        'records.insert.endMustBeAfterBegin',
+        'The end of the record must be after its begin',
+      );
     }
 
     const record = {
@@ -77,8 +76,10 @@ export const edit = new ValidatedMethod({
     const record = Records.findOne(id);
 
     if (!isValidEdition(record, date, field)) {
-      throw new Meteor.Error('records.edit.endMustBeAfterBegin',
-        'The end of the record must be after its begin');
+      throw new Meteor.Error(
+        'records.edit.endMustBeAfterBegin',
+        'The end of the record must be after its begin',
+      );
     }
     if (field === 'begin') {
       Records.update(id, {
@@ -131,7 +132,8 @@ export const shareLastMonthReport = new ValidatedMethod({
 
     // get the user timezone so we can calculate the correct records interval
     const userTimezone = user.settings.timezone;
-    const timezoneOffset = moment.tz.zone(userTimezone)
+    const timezoneOffset = moment.tz
+      .zone(userTimezone)
       .offset(moment(date).valueOf());
 
     const lastMonth = getLastMonth(date, user.settings.endOfMonth);
@@ -142,8 +144,10 @@ export const shareLastMonthReport = new ValidatedMethod({
       ? user.reportsSentCounter[reportsSentCounterIndex] || 0
       : 0;
     if (reportsSent >= Meteor.settings.public.maxReportsSend) {
-      throw new Meteor.Error('records.share.limitExceeded',
-        'The user already sent it\'s maximum of reports this month');
+      throw new Meteor.Error(
+        'records.share.limitExceeded',
+        "The user already sent it's maximum of reports this month",
+      );
     }
     reportsSent += 1;
     const string = `reportsSentCounter.${reportsSentCounterIndex}`;
@@ -164,15 +168,18 @@ export const shareLastMonthReport = new ValidatedMethod({
     });
 
     // get the records for that interval (taking user timezone into account)
-    const records = Records.find({
-      begin: {
-        $gte: interval.start.add(timezoneOffset, 'minutes').toDate(),
-        $lte: interval.end.add(timezoneOffset, 'minutes').toDate(),
+    const records = Records.find(
+      {
+        begin: {
+          $gte: interval.start.add(timezoneOffset, 'minutes').toDate(),
+          $lte: interval.end.add(timezoneOffset, 'minutes').toDate(),
+        },
+        userId: user._id,
       },
-      userId: user._id,
-    }, {
-      sort: { begin: 1 },
-    }).fetch();
+      {
+        sort: { begin: 1 },
+      },
+    ).fetch();
 
     sendReportEmail({
       userName: user.profile.name,

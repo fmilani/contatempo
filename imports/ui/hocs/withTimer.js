@@ -16,11 +16,12 @@ const withTimer = compose(
         return;
       }
       updateNow(moment().toDate());
-      updateTimer(setInterval(() => updateNow(moment().toDate()), 1000));
+      updateTimer(setInterval(() => updateNow(moment().toDate()), 100));
     },
-    stopTimer: ({ timer }) => () => {
+    stopTimer: ({ timer, updateTimer }) => () => {
       if (timer) {
         clearInterval(timer);
+        updateTimer(null);
       }
     },
   }),

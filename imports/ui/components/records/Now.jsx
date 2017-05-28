@@ -8,62 +8,51 @@ import Spinner from '../Spinner.jsx';
 import FormattedTime from './FormattedTime.jsx';
 import StartButton from './StartButton.jsx';
 import StopButton from './StopButton.jsx';
+import withTimer from '../../hocs/withTimer';
 
 /**
  * Component that handles the on-going record
  */
-export default class Now extends React.Component {
+class Now extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      timer: null,
-      now: moment(),
-    };
-
     // the minimum time needed so user can stop recording after it started
     this.MINIMUM_TIME_TO_STOP = 1000;
+  }
 
-    // bindings
-    this.tick = this.tick.bind(this);
+  componentDidMount() {
+    if (this.props.currentRecord) {
+      this.props.startTimer();
+    }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.currentRecord) {
-      this.setState({
-        timer: setInterval(this.tick, 33),
-      });
+      this.props.startTimer();
     } else {
-      clearInterval(this.state.timer);
-      this.setState({ timer: null });
+      this.props.stopTimer();
     }
   }
 
   componentWillUnmount() {
-    clearInterval(this.state.timer);
-    this.setState({ timer: null });
+    this.props.stopTimer();
   }
 
   getElapsedTime() {
-    const { currentRecord } = this.props;
-    const { now } = this.state;
+    const { currentRecord, now } = this.props;
 
     if (!currentRecord) return 0;
 
-    let elapsedTime = now.diff(currentRecord.begin);
+    let elapsedTime = moment(now).diff(currentRecord.begin);
     if (elapsedTime < 0) {
       elapsedTime = 0;
     }
     return elapsedTime;
   }
 
-  tick() {
-    this.setState({ now: moment() });
-  }
-
   render() {
-    const { loading, currentRecord } = this.props;
-    const { now } = this.state;
+    const { loading, currentRecord, now } = this.props;
 
     const elapsedTime = this.getElapsedTime();
 
@@ -93,7 +82,8 @@ export default class Now extends React.Component {
                 ? <StopButton
                     currentRecordId={currentRecord._id}
                     canStop={
-                      now.diff(currentRecord.begin) >= this.MINIMUM_TIME_TO_STOP
+                      moment(now).diff(currentRecord.begin) >=
+                        this.MINIMUM_TIME_TO_STOP
                     }
                   />
                 : <StartButton />}
@@ -108,9 +98,14 @@ Now.propTypes = {
   currentRecord: React.PropTypes.shape({
     begin: React.PropTypes.any,
   }),
+  now: React.PropTypes.shape().isRequired,
+  startTimer: React.PropTypes.func.isRequired,
+  stopTimer: React.PropTypes.func.isRequired,
 };
 
 Now.defaultProps = {
   currentRecord: null,
   loading: false,
 };
+
+export default withTimer(Now);

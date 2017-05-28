@@ -8,6 +8,7 @@ import {
   getWeekInterval,
   getMonthInterval,
   getLastWeekInterval,
+  getTotalElapsedTime,
 } from './date-helpers';
 
 const chaiDatetime = require('chai-datetime');
@@ -146,6 +147,45 @@ if (Meteor.isServer) {
 
           test(endOfMonth, testDate, expectedStart, expectedEnd);
         });
+      });
+    });
+
+    describe('getTotalElapsedTime', () => {
+      it('should return 0 for an empty list', () => {
+        expect(
+          getTotalElapsedTime([], new Date(2017, 4, 28, 1, 0, 0, 0)),
+        ).to.equal(0);
+      });
+      it('should return the correct elapsed time for a list without ongoing records', () => {
+        const records = [];
+        records.push({
+          begin: new Date(2017, 4, 28, 0, 0, 0, 0),
+          end: new Date(2017, 4, 28, 1, 0, 0, 0),
+        });
+        // expected 1 hour
+        const expectedElapsedTime = 60 * 60 * 1000;
+        expect(
+          getTotalElapsedTime(records, new Date(2017, 4, 28, 1, 0, 0, 0)),
+        ).to.equal(expectedElapsedTime);
+      });
+      it('should return the correct elapsed time for a list with an ongoing records', () => {
+        const records = [];
+        records.push({
+          begin: new Date(2017, 4, 28, 0, 0, 0, 0),
+          end: new Date(2017, 4, 28, 1, 0, 0, 0),
+        });
+        const ongoingRecord = {
+          begin: new Date(2017, 4, 28, 2, 0, 0, 0),
+          end: null,
+        };
+        records.push(ongoingRecord);
+        // expected 1 hour
+        const expectedCompletedElapsedTime = 60 * 60 * 1000;
+        // expected 30 minutes
+        const expectedOngoingElapsedTime = 30 * 60 * 1000;
+        expect(
+          getTotalElapsedTime(records, new Date(2017, 4, 28, 2, 30, 0, 0)),
+        ).to.equal(expectedCompletedElapsedTime + expectedOngoingElapsedTime);
       });
     });
   });

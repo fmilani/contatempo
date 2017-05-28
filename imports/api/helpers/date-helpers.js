@@ -87,3 +87,22 @@ export const getLastMonth = (date, endOfMonth) =>
   endOfMonth === EndOfMonthEnum.DAY_20
     ? moment(date).subtract(20, 'days')
     : moment(date).subtract(1, 'month');
+
+/**
+ * Gets the total elapsed time (in ms) for a given list of records and
+ * a currentTime (for ongoing records)
+ * @param {Array} records the list of records
+ * @param {Date} currentTime the current time used for ongoing records
+ */
+export const getTotalElapsedTime = (records, currentTime) => {
+  const finishedRecordsElapsedTime = records
+    .filter(record => record.end)
+    .map(record => moment(record.end).diff(moment(record.begin)))
+    .reduce((l, n) => l + n, 0);
+
+  const ongoingRecordsElapsedTime = records
+    .filter(record => !record.end)
+    .map(record => moment(currentTime).diff(record.begin))
+    .reduce((l, n) => l + n, 0);
+  return finishedRecordsElapsedTime + ongoingRecordsElapsedTime;
+};

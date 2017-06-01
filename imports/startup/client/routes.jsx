@@ -45,7 +45,11 @@ const renderRoutes = () => (
       <IndexRedirect to={URLS.NOW} />
 
       <Route path={URLS.LOGIN} component={Login} />
-      <Route path={URLS.SETTINGS} component={SettingsContainer} />
+      <Route
+        path={URLS.SETTINGS}
+        component={SettingsContainer}
+        onEnter={requireAuthAndSettings}
+      />
 
       <Route
         path={URLS.NOW}

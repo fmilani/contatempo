@@ -9,7 +9,7 @@ import {
   IndexRedirect,
   browserHistory,
 } from 'react-router';
-import URLS from '../../api/helpers/urls.js';
+import { URLS } from '../../api/helpers/urls.js';
 // route components
 import Login from '../../ui/components/Login.jsx';
 import AppContainer from '../../containers/AppContainer.jsx';

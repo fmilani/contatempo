@@ -16,7 +16,11 @@ import AppBottomNavigation from './AppBottomNavigation.jsx';
 import RecordAdd from '../components/records/RecordAdd.jsx';
 import PeriodDropDown from '../components/records/PeriodDropDown.jsx';
 import { shareLastMonthReport } from '../../api/records/methods.js';
-import URLS from '../../api/helpers/urls.js';
+import {
+  isAHistoryPage,
+  isLastMonthHistoryPage,
+  URLS,
+} from '../../api/helpers/urls.js';
 
 const muiTheme = getMuiTheme({
   palette: {
@@ -25,9 +29,6 @@ const muiTheme = getMuiTheme({
     pickerHeaderColor: indigo500,
   },
 });
-
-const isOnHistoryPage = path => `/${path.split('/')[1]}` === URLS.HISTORY.ROOT;
-const isOnLastMonthHistoryPage = path => path === URLS.HISTORY.LAST_MONTH;
 
 class App extends React.Component {
   constructor(props) {
@@ -71,7 +72,7 @@ class App extends React.Component {
   shouldShowRecordAddComponent() {
     return (
       this.props.location.pathname === URLS.NOW ||
-      isOnHistoryPage(this.props.location.pathname)
+      isAHistoryPage(this.props.location.pathname)
     );
   }
 
@@ -93,13 +94,13 @@ class App extends React.Component {
           <Headroom style={{ zIndex: 999 }}>
             <AppBar
               title={
-                isOnHistoryPage(this.props.location.pathname)
+                isAHistoryPage(this.props.location.pathname)
                   ? <PeriodDropDown />
                   : 'Contatempo'
               }
               onLeftIconButtonTouchTap={this.handleDrawer}
               iconElementRight={
-                isOnLastMonthHistoryPage(this.props.location.pathname)
+                isLastMonthHistoryPage(this.props.location.pathname)
                   ? <IconButton
                       onTouchTap={_.debounce(this.shareLastMonthReport, 500)}
                     >

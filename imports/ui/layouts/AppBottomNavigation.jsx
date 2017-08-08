@@ -11,7 +11,7 @@ import HistoryIcon from 'material-ui/svg-icons/action/history';
 import SettingsIcon from 'material-ui/svg-icons/action/settings';
 import PlanningIcon from 'material-ui/svg-icons/action/event';
 import Konami from 'react-konami';
-import URLS from '../../api/helpers/urls';
+import { URLS } from '../../api/helpers/urls';
 import { AppSession, AppSessionFields } from '../../session/session';
 
 /**

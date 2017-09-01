@@ -6,7 +6,6 @@
     "last_days": "Últimos dias",
     "last_month": "Último mês",
     "now": "Agora",
-    "save": "Salvar",
     "settings": "Configurações",
     "settings_short": "Config.",
     "this_month": "Este mês",
@@ -26,10 +25,10 @@
   "settings": {
     "no_end_of_month_msg": "Por favor, indique quando termina o seu mês",
     "no_timezone_msg": "Por favor, indique seu fuso horário desejado",
-    "timezone_label": "Fuso horário",
+    "timezone": "Fuso horário",
     "timezone_hint": "ex.: Sao Paulo",
     "save_success": "Configurações salvas com sucesso",
-    "header": "Quando termina o seu mês?",
+    "general": "Geral",
     "last_day": "No último dia",
     "day_20": "No dia 20"
   },

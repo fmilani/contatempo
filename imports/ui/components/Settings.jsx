@@ -2,28 +2,28 @@ import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
-import moment from 'moment-timezone';
-import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
-import RaisedButton from 'material-ui/RaisedButton';
-import AutoComplete from 'material-ui/AutoComplete';
-import Snackbar from 'material-ui/Snackbar';
+import { List, ListItem } from 'material-ui/List';
+import Subheader from 'material-ui/Subheader';
+import Divider from 'material-ui/Divider';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 import Spinner from './Spinner.jsx';
-import Title from './Title.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
+import EndOfMonthDialog from './settings/EndOfMonthDialog.jsx';
+import TimezoneDialog from './settings/TimezoneDialog.jsx';
 
 class Settings extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      showSettingsSavedFeedback: false,
+      showEndOfMonthDialog: false,
+      showTimezoneDialog: false,
     };
 
     // bindings
+    this.changeEndOfMonthSetting = this.changeEndOfMonthSetting.bind(this);
     this.handleEndOfMonthChange = this.handleEndOfMonthChange.bind(this);
-    this.handleSave = this.handleSave.bind(this);
-    this.onNewRequest = this.onNewRequest.bind(this);
+    this.changeTimezoneSetting = this.changeTimezoneSetting.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -44,12 +44,36 @@ class Settings extends React.Component {
     }
   }
 
-  onNewRequest(changeRequest, index) {
+  getEndOfMonthText() {
+    if (this.state.endOfMonth === EndOfMonthEnum.DAY_20) {
+      return i18n.getTranslation('settings.day_20');
+    } else if (this.state.endOfMonth === EndOfMonthEnum.LAST_DAY) {
+      return i18n.getTranslation('settings.last_day');
+    }
+
+    return i18n.getTranslation('Please select one');
+  }
+
+  getTimezoneText() {
+    return this.props.settings.timezone || 'Please select one';
+  }
+
+  changeTimezoneSetting(changeRequest, index) {
     if (index !== -1) {
       this.setState({
         timezone: changeRequest,
         showTimezoneError: false,
       });
+      const settings = {
+        ...this.props.settings,
+        timezone: changeRequest.value,
+      };
+      Meteor.users.update(Meteor.userId(), { $set: { settings } }, error => {
+        if (error) {
+          console.log('Something went wrong =(.');
+        }
+      });
+      this.setState({ showTimezoneDialog: false });
     } else {
       // the user didn't select a valid timezone
       this.setState({
@@ -63,64 +87,70 @@ class Settings extends React.Component {
     this.setState({ endOfMonth: value, showEndOfMonthError: false });
   }
 
-  handleSave() {
-    this.setState({
-      showEndOfMonthError: !this.state.endOfMonth,
-      showTimezoneError: !this.state.timezone,
-    });
-    if (!this.state.endOfMonth || !this.state.timezone) {
-      return;
-    }
+  changeEndOfMonthSetting(event, value) {
+    if (value === this.props.settings.endOfMonth) return;
 
-    const settings = {
-      endOfMonth: this.state.endOfMonth,
-      timezone: this.state.timezone.value,
-    };
+    const settings = { ...this.props.settings, endOfMonth: value };
     Meteor.users.update(
       Meteor.userId(),
       {
         $set: { settings },
       },
       error => {
-        if (!error) {
-          this.setState({ showSettingsSavedFeedback: true });
+        if (error) {
+          console.log('Something went wrong! =(');
         }
       },
     );
+    this.setState({ showEndOfMonthDialog: false });
   }
 
   renderPage() {
-    const styles = {
-      page: {
-        margin: '20px',
-      },
-      radioButton: {
-        marginBottom: 16,
-      },
-    };
-
-    const { settings, muiTheme } = this.props;
+    const { settings } = this.props;
     const timezone = settings.timezone || '';
 
     return (
-      <div style={styles.page}>
-        <Title title={i18n.getTranslation('settings.header')} />
-        <RadioButtonGroup
-          name="endOfMonth"
-          defaultSelected={this.state.endOfMonth}
-          onChange={this.handleEndOfMonthChange}
-        >
-          <RadioButton
-            value={EndOfMonthEnum.LAST_DAY}
-            label={i18n.getTranslation('settings.last_day')}
-            style={styles.radioButton}
+      <div>
+        <List>
+          <Subheader>{i18n.getTranslation('settings.general')}</Subheader>
+          <ListItem
+            primaryText="Dia em que termina o mês"
+            secondaryText={this.getEndOfMonthText()}
+            onTouchTap={() => {
+              this.setState({ showEndOfMonthDialog: true });
+            }}
           />
-          <RadioButton
-            value={EndOfMonthEnum.DAY_20}
-            label={i18n.getTranslation('settings.day_20')}
-            style={styles.radioButton}
+          <ListItem
+            primaryText="Fuso Horário"
+            secondaryText={this.getTimezoneText()}
+            onTouchTap={() => {
+              this.setState({ showTimezoneDialog: true });
+            }}
           />
-        </RadioButtonGroup>
+          <TimezoneDialog
+            open={this.state.showTimezoneDialog}
+            timezone={timezone}
+            onChange={this.changeTimezoneSetting}
+            onCancelClick={() => {
+              this.setState({ showTimezoneDialog: false });
+            }}
+            onRequestClose={() => {
+              this.setState({ showTimezoneDialog: false });
+            }}
+          />
+        </List>
+        <Divider />
+        <EndOfMonthDialog
+          open={this.state.showEndOfMonthDialog}
+          endOfMonth={this.state.endOfMonth}
+          onChange={this.changeEndOfMonthSetting}
+          onCancelClick={() => {
+            this.setState({ showEndOfMonthDialog: false });
+          }}
+          onRequestClose={() => {
+            this.setState({ showEndOfMonthDialog: false });
+          }}
+        />
         <div
           style={{
             visibility: this.state.showEndOfMonthError ? 'visible' : 'hidden',
@@ -130,20 +160,6 @@ class Settings extends React.Component {
           }}
         >
           {i18n.getTranslation('settings.no_end_of_month_msg')}
-        </div>
-        <div>
-          <AutoComplete
-            floatingLabelText={i18n.getTranslation('settings.timezone_label')}
-            hintText={i18n.getTranslation('settings.timezone_hint')}
-            filter={AutoComplete.fuzzyFilter}
-            dataSource={moment.tz.names().map(tzName => ({
-              text: `${tzName.replace(/_/g, ' ').replace(/\//g, ' - ')}`,
-              value: tzName,
-            }))}
-            maxSearchResults={5}
-            onNewRequest={this.onNewRequest}
-            searchText={timezone.replace(/_/g, ' ').replace(/\//g, ' - ')}
-          />
         </div>
         <div
           style={{
@@ -155,30 +171,6 @@ class Settings extends React.Component {
         >
           {i18n.getTranslation('settings.no_timezone_msg')}
         </div>
-        <RaisedButton
-          primary
-          onClick={this.handleSave}
-          label={i18n.getTranslation('common.save')}
-          style={{
-            marginTop: '20px',
-          }}
-        />
-        <Snackbar
-          open={this.state.showSettingsSavedFeedback}
-          message={i18n.getTranslation('settings.save_success')}
-          autoHideDuration={2000}
-          onRequestClose={() => {
-            this.setState({ showSettingsSavedFeedback: false });
-            // TODO: we're changing route here so the Snackbar has a chance
-            // to appear to the user (ideally we want to change route right after
-            // settings are saved, but then we need another way to show a
-            // feedback to the user)
-            this.props.router.push('/');
-          }}
-          style={{
-            bottom: muiTheme.bottomNavigation.height,
-          }}
-        />
       </div>
     );
   }
@@ -191,12 +183,6 @@ class Settings extends React.Component {
 
 Settings.propTypes = {
   loading: React.PropTypes.bool.isRequired,
-  muiTheme: React.PropTypes.shape({
-    bottomNavigation: React.PropTypes.object,
-  }).isRequired,
-  router: React.PropTypes.shape({
-    push: React.PropTypes.func,
-  }).isRequired,
   settings: React.PropTypes.shape({
     endOfMonth: React.PropTypes.string,
     timezone: React.PropTypes.string,

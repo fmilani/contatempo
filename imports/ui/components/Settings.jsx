@@ -10,6 +10,7 @@ import Spinner from './Spinner.jsx';
 import EndOfMonthEnum from '../../api/settings/EndOfMonthEnum';
 import EndOfMonthDialog from './settings/EndOfMonthDialog.jsx';
 import TimezoneDialog from './settings/TimezoneDialog.jsx';
+import ReportsEmailDialog from './settings/ReportsEmailDialog.jsx';
 
 class Settings extends React.Component {
   constructor(props) {
@@ -18,12 +19,14 @@ class Settings extends React.Component {
     this.state = {
       showEndOfMonthDialog: false,
       showTimezoneDialog: false,
+      showReportsEmailDialog: false,
     };
 
     // bindings
     this.changeEndOfMonthSetting = this.changeEndOfMonthSetting.bind(this);
     this.handleEndOfMonthChange = this.handleEndOfMonthChange.bind(this);
     this.changeTimezoneSetting = this.changeTimezoneSetting.bind(this);
+    this.changeReportsEmailSetting = this.changeReportsEmailSetting.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -100,9 +103,24 @@ class Settings extends React.Component {
         if (error) {
           console.log('Something went wrong! =(');
         }
-      },
+      }
     );
     this.setState({ showEndOfMonthDialog: false });
+  }
+
+  changeReportsEmailSetting(reportsEmail) {
+    const settings = { ...this.props.settings, reportsEmail };
+    Meteor.users.update(
+      Meteor.userId(),
+      {
+        $set: { settings },
+      },
+      error => {
+        if (error) {
+          console.log('Something went wrong! =(');
+        }
+      }
+    );
   }
 
   renderPage() {
@@ -127,19 +145,21 @@ class Settings extends React.Component {
               this.setState({ showTimezoneDialog: true });
             }}
           />
-          <TimezoneDialog
-            open={this.state.showTimezoneDialog}
-            timezone={timezone}
-            onChange={this.changeTimezoneSetting}
-            onCancelClick={() => {
-              this.setState({ showTimezoneDialog: false });
-            }}
-            onRequestClose={() => {
-              this.setState({ showTimezoneDialog: false });
+        </List>
+        <Divider />
+        <List>
+          <Subheader>{i18n.getTranslation('common.reports')}</Subheader>
+          <ListItem
+            primaryText={i18n.getTranslation('email.settings_label')}
+            secondaryText={
+              this.props.settings.reportsEmail ||
+                i18n.getTranslation('common.touch_to_choose')
+            }
+            onTouchTap={() => {
+              this.setState({ showReportsEmailDialog: true });
             }}
           />
         </List>
-        <Divider />
         <EndOfMonthDialog
           open={this.state.showEndOfMonthDialog}
           endOfMonth={this.state.endOfMonth}
@@ -149,6 +169,28 @@ class Settings extends React.Component {
           }}
           onRequestClose={() => {
             this.setState({ showEndOfMonthDialog: false });
+          }}
+        />
+        <TimezoneDialog
+          open={this.state.showTimezoneDialog}
+          timezone={timezone}
+          onChange={this.changeTimezoneSetting}
+          onCancelClick={() => {
+            this.setState({ showTimezoneDialog: false });
+          }}
+          onRequestClose={() => {
+            this.setState({ showTimezoneDialog: false });
+          }}
+        />
+        <ReportsEmailDialog
+          email={this.props.settings.reportsEmail}
+          open={this.state.showReportsEmailDialog}
+          onConfirmClick={this.changeReportsEmailSetting}
+          onCancelClick={() => {
+            this.setState({ showReportsEmailDialog: false });
+          }}
+          onRequestClose={() => {
+            this.setState({ showReportsEmailDialog: false });
           }}
         />
         <div
@@ -184,6 +226,7 @@ class Settings extends React.Component {
 Settings.propTypes = {
   loading: React.PropTypes.bool.isRequired,
   settings: React.PropTypes.shape({
+    reportsEmail: React.PropTypes.string,
     endOfMonth: React.PropTypes.string,
     timezone: React.PropTypes.string,
   }).isRequired,

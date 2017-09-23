@@ -2,19 +2,28 @@
   "_locale": "pt-BR",
   "common": {
     "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "email": "Email",
     "history": "Histórico",
     "last_days": "Últimos dias",
     "last_month": "Último mês",
     "now": "Agora",
+    "reports": "Relatórios",
     "settings": "Configurações",
     "settings_short": "Config.",
     "this_month": "Este mês",
+    "touch_to_choose": "Toque para escolher",
     "today": "Hoje",
     "total": "Total"
   },
   "drawer": {
     "track_time": "Contar tempo",
     "logout": "Sair"
+  },
+  "email": {
+    "invalid": "Use um email no formato: email@dominio",
+    "settings_label": "Email para envio de relatórios",
+    "type_email": "Digite o email"
   },
   "period": {
     "last_month": "Último mês",

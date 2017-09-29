@@ -54,6 +54,7 @@ const sendReports = (date, endOfMonth) => {
 
       return {
         userName: user.profile.name,
+        userReportsEmail: user.settings.reportsEmail,
         userTimezone: user.settings.timezone,
         userEmail: user.profile.email,
         records: result.records,
@@ -71,35 +72,3 @@ const sendReports = (date, endOfMonth) => {
 };
 
 export default sendReports;
-
-export const sendUserReport = (date, userId) => {
-  const user = Meteor.users.findOne(userId);
-  // get the interval for a month before the reference date
-  const lastMonth = moment(date).subtract(1, 'month');
-  const interval = getMonthInterval(lastMonth, user.settings.endOfMonth);
-
-  // get the records for that interval
-  const records = Records.find(
-    {
-      begin: {
-        $gte: interval.start.toDate(),
-        $lte: interval.end.toDate(),
-      },
-      userId: user._id,
-    },
-    {
-      sort: { begin: 1 },
-    },
-  ).fetch();
-
-  sendReportEmail({
-    userName: user.profile.name,
-    userTimezone: user.settings.timezone,
-    monthString: lastMonth.format('MMMM'), // FIXME: this will print wrong month,
-    records,
-    interval: {
-      start: interval.start.format('DD/MM/YYYY'),
-      end: interval.end.format('DD/MM/YYYY'),
-    },
-  });
-};

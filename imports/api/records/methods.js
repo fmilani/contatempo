@@ -132,6 +132,7 @@ export const shareLastMonthReport = new ValidatedMethod({
 
     // get the user timezone so we can calculate the correct records interval
     const userTimezone = user.settings.timezone;
+    const userReportsEmail = user.settings.reportsEmail;
     const timezoneOffset = moment.tz
       .zone(userTimezone)
       .offset(moment(date).valueOf());
@@ -183,6 +184,7 @@ export const shareLastMonthReport = new ValidatedMethod({
 
     sendReportEmail({
       userName: user.profile.name,
+      userReportsEmail,
       userTimezone,
       monthString: lastMonth.format('MMMM'),
       records,

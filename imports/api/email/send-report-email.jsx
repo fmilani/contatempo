@@ -2,9 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { Email } from 'meteor/email';
 import reportEmail from './report-email.jsx';
 
-// TODO: split this file (maybe generate email template somewhere else?)
 const sendReportEmail = ({
   userName,
+  userReportsEmail,
   userTimezone,
   monthString,
   records,
@@ -13,16 +13,11 @@ const sendReportEmail = ({
   // prevent calling Email method from client-side
   if (!Meteor.isServer) return;
 
-  console.log(
-    `Sending ${userName} report to ${Meteor.settings.private.reportsMail}`,
-  );
+  console.log(`Sending ${userName} report to ${userReportsEmail}`);
 
   Email.send({
     from: 'Contatempo@contatempo.com',
-    to: [
-      Meteor.settings.private.reportsMail,
-      Meteor.settings.private.reportsMail2,
-    ],
+    to: [userReportsEmail],
     subject: `Relatório de horas - ${userName} - ${monthString}`,
     html: reportEmail({ userName, userTimezone, records, interval }),
   });

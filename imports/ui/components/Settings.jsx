@@ -58,11 +58,14 @@ class Settings extends React.Component {
       return i18n.getTranslation('settings.last_day');
     }
 
-    return i18n.getTranslation('Please select one');
+    return i18n.getTranslation('common.touch_to_choose');
   }
 
   getTimezoneText() {
-    return this.props.settings.timezone || 'Please select one';
+    return (
+      this.props.settings.timezone ||
+      i18n.getTranslation('common.touch_to_choose')
+    );
   }
 
   changeSendReportsToSelfSetting(event, sendReportsToSelf) {
@@ -154,6 +157,17 @@ class Settings extends React.Component {
               this.setState({ showEndOfMonthDialog: true });
             }}
           />
+          {this.state.showEndOfMonthError
+            ? <div
+                style={{
+                  fontSize: '14px',
+                  marginLeft: '16px',
+                  color: '#F44336', // TODO: red500
+                }}
+              >
+                {i18n.getTranslation('settings.no_end_of_month_msg')}
+              </div>
+            : null}
           <ListItem
             primaryText="Fuso Horário"
             secondaryText={this.getTimezoneText()}
@@ -161,6 +175,17 @@ class Settings extends React.Component {
               this.setState({ showTimezoneDialog: true });
             }}
           />
+          {this.state.showTimezoneError
+            ? <div
+                style={{
+                  fontSize: '14px',
+                  marginLeft: '16px',
+                  color: '#F44336', // TODO: red500
+                }}
+              >
+                {i18n.getTranslation('settings.no_timezone_msg')}
+              </div>
+            : null}
         </List>
         <Divider />
         <List>
@@ -219,26 +244,6 @@ class Settings extends React.Component {
             this.setState({ showReportsEmailDialog: false });
           }}
         />
-        <div
-          style={{
-            visibility: this.state.showEndOfMonthError ? 'visible' : 'hidden',
-            fontSize: '14px',
-            marginBottom: '20px',
-            color: '#F44336', // TODO: red500
-          }}
-        >
-          {i18n.getTranslation('settings.no_end_of_month_msg')}
-        </div>
-        <div
-          style={{
-            visibility: this.state.showTimezoneError ? 'visible' : 'hidden',
-            fontSize: '14px',
-            marginBottom: '20px',
-            color: '#F44336', // TODO: red500
-          }}
-        >
-          {i18n.getTranslation('settings.no_timezone_msg')}
-        </div>
       </div>
     );
   }

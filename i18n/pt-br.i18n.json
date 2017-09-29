@@ -39,7 +39,9 @@
     "save_success": "Configurações salvas com sucesso",
     "general": "Geral",
     "last_day": "No último dia",
-    "day_20": "No dia 20"
+    "day_20": "No dia 20",
+    "send_copy_to_me": "Enviar cópia para mim",
+    "send_copy_to_me_hint": "No meu email de usuário"
   },
   "tracker_page": {
     "share_report": "Enviar horas",

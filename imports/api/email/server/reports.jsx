@@ -55,8 +55,9 @@ const sendReports = (date, endOfMonth) => {
       return {
         userName: user.profile.name,
         userReportsEmail: user.settings.reportsEmail,
-        userTimezone: user.settings.timezone,
+        sendCopyToUser: user.settings.sendReportsToSelf,
         userEmail: user.profile.email,
+        userTimezone: user.settings.timezone,
         records: result.records,
         interval: {
           start: interval.start.format('DD/MM/YYYY'),

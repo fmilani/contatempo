@@ -8,16 +8,25 @@ const sendReportEmail = ({
   userTimezone,
   monthString,
   records,
+  sendCopyToUser,
+  userEmail,
   interval,
 }) => {
   // prevent calling Email method from client-side
   if (!Meteor.isServer) return;
 
-  console.log(`Sending ${userName} report to ${userReportsEmail}`);
+  console.log(
+    `Sending ${userName} report to ${userReportsEmail}. ${sendCopyToUser ? `Also sending a copy to them (to ${userEmail}). ` : ''}`,
+  );
+
+  const recipientEmails = [userReportsEmail];
+  if (sendCopyToUser && userEmail !== userReportsEmail) {
+    recipientEmails.push(userEmail);
+  }
 
   Email.send({
     from: 'Contatempo@contatempo.com',
-    to: [userReportsEmail],
+    to: recipientEmails,
     subject: `Relatório de horas - ${userName} - ${monthString}`,
     html: reportEmail({ userName, userTimezone, records, interval }),
   });

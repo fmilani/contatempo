@@ -4,6 +4,7 @@ import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import { List, ListItem } from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
+import Toggle from 'material-ui/Toggle';
 import Divider from 'material-ui/Divider';
 import muiThemeable from 'material-ui/styles/muiThemeable';
 import Spinner from './Spinner.jsx';
@@ -27,6 +28,9 @@ class Settings extends React.Component {
     this.handleEndOfMonthChange = this.handleEndOfMonthChange.bind(this);
     this.changeTimezoneSetting = this.changeTimezoneSetting.bind(this);
     this.changeReportsEmailSetting = this.changeReportsEmailSetting.bind(this);
+    this.changeSendReportsToSelfSetting = this.changeSendReportsToSelfSetting.bind(
+      this,
+    );
   }
 
   componentWillReceiveProps(nextProps) {
@@ -59,6 +63,18 @@ class Settings extends React.Component {
 
   getTimezoneText() {
     return this.props.settings.timezone || 'Please select one';
+  }
+
+  changeSendReportsToSelfSetting(event, sendReportsToSelf) {
+    const settings = {
+      ...this.props.settings,
+      sendReportsToSelf,
+    };
+    Meteor.users.update(Meteor.userId(), { $set: { settings } }, error => {
+      if (error) {
+        console.log('Something went wrong =(.');
+      }
+    });
   }
 
   changeTimezoneSetting(changeRequest, index) {
@@ -103,7 +119,7 @@ class Settings extends React.Component {
         if (error) {
           console.log('Something went wrong! =(');
         }
-      }
+      },
     );
     this.setState({ showEndOfMonthDialog: false });
   }
@@ -119,7 +135,7 @@ class Settings extends React.Component {
         if (error) {
           console.log('Something went wrong! =(');
         }
-      }
+      },
     );
   }
 
@@ -158,6 +174,16 @@ class Settings extends React.Component {
             onTouchTap={() => {
               this.setState({ showReportsEmailDialog: true });
             }}
+          />
+          <ListItem
+            primaryText={i18n.getTranslation('settings.send_copy_to_me')}
+            secondaryText={i18n.getTranslation('settings.send_copy_to_me_hint')}
+            rightToggle={
+              <Toggle
+                toggled={settings.sendReportsToSelf}
+                onToggle={this.changeSendReportsToSelfSetting}
+              />
+            }
           />
         </List>
         <EndOfMonthDialog

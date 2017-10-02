@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment';
 import DatePicker from 'material-ui/DatePicker';
@@ -83,58 +84,59 @@ export default class RecordTime extends React.Component {
     const recordTime = this.getValue();
     return (
       <div style={{ flex: '0 0 40%' }}>
-        {recordTime
-          ? <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: this.props.type === 'begin'
-                  ? 'flex-start'
-                  : 'flex-end',
+        {recordTime ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent:
+                this.props.type === 'begin' ? 'flex-start' : 'flex-end',
+            }}
+          >
+            <DatePicker
+              style={{ flex: '0 0 40%' }}
+              name="recordDate"
+              textFieldStyle={{ width: '100%' }}
+              inputStyle={{ textAlign: 'center', fontSize: '12px' }}
+              underlineShow={false}
+              DateTimeFormat={Intl.DateTimeFormat}
+              locale={i18n.getLocale()}
+              value={recordTime}
+              onChange={(event, date) => {
+                this.editRecord(date, 'date');
               }}
-            >
-              <DatePicker
-                style={{ flex: '0 0 40%' }}
-                name="recordDate"
-                textFieldStyle={{ width: '100%' }}
-                inputStyle={{ textAlign: 'center', fontSize: '12px' }}
-                underlineShow={false}
-                DateTimeFormat={Intl.DateTimeFormat}
-                locale={i18n.getLocale()}
-                value={recordTime}
-                onChange={(event, date) => {
-                  this.editRecord(date, 'date');
-                }}
-                formatDate={date => moment(date).format('DD/MM')}
-              />
-              <TimePicker
-                style={{ flex: '0 0 40%' }}
-                ref={c => {
-                  this.timePicker = c;
-                }}
-                textFieldStyle={{ width: '100%' }}
-                inputStyle={{ textAlign: 'center', fontSize: '16px' }}
-                underlineShow={false}
-                format="24hr"
-                name="recordTime"
-                value={recordTime}
-                onChange={(event, date) => {
-                  this.editRecord(date);
-                }}
-              />
+              formatDate={date => moment(date).format('DD/MM')}
+            />
+            <TimePicker
+              style={{ flex: '0 0 40%' }}
+              ref={c => {
+                this.timePicker = c;
+              }}
+              textFieldStyle={{ width: '100%' }}
+              inputStyle={{ textAlign: 'center', fontSize: '16px' }}
+              underlineShow={false}
+              format="24hr"
+              name="recordTime"
+              value={recordTime}
+              onChange={(event, date) => {
+                this.editRecord(date);
+              }}
+            />
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center' }}>
+            <i
+              style={{
+                verticalAlign: 'middle',
+                display: 'inline-block',
+                height: '48px', // TODO: this height cant be fixed. (check texfield input height)
+              }}
+            />
+            <div style={{ verticalAlign: 'middle', display: 'inline-block' }}>
+              <ImageTimer style={{ width: '14px', height: '14px' }} />
             </div>
-          : <div style={{ textAlign: 'center' }}>
-              <i
-                style={{
-                  verticalAlign: 'middle',
-                  display: 'inline-block',
-                  height: '48px', // TODO: this height cant be fixed. (check texfield input height)
-                }}
-              />
-              <div style={{ verticalAlign: 'middle', display: 'inline-block' }}>
-                <ImageTimer style={{ width: '14px', height: '14px' }} />
-              </div>
-            </div>}
+          </div>
+        )}
         <Snackbar
           open={this.state.errorOnEdition}
           message={i18n.getTranslation('records.errorOnDatesMsg')}
@@ -149,6 +151,6 @@ export default class RecordTime extends React.Component {
 }
 
 RecordTime.propTypes = {
-  type: React.PropTypes.oneOf(['begin', 'end']).isRequired,
-  record: React.PropTypes.object,
+  type: PropTypes.oneOf(['begin', 'end']).isRequired,
+  record: PropTypes.object,
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import Paper from 'material-ui/Paper';
@@ -106,11 +107,11 @@ class AppBottomNavigation extends React.Component {
 }
 
 AppBottomNavigation.propTypes = {
-  location: React.PropTypes.shape({
-    pathname: React.PropTypes.string,
+  location: PropTypes.shape({
+    pathname: PropTypes.string,
   }).isRequired,
-  router: React.PropTypes.shape({
-    push: React.PropTypes.func,
+  router: PropTypes.shape({
+    push: PropTypes.func,
   }).isRequired,
 };
 

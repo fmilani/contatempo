@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { i18n } from 'meteor/universe:i18n';
 import BigTimeDisplay from '../components/records/BigTimeDisplay.jsx';
 import RecordsList from '../components/records/RecordsList.jsx';
@@ -47,16 +48,16 @@ class HistoryPage extends React.Component {
 }
 
 HistoryPage.propTypes = {
-  loading: React.PropTypes.bool,
-  records: React.PropTypes.arrayOf(
-    React.PropTypes.shape({
-      begin: React.PropTypes.instanceOf(Date),
-      end: React.PropTypes.instanceOf(Date),
+  loading: PropTypes.bool,
+  records: PropTypes.arrayOf(
+    PropTypes.shape({
+      begin: PropTypes.instanceOf(Date),
+      end: PropTypes.instanceOf(Date),
     }),
   ),
-  now: React.PropTypes.shape().isRequired,
-  startTimer: React.PropTypes.func.isRequired,
-  stopTimer: React.PropTypes.func.isRequired,
+  now: PropTypes.shape().isRequired,
+  startTimer: PropTypes.func.isRequired,
+  stopTimer: PropTypes.func.isRequired,
 };
 
 HistoryPage.defaultProps = {

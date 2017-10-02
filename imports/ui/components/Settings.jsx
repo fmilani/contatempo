@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
@@ -157,17 +158,17 @@ class Settings extends React.Component {
               this.setState({ showEndOfMonthDialog: true });
             }}
           />
-          {this.state.showEndOfMonthError
-            ? <div
-                style={{
-                  fontSize: '14px',
-                  marginLeft: '16px',
-                  color: '#F44336', // TODO: red500
-                }}
-              >
-                {i18n.getTranslation('settings.no_end_of_month_msg')}
-              </div>
-            : null}
+          {this.state.showEndOfMonthError ? (
+            <div
+              style={{
+                fontSize: '14px',
+                marginLeft: '16px',
+                color: '#F44336', // TODO: red500
+              }}
+            >
+              {i18n.getTranslation('settings.no_end_of_month_msg')}
+            </div>
+          ) : null}
           <ListItem
             primaryText="Fuso Horário"
             secondaryText={this.getTimezoneText()}
@@ -175,17 +176,17 @@ class Settings extends React.Component {
               this.setState({ showTimezoneDialog: true });
             }}
           />
-          {this.state.showTimezoneError
-            ? <div
-                style={{
-                  fontSize: '14px',
-                  marginLeft: '16px',
-                  color: '#F44336', // TODO: red500
-                }}
-              >
-                {i18n.getTranslation('settings.no_timezone_msg')}
-              </div>
-            : null}
+          {this.state.showTimezoneError ? (
+            <div
+              style={{
+                fontSize: '14px',
+                marginLeft: '16px',
+                color: '#F44336', // TODO: red500
+              }}
+            >
+              {i18n.getTranslation('settings.no_timezone_msg')}
+            </div>
+          ) : null}
         </List>
         <Divider />
         <List>
@@ -194,7 +195,7 @@ class Settings extends React.Component {
             primaryText={i18n.getTranslation('email.settings_label')}
             secondaryText={
               this.props.settings.reportsEmail ||
-                i18n.getTranslation('common.touch_to_choose')
+              i18n.getTranslation('common.touch_to_choose')
             }
             onTouchTap={() => {
               this.setState({ showReportsEmailDialog: true });
@@ -255,11 +256,11 @@ class Settings extends React.Component {
 }
 
 Settings.propTypes = {
-  loading: React.PropTypes.bool.isRequired,
-  settings: React.PropTypes.shape({
-    reportsEmail: React.PropTypes.string,
-    endOfMonth: React.PropTypes.string,
-    timezone: React.PropTypes.string,
+  loading: PropTypes.bool.isRequired,
+  settings: PropTypes.shape({
+    reportsEmail: PropTypes.string,
+    endOfMonth: PropTypes.string,
+    timezone: PropTypes.string,
   }).isRequired,
 };
 

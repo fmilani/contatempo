@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import 'moment-duration-format';
 
@@ -51,8 +52,8 @@ export default class FormattedTime extends React.Component {
 }
 
 FormattedTime.propTypes = {
-  time: React.PropTypes.number,
-  size: React.PropTypes.number,
+  time: PropTypes.number,
+  size: PropTypes.number,
 };
 
 FormattedTime.defaultProps = {

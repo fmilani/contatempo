@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Paper from 'material-ui/Paper';
 import FormattedTime from './FormattedTime.jsx';
 
@@ -17,8 +18,8 @@ const BigTimeDisplay = props => {
 };
 
 BigTimeDisplay.propTypes = {
-  time: React.PropTypes.number,
-  title: React.PropTypes.string.isRequired,
+  time: PropTypes.number,
+  title: PropTypes.string.isRequired,
 };
 
 BigTimeDisplay.defaultProps = {

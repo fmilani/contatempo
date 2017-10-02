@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import TextField from 'material-ui/TextField';
@@ -75,7 +76,7 @@ class ReportsEmailDialog extends React.Component {
 }
 
 ReportsEmailDialog.propTypes = {
-  email: React.PropTypes.string,
+  email: PropTypes.string,
 };
 
 ReportsEmailDialog.defaultProps = {

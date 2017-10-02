@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
 import DropDownMenu from 'material-ui/DropDownMenu';
@@ -59,11 +60,11 @@ class PeriodDropDown extends Component {
 }
 
 PeriodDropDown.propTypes = {
-  location: React.PropTypes.shape({
-    pathname: React.PropTypes.string,
+  location: PropTypes.shape({
+    pathname: PropTypes.string,
   }).isRequired,
-  router: React.PropTypes.shape({
-    push: React.PropTypes.func,
+  router: PropTypes.shape({
+    push: PropTypes.func,
   }).isRequired,
 };
 

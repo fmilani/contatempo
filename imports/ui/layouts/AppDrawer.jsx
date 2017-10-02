@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { withRouter } from 'react-router';
 import { i18n } from 'meteor/universe:i18n';
@@ -59,30 +60,32 @@ class AppDrawer extends React.Component {
           onRequestChange={open => this.setState({ open })}
           containerStyle={{ zIndex: 10000 }}
         >
-          {Meteor.user()
-            ? <div
+          {Meteor.user() ? (
+            <div
+              style={{
+                padding: '12px',
+                backgroundColor: indigo500, // TODO: get primary1Color from theme
+              }}
+            >
+              <Avatar
+                src={userPictureUrl}
                 style={{
-                  padding: '12px',
-                  backgroundColor: indigo500, // TODO: get primary1Color from theme
+                  verticalAlign: 'middle',
+                }}
+              />
+              <span
+                style={{
+                  marginLeft: '15px',
+                  color: '#fff',
+                  verticalAlign: 'middle',
                 }}
               >
-                <Avatar
-                  src={userPictureUrl}
-                  style={{
-                    verticalAlign: 'middle',
-                  }}
-                />
-                <span
-                  style={{
-                    marginLeft: '15px',
-                    color: '#fff',
-                    verticalAlign: 'middle',
-                  }}
-                >
-                  {userName}
-                </span>
-              </div>
-            : ''}
+                {userName}
+              </span>
+            </div>
+          ) : (
+            ''
+          )}
           <List>
             <ListItem
               primaryText={i18n.getTranslation('common.now')}
@@ -124,17 +127,19 @@ class AppDrawer extends React.Component {
               ]}
             />
           </List>
-          {Meteor.user()
-            ? <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
-                <MenuItem onTouchTap={() => this.handleRedirect('/settings')}>
-                  <T>common.settings</T>
-                </MenuItem>
-                <Divider />
-                <MenuItem onTouchTap={this.handleLogout}>
-                  <T>drawer.logout</T>
-                </MenuItem>
-              </div>
-            : ''}
+          {Meteor.user() ? (
+            <div style={{ position: 'absolute', bottom: '0', width: '100%' }}>
+              <MenuItem onTouchTap={() => this.handleRedirect('/settings')}>
+                <T>common.settings</T>
+              </MenuItem>
+              <Divider />
+              <MenuItem onTouchTap={this.handleLogout}>
+                <T>drawer.logout</T>
+              </MenuItem>
+            </div>
+          ) : (
+            ''
+          )}
         </Drawer>
       </div>
     );
@@ -142,11 +147,11 @@ class AppDrawer extends React.Component {
 }
 
 AppDrawer.propTypes = {
-  router: React.PropTypes.shape({
-    push: React.PropTypes.func,
+  router: PropTypes.shape({
+    push: PropTypes.func,
   }).isRequired,
-  userName: React.PropTypes.string,
-  userPictureUrl: React.PropTypes.string,
+  userName: PropTypes.string,
+  userPictureUrl: PropTypes.string,
 };
 
 AppDrawer.defaultProps = {

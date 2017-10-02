@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment';
 import Paper from 'material-ui/Paper';
@@ -71,36 +72,40 @@ class Now extends React.Component {
       },
     };
 
-    return loading
-      ? <Spinner />
-      : <div>
-          <Subheader>{i18n.getTranslation('common.now')}</Subheader>
-          <Paper style={styles.paper}>
-            <FormattedTime time={elapsedTime} />
-            <div style={styles.buttonWrapper}>
-              {currentRecord
-                ? <StopButton
-                    currentRecordId={currentRecord._id}
-                    canStop={
-                      moment(now).diff(currentRecord.begin) >=
-                        this.MINIMUM_TIME_TO_STOP
-                    }
-                  />
-                : <StartButton />}
-            </div>
-          </Paper>
-        </div>;
+    return loading ? (
+      <Spinner />
+    ) : (
+      <div>
+        <Subheader>{i18n.getTranslation('common.now')}</Subheader>
+        <Paper style={styles.paper}>
+          <FormattedTime time={elapsedTime} />
+          <div style={styles.buttonWrapper}>
+            {currentRecord ? (
+              <StopButton
+                currentRecordId={currentRecord._id}
+                canStop={
+                  moment(now).diff(currentRecord.begin) >=
+                  this.MINIMUM_TIME_TO_STOP
+                }
+              />
+            ) : (
+              <StartButton />
+            )}
+          </div>
+        </Paper>
+      </div>
+    );
   }
 }
 
 Now.propTypes = {
-  loading: React.PropTypes.bool,
-  currentRecord: React.PropTypes.shape({
-    begin: React.PropTypes.any,
+  loading: PropTypes.bool,
+  currentRecord: PropTypes.shape({
+    begin: PropTypes.any,
   }),
-  now: React.PropTypes.shape().isRequired,
-  startTimer: React.PropTypes.func.isRequired,
-  stopTimer: React.PropTypes.func.isRequired,
+  now: PropTypes.shape().isRequired,
+  startTimer: PropTypes.func.isRequired,
+  stopTimer: PropTypes.func.isRequired,
 };
 
 Now.defaultProps = {

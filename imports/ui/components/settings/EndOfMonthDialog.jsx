@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import FlatButton from 'material-ui/FlatButton';
 import Dialog from 'material-ui/Dialog';
@@ -39,7 +40,7 @@ const EndOfMonthDialog = props => (
 );
 
 EndOfMonthDialog.propTypes = {
-  open: React.PropTypes.bool.isRequired,
+  open: PropTypes.bool.isRequired,
 };
 
 export default EndOfMonthDialog;

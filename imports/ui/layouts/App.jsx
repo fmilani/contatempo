@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { _ } from 'lodash';
 import { i18n } from 'meteor/universe:i18n';
@@ -94,19 +95,21 @@ class App extends React.Component {
           <Headroom style={{ zIndex: 999 }}>
             <AppBar
               title={
-                isAHistoryPage(this.props.location.pathname)
-                  ? <PeriodDropDown />
-                  : 'Contatempo'
+                isAHistoryPage(this.props.location.pathname) ? (
+                  <PeriodDropDown />
+                ) : (
+                  'Contatempo'
+                )
               }
               onLeftIconButtonTouchTap={this.handleDrawer}
               iconElementRight={
-                isLastMonthHistoryPage(this.props.location.pathname)
-                  ? <IconButton
-                      onTouchTap={_.debounce(this.shareLastMonthReport, 500)}
-                    >
-                      <ShareIcon />
-                    </IconButton>
-                  : null
+                isLastMonthHistoryPage(this.props.location.pathname) ? (
+                  <IconButton
+                    onTouchTap={_.debounce(this.shareLastMonthReport, 500)}
+                  >
+                    <ShareIcon />
+                  </IconButton>
+                ) : null
               }
             />
           </Headroom>
@@ -151,13 +154,13 @@ class App extends React.Component {
 }
 
 App.propTypes = {
-  children: React.PropTypes.element.isRequired,
-  currentUser: React.PropTypes.shape({
-    name: React.PropTypes.string,
-    picture: React.PropTypes.string,
+  children: PropTypes.element.isRequired,
+  currentUser: PropTypes.shape({
+    name: PropTypes.string,
+    picture: PropTypes.string,
   }),
-  location: React.PropTypes.shape({
-    pathname: React.PropTypes.string,
+  location: PropTypes.shape({
+    pathname: PropTypes.string,
   }).isRequired,
 };
 

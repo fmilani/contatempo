@@ -10,3 +10,6 @@ settings.coverage.json
 
 #coverage report folder
 .coverage
+
+#swap files
+*.swp

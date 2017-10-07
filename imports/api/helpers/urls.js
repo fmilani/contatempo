@@ -1,6 +1,9 @@
 const HISTORY_ROOT = '/history';
 
-const URLS = {
+/**
+ * Urls used on the project.
+ */
+export const URLS = {
   ROOT: '/',
   LOGIN: '/login',
   NOW: '/now',
@@ -14,4 +17,16 @@ const URLS = {
   },
 };
 
-export default URLS;
+/**
+ * Checks if a path correspond to a history page.
+ *
+ * @param {String} path the path to be checked
+ */
+export const isAHistoryPage = path =>
+  `/${path.split('/')[1]}` === URLS.HISTORY.ROOT;
+
+/**
+ * Checks if a path correspond to the last month history page.
+ * @param {String} path the path to be checked
+ */
+export const isLastMonthHistoryPage = path => path === URLS.HISTORY.LAST_MONTH;

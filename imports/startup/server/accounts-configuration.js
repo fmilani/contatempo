@@ -35,7 +35,7 @@ Accounts.onCreateUser((options, user) => {
   });
 
   // create the user settings
-  newUser.settings = {};
+  newUser.settings = { sendReportsToSelf: true };
 
   return newUser;
 });

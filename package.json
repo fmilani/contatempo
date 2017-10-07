@@ -1,6 +1,6 @@
 {
   "name": "contatempo",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "scripts": {
     "start": "meteor run",
@@ -11,7 +11,7 @@
     "tdd": "meteor test --driver-package practicalmeteor:mocha --settings settings.coverage.json"
   },
   "dependencies": {
-    "material-ui": "^0.18.0",
+    "material-ui": "^0.18.6",
     "meteor-node-stubs": "~0.2.5",
     "moment": "^2.17.1",
     "moment-duration-format": "^1.3.0",

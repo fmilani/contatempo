@@ -9,7 +9,7 @@ import {
   IndexRedirect,
   browserHistory,
 } from 'react-router';
-import URLS from '../../api/helpers/urls.js';
+import { URLS } from '../../api/helpers/urls.js';
 // route components
 import Login from '../../ui/components/Login.jsx';
 import AppContainer from '../../containers/AppContainer.jsx';
@@ -22,6 +22,16 @@ const userHasAllSettings = () => {
   const { endOfMonth, timezone } = Meteor.user().settings;
 
   return endOfMonth && timezone;
+};
+
+// TODO: DRY. This method is too similar to requireAuthAndSettings
+const requireAuth = (nextState, replace) => {
+  if (!Meteor.loggingIn() && !Meteor.userId()) {
+    replace({
+      pathname: URLS.LOGIN,
+      state: { nextPathname: nextState.location.pathname },
+    });
+  }
 };
 
 const requireAuthAndSettings = (nextState, replace) => {
@@ -48,7 +58,7 @@ const renderRoutes = () => (
       <Route
         path={URLS.SETTINGS}
         component={SettingsContainer}
-        onEnter={requireAuthAndSettings}
+        onEnter={requireAuth}
       />
 
       <Route

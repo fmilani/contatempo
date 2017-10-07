@@ -181,8 +181,14 @@ export const shareLastMonthReport = new ValidatedMethod({
       },
     ).fetch();
 
+    const userReportsEmail = user.settings.reportsEmail;
+    const sendCopyToUser = user.settings.sendReportsToSelf;
+    const userEmail = user.profile.email;
     sendReportEmail({
       userName: user.profile.name,
+      userReportsEmail,
+      sendCopyToUser,
+      userEmail,
       userTimezone,
       monthString: lastMonth.format('MMMM'),
       records,

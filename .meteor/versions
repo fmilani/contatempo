@@ -80,7 +80,7 @@ practicalmeteor:sinon@1.14.1_2
 promise@0.9.0
 random@1.0.10
 rate-limit@1.0.8
-react-meteor-data@0.2.13
+react-meteor-data@0.2.14
 reactive-dict@1.1.9
 reactive-var@1.0.11
 reload@1.1.11

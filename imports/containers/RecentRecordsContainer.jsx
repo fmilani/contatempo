@@ -8,7 +8,9 @@ import intervalRecords from '../queries/records/interval-records';
 export default createContainer(() => {
   const now = moment();
   const interval = {
-    start: moment(now).subtract(2, 'days').startOf('day'),
+    start: moment(now)
+      .subtract(2, 'days')
+      .startOf('day'),
     end: moment(now).endOf('day'),
   };
   const start = interval.start.toDate();

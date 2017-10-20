@@ -8,7 +8,9 @@ import { insert } from '../../../api/records/methods.js';
 
 const startRecording = () => {
   insert.call({
-    begin: moment().startOf('seconds').toDate(),
+    begin: moment()
+      .startOf('seconds')
+      .toDate(),
     end: null,
   });
 };

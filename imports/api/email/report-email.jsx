@@ -88,7 +88,8 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
                 color: '#3F51B5',
               }}
             >
-              {' '}{interval.start}{' '}
+              {' '}
+              {interval.start}{' '}
             </span>
             à
             <span
@@ -98,7 +99,8 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
                 color: '#3F51B5',
               }}
             >
-              {' '}{interval.end}
+              {' '}
+              {interval.end}
             </span>
           </p>
           <p style={{ marginTop: 20 }}>
@@ -110,7 +112,8 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
                 color: '#3F51B5',
               }}
             >
-              {' '}{totalTime}
+              {' '}
+              {totalTime}
             </span>
           </p>
           <p style={{ marginTop: 50 }}>
@@ -134,13 +137,19 @@ const reportEmail = ({ userName, userTimezone, records, interval }) => {
               {records.map((record, index) => (
                 <tr key={index}>
                   <td style={rowsStyle}>
-                    {moment(record.begin).tz(userTimezone).format('DD/MM/YY')}
+                    {moment(record.begin)
+                      .tz(userTimezone)
+                      .format('DD/MM/YY')}
                   </td>
                   <td style={rowsStyle}>
-                    {moment(record.begin).tz(userTimezone).format('HH:mm:ss')}
+                    {moment(record.begin)
+                      .tz(userTimezone)
+                      .format('HH:mm:ss')}
                   </td>
                   <td style={rowsStyle}>
-                    {moment(record.end).tz(userTimezone).format('HH:mm:ss')}
+                    {moment(record.end)
+                      .tz(userTimezone)
+                      .format('HH:mm:ss')}
                   </td>
                 </tr>
               ))}

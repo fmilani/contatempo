@@ -16,7 +16,9 @@ const sendReportEmail = ({
   if (!Meteor.isServer) return;
 
   console.log(
-    `Sending ${userName} report to ${userReportsEmail}. ${sendCopyToUser ? `Also sending a copy to them (to ${userEmail}). ` : ''}`,
+    `Sending ${userName} report to ${userReportsEmail}. ${sendCopyToUser
+      ? `Also sending a copy to them (to ${userEmail}). `
+      : ''}`,
   );
 
   const recipientEmails = [userReportsEmail];

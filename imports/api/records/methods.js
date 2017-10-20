@@ -53,9 +53,52 @@ export const complete = new ValidatedMethod({
   run({ id, end }) {
     Records.update(id, {
       $set: {
-        end: moment(end).startOf(PRECISION).toDate(),
+        end: moment(end)
+          .startOf(PRECISION)
+          .toDate(),
       },
     });
+  },
+});
+
+/**
+ * Toggles between inserting a new recording or completing an existing one.
+ *
+ * When the method is called, if there is no ongoing record, it will create a new one. If there is
+ * an ongoing record, it will complete it.
+ * 
+ * @param {Date} time - the time the toggle occurred
+ */
+export const toggle = new ValidatedMethod({
+  name: 'records.toggle',
+  validate: new SimpleSchema({
+    time: { type: Date },
+  }).validator(),
+  run({ time }) {
+    const incompleteRecords = Records.find(
+      {
+        userId: Meteor.user()._id,
+        end: null,
+      },
+      {
+        sort: { begin: 1 },
+      },
+    ).fetch();
+
+    if (incompleteRecords.length === 0) {
+      insert.call({
+        begin: moment(time)
+          .startOf(PRECISION)
+          .toDate(),
+      });
+    } else {
+      complete.call({
+        id: incompleteRecords[0]._id,
+        end: moment(time)
+          .startOf(PRECISION)
+          .toDate(),
+      });
+    }
   },
 });
 
@@ -84,13 +127,17 @@ export const edit = new ValidatedMethod({
     if (field === 'begin') {
       Records.update(id, {
         $set: {
-          begin: moment(date).startOf(PRECISION).toDate(),
+          begin: moment(date)
+            .startOf(PRECISION)
+            .toDate(),
         },
       });
     } else {
       Records.update(id, {
         $set: {
-          end: moment(date).startOf(PRECISION).toDate(),
+          end: moment(date)
+            .startOf(PRECISION)
+            .toDate(),
         },
       });
     }
@@ -139,7 +186,8 @@ export const shareLastMonthReport = new ValidatedMethod({
     const lastMonth = getLastMonth(date, user.settings.endOfMonth);
 
     // the reports counter are indexed by the year and month
-    const reportsSentCounterIndex = `${lastMonth.year()}${lastMonth.month() + 1}`;
+    const reportsSentCounterIndex = `${lastMonth.year()}${lastMonth.month() +
+      1}`;
     let reportsSent = user.reportsSentCounter
       ? user.reportsSentCounter[reportsSentCounterIndex] || 0
       : 0;

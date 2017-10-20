@@ -16,6 +16,7 @@ import AppContainer from '../../containers/AppContainer.jsx';
 import HistoryPageContainer from '../../containers/HistoryPageContainer.jsx';
 import SettingsContainer from '../../containers/SettingsContainer.jsx';
 import NowPage from '../../ui/pages/NowPage.jsx';
+import TogglePage from '../../ui/pages/TogglePage.jsx';
 
 // checks if user has all needed settings set
 const userHasAllSettings = () => {
@@ -51,6 +52,11 @@ const requireAuthAndSettings = (nextState, replace) => {
 // TODO: rearrange routes (separate login from root path and also separete onEnter function)
 const renderRoutes = () => (
   <Router history={browserHistory}>
+    <Route
+      path="/toggle"
+      component={TogglePage}
+      onEnter={requireAuthAndSettings}
+    />
     <Route path={URLS.ROOT} component={AppContainer}>
       <IndexRedirect to={URLS.NOW} />
 

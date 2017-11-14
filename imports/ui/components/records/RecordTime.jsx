@@ -97,7 +97,11 @@ export default class RecordTime extends React.Component {
               style={{ flex: '0 0 40%' }}
               name="recordDate"
               textFieldStyle={{ width: '100%' }}
-              inputStyle={{ textAlign: 'center', fontSize: '12px' }}
+              inputStyle={{
+                textAlign: 'center',
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
               underlineShow={false}
               DateTimeFormat={Intl.DateTimeFormat}
               locale={i18n.getLocale()}
@@ -113,7 +117,11 @@ export default class RecordTime extends React.Component {
                 this.timePicker = c;
               }}
               textFieldStyle={{ width: '100%' }}
-              inputStyle={{ textAlign: 'center', fontSize: '16px' }}
+              inputStyle={{
+                textAlign: 'center',
+                fontSize: '16px',
+                cursor: 'pointer',
+              }}
               underlineShow={false}
               format="24hr"
               name="recordTime"

@@ -120,7 +120,13 @@ class App extends React.Component {
             userName={currentUser.name}
             userPictureUrl={currentUser.picture}
           />
-          <div style={{ marginBottom: childrenMarginBottom }}>
+          <div
+            style={{
+              margin: '0 auto',
+              marginBottom: childrenMarginBottom,
+              maxWidth: '600px',
+            }}
+          >
             {this.props.children}
           </div>
           {this.shouldShowRecordAddComponent() ? <RecordAdd /> : null}

@@ -6,7 +6,6 @@ import { i18n } from 'meteor/universe:i18n';
 import Snackbar from 'material-ui/Snackbar';
 import moment from 'moment';
 import AppBar from 'material-ui/AppBar';
-import Headroom from 'react-headroom';
 import ShareIcon from 'material-ui/svg-icons/social/share';
 import IconButton from 'material-ui/IconButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -82,6 +81,8 @@ class App extends React.Component {
     // touch the bottom navigation
     const bottomNavigationMargin = muiTheme.bottomNavigation.height + 15;
 
+    const appBarPadding = muiTheme.appBar.height;
+
     let childrenMarginBottom = bottomNavigationMargin;
     if (this.shouldShowRecordAddComponent()) {
       childrenMarginBottom += muiTheme.floatingActionButton.buttonSize;
@@ -92,27 +93,26 @@ class App extends React.Component {
     return (
       <MuiThemeProvider muiTheme={muiTheme}>
         <div>
-          <Headroom style={{ zIndex: 999 }}>
-            <AppBar
-              title={
-                isAHistoryPage(this.props.location.pathname) ? (
-                  <PeriodDropDown />
-                ) : (
-                  'Contatempo'
-                )
-              }
-              onLeftIconButtonTouchTap={this.handleDrawer}
-              iconElementRight={
-                isLastMonthHistoryPage(this.props.location.pathname) ? (
-                  <IconButton
-                    onTouchTap={_.debounce(this.shareLastMonthReport, 500)}
-                  >
-                    <ShareIcon />
-                  </IconButton>
-                ) : null
-              }
-            />
-          </Headroom>
+          <AppBar
+            style={{ position: 'fixed' }}
+            title={
+              isAHistoryPage(this.props.location.pathname) ? (
+                <PeriodDropDown />
+              ) : (
+                'Contatempo'
+              )
+            }
+            onLeftIconButtonTouchTap={this.handleDrawer}
+            iconElementRight={
+              isLastMonthHistoryPage(this.props.location.pathname) ? (
+                <IconButton
+                  onTouchTap={_.debounce(this.shareLastMonthReport, 500)}
+                >
+                  <ShareIcon />
+                </IconButton>
+              ) : null
+            }
+          />
           <AppDrawer
             ref={c => {
               this.appDrawer = c ? c.getWrappedInstance() : null;
@@ -124,6 +124,7 @@ class App extends React.Component {
             style={{
               margin: '0 auto',
               marginBottom: childrenMarginBottom,
+              paddingTop: appBarPadding,
               maxWidth: '600px',
             }}
           >

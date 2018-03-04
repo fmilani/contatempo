@@ -59,5 +59,9 @@
     "end": "Saída",
     "add_title": "Novo horário",
     "add_submit": "Registrar"
+  },
+  "planning": {
+    "planTheDay": "Planejar o dia",
+    "touchToPlanThisDay": "Toque aqui para planejar esse dia"
   }
 }

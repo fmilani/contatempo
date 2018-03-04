@@ -6,39 +6,17 @@ import CircularProgress from 'material-ui/CircularProgress';
 import { green700, grey500, red700 } from 'material-ui/styles/colors';
 
 import PlanningEditDialog from './PlanningEditDialog.jsx';
-import { insert } from '../../api/plans/methods.js';
 
 class Planning extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      editModalOpen: false,
+    };
+  }
+
   closeEditModal = () => {
     this.setState(() => ({ editModalOpen: false }));
-  };
-
-  handlePlannedHoursChange = event => {
-    this.setState({
-      plannedHours: event.target.value,
-    });
-  };
-
-  handlePlannedMinutesChange = event => {
-    this.setState({
-      plannedMinutes: event.target.value,
-    });
-  };
-
-  editPlanning = () => {
-    insert.call(
-      {
-        day: this.props.day,
-        plannedTime: Number(this.state.plannedHours),
-      },
-      error => {
-        if (error) {
-          // unexpected error. TODO: handle properly (and add logs)
-          throw new Error(error);
-        }
-      },
-    );
-    this.closeEditModal();
   };
 
   openEditModal = () => {
@@ -95,7 +73,12 @@ class Planning extends React.Component {
         {plans
           ? this.renderBalance(elapsed, plans)
           : this.renderTouchToAddPlan()}
-        <PlanningEditDialog plan={plans} />
+        <PlanningEditDialog
+          day={this.props.day}
+          open={this.state.editModalOpen}
+          closeModal={this.closeEditModal}
+          plan={plans}
+        />
       </div>
     );
   }

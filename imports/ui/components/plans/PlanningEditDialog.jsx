@@ -5,7 +5,7 @@ import Dialog from 'material-ui/Dialog';
 import TextField from 'material-ui/TextField';
 import FlatButton from 'material-ui/FlatButton';
 
-import { insert } from '../../api/plans/methods.js';
+import { insert } from '../../../api/plans/methods.js';
 
 class PlanningEditDialog extends React.Component {
   constructor(props) {

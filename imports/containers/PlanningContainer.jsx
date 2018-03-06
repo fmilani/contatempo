@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { createContainer } from 'meteor/react-meteor-data';
 import moment from 'moment';
-import Planning from '../ui/components/Planning.jsx';
+import Planning from '../ui/components/plans/Planning.jsx';
 import Plans from '../api/plans/plans.js';
 
 export default createContainer(({ day, elapsed }) => {

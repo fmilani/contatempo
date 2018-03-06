@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { createContainer } from 'meteor/react-meteor-data';
-import PlanningHistory from '../ui/components/PlanningHistory.jsx';
+import PlanningHistory from '../ui/components/plans/PlanningHistory.jsx';
 import Plans from '../api/plans/plans.js';
 
 export default createContainer(({ dayFrom, dayTo, elapsed }) => {

@@ -18,7 +18,7 @@ const BigTimeDisplay = props => {
         <PlanningHistoryContainer
           dayFrom={dayFrom}
           dayTo={dayTo}
-          elapsed={time}
+          recordedTime={time}
         />
       ) : null}
     </Paper>

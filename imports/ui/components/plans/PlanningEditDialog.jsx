@@ -15,7 +15,7 @@ class PlanningEditDialog extends React.Component {
       plannedHours: props.plan
         ? Math.floor(props.plan.plannedTimeMinutes / 60)
         : 0,
-      plannedMinutes: props.plan.plannedTimeMinutes % 60,
+      plannedMinutes: props.plan ? props.plan.plannedTimeMinutes % 60 : 0,
     };
   }
 
@@ -24,6 +24,12 @@ class PlanningEditDialog extends React.Component {
       editModalOpen: nextProps.open,
     });
   }
+
+  onKeyDownOnFields = event => {
+    if (event.key === 'Enter') {
+      this.editPlanning();
+    }
+  };
 
   editPlanning = () => {
     insert.call(
@@ -53,12 +59,6 @@ class PlanningEditDialog extends React.Component {
     this.setState({
       plannedMinutes: event.target.value,
     });
-  };
-
-  onKeyDownOnFields = event => {
-    if (event.key === 'Enter') {
-      this.editPlanning();
-    }
   };
 
   render() {

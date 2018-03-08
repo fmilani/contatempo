@@ -28,7 +28,7 @@ class Planning extends React.Component {
     let color = grey500;
     const balance = moment
       .duration(elapsed)
-      .subtract(plans ? plans.plannedTime : 0, 'hours');
+      .subtract(plans ? plans.plannedTimeMinutes : 0, 'minutes');
     formattedBalance = balance.format('HH:mm:ss', { trim: false });
     if (balance < 0) {
       color = red700;
@@ -89,7 +89,7 @@ Planning.propTypes = {
   elapsed: PropTypes.number.isRequired,
   loading: PropTypes.bool.isRequired,
   plans: PropTypes.shape({
-    plannedTime: PropTypes.number,
+    plannedTimeMinutes: PropTypes.number,
   }),
 };
 

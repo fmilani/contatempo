@@ -5,18 +5,24 @@ import Plans from './plans.js';
 /**
  * Inserts a plan on the database
  * @param {Date} day - the day the plan refers to
- * @param {Date} plannedTime - the time planned
+ * @param {Date} plannedTimeMinutes - the time planned in minutes
  */
 export const insert = new ValidatedMethod({
   name: 'plans.insert',
   validate: new SimpleSchema({
     day: { type: String },
-    plannedTime: { type: Number },
+    plannedTimeMinutes: { type: Number },
   }).validator(),
-  run({ day, plannedTime }) {
+  run({ day, plannedTimeMinutes }) {
+    if (!plannedTimeMinutes) {
+      throw new Meteor.Error(
+        'plans.insert.cannotEditPlanWithoutTime',
+        'You must set a planned time greater than 0',
+      );
+    }
     const plan = {
       day,
-      plannedTime,
+      plannedTimeMinutes,
       userId: Meteor.user()._id,
     };
 
@@ -25,7 +31,7 @@ export const insert = new ValidatedMethod({
       // there is already a plan for this day, update it
       Plans.update(plansWithSameDay[0]._id, {
         $set: {
-          plannedTime: plan.plannedTime,
+          plannedTimeMinutes: plan.plannedTimeMinutes,
         },
       });
     } else {

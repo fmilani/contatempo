@@ -12,8 +12,10 @@ class PlanningEditDialog extends React.Component {
     super(props);
     this.state = {
       editModalOpen: props.open,
-      plannedHours: props.plan ? props.plan.plannedTime : 0,
-      plannedMinutes: '',
+      plannedHours: props.plan
+        ? Math.floor(props.plan.plannedTimeMinutes / 60)
+        : 0,
+      plannedMinutes: props.plan.plannedTimeMinutes % 60,
     };
   }
 
@@ -27,7 +29,9 @@ class PlanningEditDialog extends React.Component {
     insert.call(
       {
         day: this.props.day,
-        plannedTime: Number(this.state.plannedHours),
+        plannedTimeMinutes:
+          Number(this.state.plannedHours) * 60 +
+          Number(this.state.plannedMinutes),
       },
       error => {
         if (error) {
@@ -51,6 +55,12 @@ class PlanningEditDialog extends React.Component {
     });
   };
 
+  onKeyDownOnFields = event => {
+    if (event.key === 'Enter') {
+      this.editPlanning();
+    }
+  };
+
   render() {
     return (
       <Dialog
@@ -61,6 +71,7 @@ class PlanningEditDialog extends React.Component {
             onTouchTap={this.props.closeModal}
           />,
           <FlatButton
+            type="submit"
             label={i18n.getTranslation('common.confirm')}
             primary
             onTouchTap={this.editPlanning}
@@ -72,15 +83,19 @@ class PlanningEditDialog extends React.Component {
       >
         <TextField
           type="Number"
+          fullWidth
           value={this.state.plannedHours}
           onChange={this.handlePlannedHoursChange}
-          floatingLabelText="Horas"
+          floatingLabelText={i18n.getTranslation('common.hours')}
+          onKeyDown={this.onKeyDownOnFields}
         />
         <TextField
           type="Number"
+          fullWidth
           value={this.state.plannedMinutes}
           onChange={this.handlePlannedMinutesChange}
-          floatingLabelText="Minutos"
+          floatingLabelText={i18n.getTranslation('common.minutes')}
+          onKeyDown={this.onKeyDownOnFields}
         />
       </Dialog>
     );
@@ -92,13 +107,13 @@ PlanningEditDialog.propTypes = {
   day: PropTypes.string.isRequired,
   open: PropTypes.bool.isRequired,
   plan: PropTypes.shape({
-    plannedTime: PropTypes.number,
+    plannedTimeMinutes: PropTypes.number,
   }),
 };
 
 PlanningEditDialog.defaultProps = {
   plan: {
-    plannedTime: 0,
+    plannedTimeMinutes: 0,
   },
 };
 

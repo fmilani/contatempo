@@ -5,12 +5,14 @@ import CircularProgress from 'material-ui/CircularProgress';
 import { green700, grey500, red700 } from 'material-ui/styles/colors';
 
 const renderBalance = (elapsed, plans) => {
-  const plannedTime = plans
-    .map(plan => plan.plannedTime)
+  const plannedTimeMinutes = plans
+    .map(plan => plan.plannedTimeMinutes)
     .reduce((previous, current) => previous + current, 0);
   let formattedBalance;
   let color = grey500;
-  const balance = moment.duration(elapsed).subtract(plannedTime, 'hours');
+  const balance = moment
+    .duration(elapsed)
+    .subtract(plannedTimeMinutes, 'minutes');
   formattedBalance = balance.format('HH:mm:ss', { trim: false });
   if (balance < 0) {
     color = red700;
@@ -37,7 +39,7 @@ PlanningHistory.propTypes = {
   loading: PropTypes.bool.isRequired,
   plans: PropTypes.arrayOf(
     PropTypes.shape({
-      plannedTime: PropTypes.number,
+      plannedTimeMinutes: PropTypes.number,
     }),
   ),
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import IconButton from 'material-ui/IconButton';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
 import { remove } from '../../../api/records/methods.js';
@@ -42,5 +43,5 @@ export default class RecordItem extends React.Component {
 }
 
 RecordItem.propTypes = {
-  record: React.PropTypes.object,
+  record: PropTypes.object,
 };

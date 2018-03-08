@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { i18n } from 'meteor/universe:i18n';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
@@ -177,8 +178,8 @@ class RecordAdd extends React.Component {
 }
 
 RecordAdd.propTypes = {
-  muiTheme: React.PropTypes.shape({
-    bottomNavigation: React.PropTypes.object,
+  muiTheme: PropTypes.shape({
+    bottomNavigation: PropTypes.object,
   }).isRequired,
 };
 

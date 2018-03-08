@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import IconButton from 'material-ui/IconButton';
 import ContentAdd from 'material-ui/svg-icons/av/stop';
@@ -9,7 +10,9 @@ import { complete } from '../../../api/records/methods.js';
 const stopRecording = currentRecordId => {
   complete.call({
     id: currentRecordId,
-    end: moment().startOf('seconds').toDate(),
+    end: moment()
+      .startOf('seconds')
+      .toDate(),
   });
 };
 
@@ -37,8 +40,8 @@ const StopButton = props => (
 );
 
 StopButton.propTypes = {
-  currentRecordId: React.PropTypes.string.isRequired,
-  canStop: React.PropTypes.bool,
+  currentRecordId: PropTypes.string.isRequired,
+  canStop: PropTypes.bool,
 };
 
 StopButton.defaultProps = {

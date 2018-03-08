@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import FlatButton from 'material-ui/FlatButton';
@@ -52,13 +53,13 @@ class Login extends React.Component {
 }
 
 Login.propTypes = {
-  location: React.PropTypes.shape({
-    state: React.PropTypes.shape({
-      nextPathname: React.PropTypes.string,
+  location: PropTypes.shape({
+    state: PropTypes.shape({
+      nextPathname: PropTypes.string,
     }),
   }).isRequired,
-  router: React.PropTypes.shape({
-    push: React.PropTypes.func,
+  router: PropTypes.shape({
+    push: PropTypes.func,
   }).isRequired,
 };
 

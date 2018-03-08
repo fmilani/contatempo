@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { i18n } from 'meteor/universe:i18n';
 import moment from 'moment-timezone';
 import AutoComplete from 'material-ui/AutoComplete';
@@ -32,7 +33,7 @@ const TimezoneDialog = props => (
 );
 
 TimezoneDialog.propTypes = {
-  open: React.PropTypes.bool.isRequired,
+  open: PropTypes.bool.isRequired,
 };
 
 export default TimezoneDialog;

@@ -39,17 +39,27 @@ export const getMonthInterval = (date, endOfMonth) => {
   const endOfMonthValue = EndOfMonthEnum[endOfMonth] || EndOfMonthEnum.LAST_DAY;
   const ref = moment(date);
 
-  const currentMonth = endOfMonthValue === EndOfMonthEnum.DAY_20
-    ? moment(ref).subtract(20, 'days').add(1, 'month')
-    : moment(ref);
+  const currentMonth =
+    endOfMonthValue === EndOfMonthEnum.DAY_20
+      ? moment(ref)
+          .subtract(20, 'days')
+          .add(1, 'month')
+      : moment(ref);
 
-  const start = endOfMonthValue === EndOfMonthEnum.DAY_20
-    ? moment(currentMonth).subtract(1, 'month').date(21).startOf('day')
-    : moment(currentMonth).startOf('month');
+  const start =
+    endOfMonthValue === EndOfMonthEnum.DAY_20
+      ? moment(currentMonth)
+          .subtract(1, 'month')
+          .date(21)
+          .startOf('day')
+      : moment(currentMonth).startOf('month');
 
-  const end = endOfMonthValue === EndOfMonthEnum.DAY_20
-    ? moment(currentMonth).date(20).endOf('day')
-    : moment(currentMonth).endOf('month');
+  const end =
+    endOfMonthValue === EndOfMonthEnum.DAY_20
+      ? moment(currentMonth)
+          .date(20)
+          .endOf('day')
+      : moment(currentMonth).endOf('month');
 
   return { start, end };
 };
@@ -62,8 +72,12 @@ export const getMonthInterval = (date, endOfMonth) => {
 export const getLastWeekInterval = date => {
   const ref = moment(date);
 
-  const start = moment(ref).subtract(7, 'days').startOf('week');
-  const end = moment(ref).subtract(7, 'days').endOf('week');
+  const start = moment(ref)
+    .subtract(7, 'days')
+    .startOf('week');
+  const end = moment(ref)
+    .subtract(7, 'days')
+    .endOf('week');
 
   return { start, end };
 };

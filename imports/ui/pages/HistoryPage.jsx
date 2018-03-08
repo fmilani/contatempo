@@ -1,5 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { i18n } from 'meteor/universe:i18n';
+import moment from 'moment';
 import BigTimeDisplay from '../components/records/BigTimeDisplay.jsx';
 import RecordsList from '../components/records/RecordsList.jsx';
 import Spinner from '../components/Spinner.jsx';
@@ -32,14 +34,26 @@ class HistoryPage extends React.Component {
 
   render() {
     const { loading, records, now } = this.props;
-    return (
+    return loading ? (
+      <Spinner />
+    ) : (
       <div>
         <BigTimeDisplay
           time={getTotalElapsedTime(records, now)}
           title={i18n.getTranslation('common.total')}
+          dayFrom={
+            records.length > 0
+              ? moment(records[records.length - 1].begin).format('YYYY-MM-DD')
+              : null
+          }
+          dayTo={
+            records.length > 0
+              ? moment(records[0].begin).format('YYYY-MM-DD')
+              : null
+          }
         />
         <div style={{ marginTop: 15 }}>
-          {loading ? <Spinner /> : <RecordsList records={records} />}
+          <RecordsList records={records} />
         </div>
       </div>
     );
@@ -47,16 +61,16 @@ class HistoryPage extends React.Component {
 }
 
 HistoryPage.propTypes = {
-  loading: React.PropTypes.bool,
-  records: React.PropTypes.arrayOf(
-    React.PropTypes.shape({
-      begin: React.PropTypes.instanceOf(Date),
-      end: React.PropTypes.instanceOf(Date),
+  loading: PropTypes.bool,
+  records: PropTypes.arrayOf(
+    PropTypes.shape({
+      begin: PropTypes.instanceOf(Date),
+      end: PropTypes.instanceOf(Date),
     }),
   ),
-  now: React.PropTypes.shape().isRequired,
-  startTimer: React.PropTypes.func.isRequired,
-  stopTimer: React.PropTypes.func.isRequired,
+  now: PropTypes.shape().isRequired,
+  startTimer: PropTypes.func.isRequired,
+  stopTimer: PropTypes.func.isRequired,
 };
 
 HistoryPage.defaultProps = {

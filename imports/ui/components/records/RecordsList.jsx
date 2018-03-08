@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { List } from 'material-ui/List';
 import moment from 'moment';
 import Subheader from 'material-ui/Subheader';
@@ -54,13 +55,13 @@ export default class RecordsList extends React.Component {
 }
 
 RecordsList.propTypes = {
-  records: React.PropTypes.arrayOf(
-    React.PropTypes.shape({
-      begin: React.PropTypes.instanceOf(Date),
-      end: React.PropTypes.instanceOf(Date),
+  records: PropTypes.arrayOf(
+    PropTypes.shape({
+      begin: PropTypes.instanceOf(Date),
+      end: PropTypes.instanceOf(Date),
     }),
   ),
-  title: React.PropTypes.string,
+  title: PropTypes.string,
 };
 
 RecordsList.defaultProps = {

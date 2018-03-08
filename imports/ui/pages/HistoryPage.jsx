@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { i18n } from 'meteor/universe:i18n';
+import moment from 'moment';
 import BigTimeDisplay from '../components/records/BigTimeDisplay.jsx';
 import RecordsList from '../components/records/RecordsList.jsx';
 import Spinner from '../components/Spinner.jsx';
@@ -33,14 +34,26 @@ class HistoryPage extends React.Component {
 
   render() {
     const { loading, records, now } = this.props;
-    return (
+    return loading ? (
+      <Spinner />
+    ) : (
       <div>
         <BigTimeDisplay
           time={getTotalElapsedTime(records, now)}
           title={i18n.getTranslation('common.total')}
+          dayFrom={
+            records.length > 0
+              ? moment(records[records.length - 1].begin).format('YYYY-MM-DD')
+              : null
+          }
+          dayTo={
+            records.length > 0
+              ? moment(records[0].begin).format('YYYY-MM-DD')
+              : null
+          }
         />
         <div style={{ marginTop: 15 }}>
-          {loading ? <Spinner /> : <RecordsList records={records} />}
+          <RecordsList records={records} />
         </div>
       </div>
     );

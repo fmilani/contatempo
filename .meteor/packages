@@ -36,3 +36,4 @@ practicalmeteor:mocha-console-runner
 lmieulet:meteor-coverage
 reactive-dict@1.1.9
 dynamic-import@0.1.3
+saucecode:rollbar

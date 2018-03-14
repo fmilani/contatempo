@@ -27,7 +27,10 @@ export const insert = new ValidatedMethod({
       userId: Meteor.user()._id,
     };
 
-    const plansWithSameDay = Plans.find({ day }).fetch();
+    const plansWithSameDay = Plans.find({
+      day,
+      userId: Meteor.user()._id,
+    }).fetch();
     if (plansWithSameDay.length > 0) {
       // there is already a plan for this day, update it
       Plans.update(

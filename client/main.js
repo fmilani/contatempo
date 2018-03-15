@@ -13,7 +13,7 @@ Meteor.startup(() => {
   injectTapEventPlugin();
 
   // for now, only pt-BR supported
-  moment.locale('pt-br', {
+  moment.updateLocale('pt-br', {
     calendar: {
       sameDay: '[Hoje]',
       nextDay: '[Amanhã]',

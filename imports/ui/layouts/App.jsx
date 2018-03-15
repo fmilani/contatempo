@@ -102,7 +102,7 @@ class App extends React.Component {
                 'Contatempo'
               )
             }
-            onLeftIconButtonTouchTap={this.handleDrawer}
+            onLeftIconButtonClick={this.handleDrawer}
             iconElementRight={
               isLastMonthHistoryPage(this.props.location.pathname) ? (
                 <IconButton

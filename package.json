@@ -1,14 +1,17 @@
 {
   "name": "contatempo",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "scripts": {
     "start": "meteor run",
     "dev": "TZ=Europe/London meteor --settings settings.json",
     "lint": "eslint . --ext .js,.jsx",
-    "prettier": "prettier --write --single-quote --trailing-comma all \"client/**/*.js\" \"server/**/*.js\" \"imports/**/*.js\" \"imports/**/*.jsx\"",
-    "test": "spacejam test --driver-package practicalmeteor:mocha-console-runner --coverage out_lcovonly",
-    "tdd": "meteor test --driver-package practicalmeteor:mocha --settings settings.coverage.json"
+    "prettier":
+      "prettier --write --single-quote --trailing-comma all \"client/**/*.js\" \"server/**/*.js\" \"imports/**/*.js\" \"imports/**/*.jsx\"",
+    "test":
+      "spacejam test --driver-package practicalmeteor:mocha-console-runner --coverage out_lcovonly",
+    "tdd":
+      "meteor test --driver-package practicalmeteor:mocha --settings settings.coverage.json"
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.41",

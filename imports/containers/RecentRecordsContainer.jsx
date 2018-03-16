@@ -1,11 +1,11 @@
 import { Meteor } from 'meteor/meteor';
-import { createContainer } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import moment from 'moment';
 import RecentRecords from '../ui/components/records/RecentRecords.jsx';
 import Records from '../api/records/records.js';
 import intervalRecords from '../queries/records/interval-records';
 
-export default createContainer(() => {
+export default withTracker(() => {
   const now = moment();
   const interval = {
     start: moment(now)
@@ -25,4 +25,4 @@ export default createContainer(() => {
     loading,
     recentRecords,
   };
-}, RecentRecords);
+})(RecentRecords);

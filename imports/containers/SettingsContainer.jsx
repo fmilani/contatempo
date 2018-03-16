@@ -1,8 +1,8 @@
 import { Meteor } from 'meteor/meteor';
-import { createContainer } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import Settings from '../../imports/ui/components/Settings.jsx';
 
-export default createContainer(() => {
+export default withTracker(() => {
   const userSettingsHandler = Meteor.subscribe('user.settings');
 
   const settings = Meteor.loggingIn() ? {} : Meteor.user().settings;
@@ -11,4 +11,4 @@ export default createContainer(() => {
     settings,
     loading: !userSettingsHandler.ready(),
   };
-}, Settings);
+})(Settings);

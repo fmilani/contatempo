@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { createContainer } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import moment from 'moment';
 import HistoryPage from '../ui/pages/HistoryPage.jsx';
 import Records from '../api/records/records.js';
@@ -12,7 +12,7 @@ import {
   getLastMonthInterval,
 } from '../api/helpers/date-helpers.js';
 
-export default createContainer(({ params }) => {
+export default withTracker(({ params }) => {
   const period = params.period || 'day';
   const settings = Meteor.user().settings;
 
@@ -45,4 +45,4 @@ export default createContainer(({ params }) => {
     loading,
     records,
   };
-}, HistoryPage);
+})(HistoryPage);

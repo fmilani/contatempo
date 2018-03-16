@@ -1,9 +1,9 @@
 import { Meteor } from 'meteor/meteor';
-import { createContainer } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 import PlanningHistory from '../ui/components/plans/PlanningHistory.jsx';
 import Plans from '../api/plans/plans.js';
 
-export default createContainer(({ dayFrom, dayTo, recordedTime }) => {
+export default withTracker(({ dayFrom, dayTo, recordedTime }) => {
   const plansHandle = Meteor.subscribe('plans.days', {
     dayFrom,
     dayTo,
@@ -22,4 +22,4 @@ export default createContainer(({ dayFrom, dayTo, recordedTime }) => {
     recordedTime,
     plans,
   };
-}, PlanningHistory);
+})(PlanningHistory);

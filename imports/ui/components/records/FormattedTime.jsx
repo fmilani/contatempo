@@ -20,14 +20,16 @@ export default class FormattedTime extends React.Component {
 
   // formats the time prop with the hours and minutes (hh:mm)
   formatHourAndMinute() {
-    return moment.duration(this.props.time).format('HH:mm', { trim: false });
+    return moment
+      .duration(this.props.time)
+      .format('HH:mm', { trim: false, trunc: true });
   }
 
   // formats the time prop with only the seconds (ss)
   formatSeconds() {
     return moment
       .duration(this.props.time)
-      .format('HH:mm:ss', { trim: false })
+      .format('HH:mm:ss', { trim: false, trunc: true })
       .slice(-3);
   }
 

@@ -69,7 +69,7 @@ class GroupedRecords extends React.Component {
             title={moment(records[0].begin).calendar()}
             subtitle={moment
               .duration(this.getCompleteElapsed())
-              .format('HH:mm:ss', { trim: false })}
+              .format('HH:mm:ss', { trim: false, trunc: true })}
             actAsExpander
             showExpandableButton
           >

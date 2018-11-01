@@ -27,7 +27,8 @@ const TimezoneDialog = props => (
       }))}
       maxSearchResults={5}
       onNewRequest={props.onChange}
-      searchText={props.timezone.replace(/_/g, ' ').replace(/\//g, ' - ')}
+      onUpdateInput={props.onUpdateInput}
+      searchText={props.timezone.text.replace(/_/g, ' ').replace(/\//g, ' - ')}
     />
   </Dialog>
 );

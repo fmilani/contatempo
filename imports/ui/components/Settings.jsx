@@ -35,21 +35,22 @@ class Settings extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const { endOfMonth, timezone } = nextProps.settings;
+    let { endOfMonth, timezone } = nextProps.settings;
     this.setState({
       endOfMonth,
       showEndOfMonthError: !endOfMonth,
       showTimezoneError: !timezone,
     });
 
-    if (timezone) {
-      this.setState({
-        timezone: {
-          text: timezone.replace(/_/g, ' ').replace(/\//g, ' - '),
-          value: timezone,
-        },
-      });
+    if (!timezone) {
+      timezone = '';
     }
+    this.setState({
+      timezone: {
+        text: timezone.replace(/_/g, ' ').replace(/\//g, ' - '),
+        value: timezone,
+      },
+    });
   }
 
   getEndOfMonthText() {
@@ -145,7 +146,8 @@ class Settings extends React.Component {
 
   renderPage() {
     const { settings } = this.props;
-    const timezone = settings.timezone || '';
+    let timezone = this.state.timezone;
+    timezone = timezone || '';
 
     return (
       <div>
@@ -232,6 +234,14 @@ class Settings extends React.Component {
           }}
           onRequestClose={() => {
             this.setState({ showTimezoneDialog: false });
+          }}
+          onUpdateInput={searchText => {
+            this.setState({
+              timezone: {
+                text: searchText.replace(/_/g, ' ').replace(/\//g, ' - '),
+                value: searchText,
+              },
+            });
           }}
         />
         <ReportsEmailDialog

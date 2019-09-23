@@ -21,7 +21,7 @@ const sendReportEmail = ({
       : ''}`,
   );
 
-  const recipientEmails = [userReportsEmail];
+  const recipientEmails = userReportsEmail.split(/, *|; */);
   if (sendCopyToUser && userEmail !== userReportsEmail) {
     recipientEmails.push(userEmail);
   }

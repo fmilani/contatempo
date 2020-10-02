@@ -1,7 +1,9 @@
 import Head from 'next/head'
+import { Provider } from 'next-auth/client'
 import '../styles/globals.css'
 
 export default function MyApp({ Component, pageProps }) {
+  const { session } = pageProps
   return (
     <>
       <Head>
@@ -31,7 +33,9 @@ export default function MyApp({ Component, pageProps }) {
         <link rel="apple-touch-icon" href="/apple-icon.png"></link>
         <meta name="theme-color" content="#317EFB" />
       </Head>
-      <Component {...pageProps} />
+      <Provider options={{ site: process.env.SITE }} session={session}>
+        <Component {...pageProps} />
+      </Provider>
     </>
   )
 }

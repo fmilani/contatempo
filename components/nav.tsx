@@ -8,7 +8,6 @@ import styles from './nav.module.css'
  **/
 const Nav = () => {
   const [session, loading] = useSession()
-  console.log(session)
 
   return (
     <nav>

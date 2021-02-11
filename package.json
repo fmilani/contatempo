@@ -7,6 +7,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@types/next-auth": "^3.1.24",
     "next": "latest",
     "next-auth": "^3.1.0",
     "next-pwa": "^3.1.0",

@@ -2,7 +2,7 @@
   "name": "blitzapp",
   "version": "1.0.0",
   "scripts": {
-    "start": "blitz start",
+    "start": "docker-compose up -d && blitz start",
     "studio": "blitz prisma studio",
     "build": "blitz build",
     "lint": "eslint --ignore-path .gitignore --ext .js,.ts,.tsx .",

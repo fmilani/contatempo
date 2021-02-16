@@ -36,3 +36,11 @@ model Session {
   publicData         String?
   privateData        String?
 }
+
+model Record {
+  id        Int       @default(autoincrement()) @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  start     DateTime  
+  finish    DateTime? 
+}

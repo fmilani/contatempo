@@ -1,29 +1,15 @@
 import Layout from "app/layouts/Layout"
-import { Link, useRouter, useMutation, BlitzPage } from "blitz"
-import createRecord from "app/records/mutations/createRecord"
+import { Link, BlitzPage } from "blitz"
 import RecordForm from "app/records/components/RecordForm"
+import { Suspense } from "react"
 
 const NewRecordPage: BlitzPage = () => {
-  const router = useRouter()
-  const [createRecordMutation] = useMutation(createRecord)
-
   return (
     <div>
       <h1>Create New Record</h1>
-
-      <RecordForm
-        initialValues={{}}
-        onSubmit={async () => {
-          try {
-            const record = await createRecordMutation({ data: { name: "MyName" } })
-            alert("Success!" + JSON.stringify(record))
-            router.push(`/records/${record.id}`)
-          } catch (error) {
-            alert("Error creating record " + JSON.stringify(error, null, 2))
-          }
-        }}
-      />
-
+      <Suspense fallback={<div>Loading...</div>}>
+        <RecordForm />
+      </Suspense>
       <p>
         <Link href="/records">
           <a>Records</a>

@@ -43,4 +43,6 @@ model Record {
   updatedAt DateTime  @updatedAt
   start     DateTime  
   finish    DateTime? 
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  
 }

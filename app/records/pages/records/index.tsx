@@ -2,13 +2,16 @@ import { Suspense } from "react"
 import Layout from "app/layouts/Layout"
 import { Link, usePaginatedQuery, useRouter, BlitzPage } from "blitz"
 import getRecords from "app/records/queries/getRecords"
+import { useCurrentUser } from "app/hooks/useCurrentUser"
 
 const ITEMS_PER_PAGE = 100
 
 export const RecordsList = () => {
   const router = useRouter()
+  const user = useCurrentUser()
   const page = Number(router.query.page) || 0
   const [{ records, hasMore }] = usePaginatedQuery(getRecords, {
+    where: { userId: user?.id },
     orderBy: { id: "asc" },
     skip: ITEMS_PER_PAGE * page,
     take: ITEMS_PER_PAGE,
@@ -23,7 +26,9 @@ export const RecordsList = () => {
         {records.map((record) => (
           <li key={record.id}>
             <Link href={`/records/${record.id}`}>
-              <a>{record.name}</a>
+              <a>
+                {record.start.toString()} - {record.finish?.toString()}
+              </a>
             </Link>
           </li>
         ))}

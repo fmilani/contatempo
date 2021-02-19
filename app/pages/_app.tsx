@@ -3,7 +3,7 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { queryCache } from "react-query"
 import LoginForm from "app/auth/components/LoginForm"
 
-import { ChakraProvider } from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react"
 
 export default function App({ Component, pageProps }: AppProps) {
   const getLayout = Component.getLayout || ((page) => page)
@@ -23,7 +23,7 @@ export default function App({ Component, pageProps }: AppProps) {
         {getLayout(<Component {...pageProps} />)}
       </ErrorBoundary>
     </ChakraProvider>
-  );
+  )
 }
 
 function RootErrorFallback({ error, resetErrorBoundary }: FallbackProps) {

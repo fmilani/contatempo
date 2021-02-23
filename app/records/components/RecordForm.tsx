@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { useRouter, useMutation } from "blitz"
 import Form from "app/components/Form"
 import { Input, Text, Wrap, WrapItem } from "@chakra-ui/react"
@@ -8,23 +8,26 @@ import { ErrorMessage, useField, useFormikContext } from "formik"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 
+const CustomTimeInput = ({ value, onChange }) => (
+  <Input
+    type="time"
+    style={{ width: "100%" }}
+    value={value}
+    onChange={(e) => {
+      console.log(e.target.value)
+      onChange(e.target.value)
+    }}
+  />
+)
 const CustomDatePicker = (props) => {
   const { setFieldValue } = useFormikContext()
   const [field] = useField(props)
-  const CustomTimeInput = ({ value, onChange }) => (
-    <Input
-      type="time"
-      style={{ width: "100%" }}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  )
 
   return (
     <DatePicker
       customInput={<Input placeholder="Choose a date and time" />}
       showTimeInput
-      customTimeInput={<CustomTimeInput />}
+      customTimeInput={<CustomTimeInput value={props.value} onChange={props.onChange} />}
       dateFormat="MM/dd/yyyy HH:mm"
       {...field}
       {...props}

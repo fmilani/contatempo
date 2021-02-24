@@ -4,7 +4,7 @@ import db, { Prisma } from "db"
 type GetRecordInput = Pick<Prisma.FindFirstRecordArgs, "where">
 
 export default async function getRecord({ where }: GetRecordInput, ctx: Ctx) {
-  ctx.session.authorize()
+  ctx.session.$authorize()
 
   const record = await db.record.findFirst({ where })
 

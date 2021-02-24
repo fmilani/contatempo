@@ -7,7 +7,7 @@ export default async function getRecords(
   { where, orderBy, skip = 0, take }: GetRecordsInput,
   ctx: Ctx
 ) {
-  ctx.session.authorize()
+  ctx.session.$authorize()
 
   const records = await db.record.findMany({
     where,

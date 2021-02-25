@@ -20,20 +20,40 @@ export const RecordsList = () => {
   const goToPreviousPage = () => router.push({ query: { page: page - 1 } })
   const goToNextPage = () => router.push({ query: { page: page + 1 } })
 
+  function groupBy(propertyExtractor) {
+    return function group(array) {
+      return array.reduce((acc, obj) => {
+        const property = propertyExtractor(obj)
+        acc[property] = acc[property] || []
+        acc[property].push(obj)
+        return acc
+      }, {})
+    }
+  }
+
+  const groupByDay = groupBy((record) => `${record.start.getMonth()}-${record.start.getDate()}`)
+  const groupedRecords = groupByDay(records)
+
   return (
     <div>
-      <ul>
-        {records.map((record) => (
-          <li key={record.id}>
-            <Link href={`/records/${record.id}`}>
-              <a>
-                {record.start.toString()} - {record.finish?.toString()}
-              </a>
-            </Link>
-          </li>
-        ))}
-      </ul>
-
+      {Object.entries(groupedRecords).map(([day, records]) => {
+        return (
+          <div key={day}>
+            <h3>Day: {day}</h3>
+            <ul>
+              {records.map((record) => (
+                <li key={record.id}>
+                  <Link href={`/records/${record.id}`}>
+                    <a>
+                      {record.start.toString()} - {record.finish?.toString()}
+                    </a>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      })}
       <button disabled={page === 0} onClick={goToPreviousPage}>
         Previous
       </button>

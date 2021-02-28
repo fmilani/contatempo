@@ -1,4 +1,4 @@
-import Layout from "app/layouts/Layout"
+import Layout from "app/core/layouts/Layout"
 import { Link, BlitzPage } from "blitz"
 import RecordForm from "app/records/components/RecordForm"
 import { Suspense } from "react"

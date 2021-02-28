@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import Layout from "app/layouts/Layout"
+import Layout from "app/core/layouts/Layout"
 import { Link, useRouter, useQuery, useMutation, useParam, BlitzPage } from "blitz"
 import getRecord from "app/records/queries/getRecord"
 import updateRecord from "app/records/mutations/updateRecord"

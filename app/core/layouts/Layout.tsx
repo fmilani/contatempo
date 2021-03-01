@@ -18,7 +18,7 @@ const Layout = ({ title, children }: LayoutProps) => {
       </Head>
 
       <Header />
-      <Container maxW="800px" centerContent marginTop="calc(4.5rem + 6px)">
+      <Container p="0" maxW="800px" centerContent marginTop="calc(4.5rem + 6px)">
         {children}
       </Container>
     </>

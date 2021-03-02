@@ -59,7 +59,7 @@ const Header = () => {
             </Link>
           </Flex>
           <Flex w="100%" px="6" align="center">
-            <Link href="/records">
+            <Link href="/records" passHref>
               <chakra.a aria-label="Navigate to records page">Records</chakra.a>
             </Link>
           </Flex>

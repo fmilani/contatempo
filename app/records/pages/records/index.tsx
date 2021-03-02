@@ -44,19 +44,16 @@ export const RecordsList = () => {
             <Box key={day} w="100%">
               <Heading size="sm">{day}</Heading>
               <Box p="6" borderWidth="1px" borderRadius="lg" boxShadow="base">
-                <List spacing="2">
+                <List spacing="4">
                   {records.map((record, index) => (
-                    <>
-                      <ListItem key={record.id} display="flex" alignItems="center">
-                        <ListIcon as={TimeIcon} w="0.75rem" mb="3px" />
-                        <Link href={`/records/${record.id}`}>
-                          <a>
-                            {record.start.toString()} - {record.finish?.toString()}
-                          </a>
-                        </Link>
-                      </ListItem>
-                      {index !== records.length - 1 && <Divider />}
-                    </>
+                    <ListItem key={record.id} display="flex" alignItems="center">
+                      <ListIcon as={TimeIcon} w="0.75rem" mb="3px" />
+                      <Link href={`/records/${record.id}`}>
+                        <a>
+                          {record.start.toString()} - {record.finish?.toString()}
+                        </a>
+                      </Link>
+                    </ListItem>
                   ))}
                 </List>
               </Box>

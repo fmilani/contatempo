@@ -35,6 +35,7 @@
     "@emotion/styled": "11.0.0",
     "@prisma/client": "~2.17",
     "blitz": "0.30.3",
+    "date-fns": "2.18.0",
     "formik": "2.2.6",
     "framer-motion": "3.2.0",
     "prisma": "~2.17",
@@ -46,6 +47,7 @@
     "zod": "1.11.11"
   },
   "devDependencies": {
+    "@types/date-fns": "2.6.0",
     "@types/preview-email": "2.0.0",
     "@types/react": "17.0.2",
     "@types/react-datepicker": "3.1.5",

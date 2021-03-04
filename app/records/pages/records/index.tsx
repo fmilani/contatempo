@@ -25,7 +25,7 @@ export const RecordsList = () => {
   const page = Number(router.query.page) || 0
   const [{ records, hasMore }] = usePaginatedQuery(getRecords, {
     where: { userId: user?.id },
-    orderBy: { start: "asc" },
+    orderBy: { start: "desc" },
     skip: ITEMS_PER_PAGE * page,
     take: ITEMS_PER_PAGE,
   })

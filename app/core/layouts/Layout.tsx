@@ -1,8 +1,12 @@
-import { ReactNode, useEffect, useRef, useState } from "react"
-import { Head, Link } from "blitz"
+import { ReactNode, Suspense, useEffect, useRef, useState } from "react"
+import { Head, Link, useMutation, useQuery } from "blitz"
 import { Box, Container, Flex, Heading } from "@chakra-ui/layout"
 import { chakra } from "@chakra-ui/react"
 import { useViewportScroll } from "framer-motion"
+import getRecords from "app/records/queries/getRecords"
+import createRecord from "app/records/mutations/createRecord"
+import { useCurrentUser } from "../hooks/useCurrentUser"
+import updateRecord from "app/records/mutations/updateRecord"
 
 type LayoutProps = {
   title?: string
@@ -22,6 +26,52 @@ const Layout = ({ title, children }: LayoutProps) => {
         {children}
       </Container>
     </>
+  )
+}
+
+const StartStop = () => {
+  const user = useCurrentUser()
+  const [{ records: recordsInProgress }, { refetch }] = useQuery(getRecords, {
+    where: { finish: null },
+    orderBy: { finish: "asc" },
+    skip: 0,
+    take: 1,
+  })
+  const [createRecordMutation] = useMutation(createRecord)
+  const [updateRecordMutation] = useMutation(updateRecord)
+  const saveRecord = async () => {
+    try {
+      const record = await createRecordMutation({
+        data: {
+          start: new Date(),
+          user: { connect: { id: user?.id } },
+        },
+      })
+      refetch()
+    } catch (error) {
+      alert("Error creating record " + JSON.stringify(error, null, 2))
+    }
+  }
+
+  const updateRecordInProgress = async () => {
+    try {
+      const updated = await updateRecordMutation({
+        where: { id: recordsInProgress[0].id },
+        data: { finish: new Date() },
+      })
+      refetch()
+    } catch (error) {
+      alert("Error editing record " + JSON.stringify(error, null, 2))
+    }
+  }
+
+  return (
+    <Flex
+      align="center"
+      onClick={() => (recordsInProgress.length > 0 ? updateRecordInProgress() : saveRecord())}
+    >
+      {recordsInProgress.length > 0 ? "Stop" : "Start"}
+    </Flex>
   )
 }
 
@@ -63,6 +113,9 @@ const Header = () => {
               <chakra.a aria-label="Navigate to records page">Records</chakra.a>
             </Link>
           </Flex>
+          <Suspense fallback="Loading...">
+            <StartStop />
+          </Suspense>
         </Flex>
       </chakra.div>
     </chakra.header>

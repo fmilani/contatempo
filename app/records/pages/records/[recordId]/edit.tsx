@@ -3,32 +3,35 @@ import Layout from "app/core/layouts/Layout"
 import { Link, useRouter, useQuery, useMutation, useParam, BlitzPage } from "blitz"
 import getRecord from "app/records/queries/getRecord"
 import updateRecord from "app/records/mutations/updateRecord"
-import RecordForm from "app/records/components/RecordForm"
+import RecordForm, { RecordFormValues } from "app/records/components/RecordForm"
+import { useCurrentUser } from "app/core/hooks/useCurrentUser"
 
-export const EditRecord = () => {
+export const EditRecordForm = () => {
   const router = useRouter()
   const recordId = useParam("recordId", "number")
   const [record, { setQueryData }] = useQuery(getRecord, { where: { id: recordId } })
   const [updateRecordMutation] = useMutation(updateRecord)
 
+  const user = useCurrentUser()
   return (
     <div>
       <h1>Edit Record {record.id}</h1>
-      <pre>{JSON.stringify(record)}</pre>
-
+      <pre>{JSON.stringify(record, null, 2)}</pre>
       <RecordForm
         initialValues={record}
-        onSubmit={async () => {
+        onSubmit={async (values: RecordFormValues) => {
           try {
-            const updated = await updateRecordMutation({
+            const updatedRecord = await updateRecordMutation({
               where: { id: record.id },
-              data: { name: "MyNewName" },
+              data: {
+                start: values.start,
+                finish: values.finish,
+                user: { connect: { id: user?.id } },
+              },
             })
-            await setQueryData(updated)
-            alert("Success!" + JSON.stringify(updated))
-            router.push(`/records/${updated.id}`)
+            await setQueryData(updatedRecord)
+            router.push(`/records/${updatedRecord.id}`)
           } catch (error) {
-            console.log(error)
             alert("Error editing record " + JSON.stringify(error, null, 2))
           }
         }}
@@ -41,7 +44,7 @@ const EditRecordPage: BlitzPage = () => {
   return (
     <div>
       <Suspense fallback={<div>Loading...</div>}>
-        <EditRecord />
+        <EditRecordForm />
       </Suspense>
 
       <p>

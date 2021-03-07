@@ -1,5 +1,5 @@
 import { ReactNode, Suspense, useEffect, useRef, useState } from "react"
-import { Head, Link, useMutation, useQuery } from "blitz"
+import { Head, invalidateQuery, Link, useMutation, useQuery } from "blitz"
 import { Box, Container, Flex, Heading } from "@chakra-ui/layout"
 import { chakra } from "@chakra-ui/react"
 import { useViewportScroll } from "framer-motion"
@@ -48,6 +48,7 @@ const StartStop = () => {
         },
       })
       refetch()
+      invalidateQuery(getRecords)
     } catch (error) {
       alert("Error creating record " + JSON.stringify(error, null, 2))
     }
@@ -60,6 +61,7 @@ const StartStop = () => {
         data: { finish: new Date() },
       })
       refetch()
+      invalidateQuery(getRecords)
     } catch (error) {
       alert("Error editing record " + JSON.stringify(error, null, 2))
     }

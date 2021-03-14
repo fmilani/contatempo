@@ -7,6 +7,7 @@ import getRecords from "app/records/queries/getRecords"
 import createRecord from "app/records/mutations/createRecord"
 import { useCurrentUser } from "../hooks/useCurrentUser"
 import updateRecord from "app/records/mutations/updateRecord"
+import getTotalTime from "app/records/queries/getTotalTime"
 
 type LayoutProps = {
   title?: string
@@ -49,6 +50,7 @@ const StartStop = () => {
       })
       refetch()
       invalidateQuery(getRecords)
+      invalidateQuery(getTotalTime)
     } catch (error) {
       alert("Error creating record " + JSON.stringify(error, null, 2))
     }
@@ -62,6 +64,7 @@ const StartStop = () => {
       })
       refetch()
       invalidateQuery(getRecords)
+      invalidateQuery(getTotalTime)
     } catch (error) {
       alert("Error editing record " + JSON.stringify(error, null, 2))
     }

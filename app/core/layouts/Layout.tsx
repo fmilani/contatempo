@@ -30,8 +30,12 @@ const Layout = ({ title, children }: LayoutProps) => {
   )
 }
 
-const StartStop = () => {
+const StartStopContainer = () => {
   const user = useCurrentUser()
+  if (!user) return null
+  return <StartStop user={user} />
+}
+const StartStop = ({user}) => {
   const [{ records: recordsInProgress }, { refetch }] = useQuery(getRecords, {
     where: { finish: null },
     orderBy: { finish: "asc" },
@@ -119,7 +123,7 @@ const Header = () => {
             </Link>
           </Flex>
           <Suspense fallback="Loading...">
-            <StartStop />
+            <StartStopContainer />
           </Suspense>
         </Flex>
       </chakra.div>

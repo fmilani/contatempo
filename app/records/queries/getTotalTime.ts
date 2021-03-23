@@ -1,7 +1,7 @@
 import { Ctx } from "blitz"
 import db, { Prisma } from "db"
 
-type GetTotalTimeInput = Pick<Prisma.FindManyRecordArgs, "where">
+type GetTotalTimeInput = Pick<Prisma.RecordFindManyArgs, "where">
 
 export default async function getTotalTime({ where }: GetTotalTimeInput, ctx: Ctx) {
   ctx.session.$authorize()

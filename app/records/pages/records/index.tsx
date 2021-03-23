@@ -8,9 +8,10 @@ import { TimeIcon } from "@chakra-ui/icons"
 import { format, formatDuration, intervalToDuration } from "date-fns"
 import getTotalTime from "app/records/queries/getTotalTime"
 import { useRef, useEffect } from "react"
+import {Record} from "db"
 
 const useInterval = (callback, timer) => {
-  const intervalIdRef = useRef()
+  const intervalIdRef = useRef(()=>{})
 
   useEffect(() => {
     intervalIdRef.current = callback
@@ -99,13 +100,13 @@ export const RecordsList = () => {
                 {formatDay(day)}
               </Heading>
               <List spacing="4">
-                {records.map((record, index) => {
+                {(records as Record[]).map((record, index) => {
                   return (
                     <ListItem key={record.id} display="flex" alignItems="center">
                       <ListIcon as={TimeIcon} w="0.75rem" mb="3px" />
                       <Link href={`/records/${record.id}`}>
                         <a>
-                          <Record start={record.start} finish={record.finish} />
+                          <RecordComponent start={record.start} finish={record.finish} />
                         </a>
                       </Link>
                     </ListItem>
@@ -126,7 +127,7 @@ export const RecordsList = () => {
   )
 }
 
-const Record = ({ start, finish }) => (
+const RecordComponent = ({ start, finish }) => (
   <HStack spacing="8">
     <span>
       {format(start, "HH:mm")} -{" "}

@@ -1,7 +1,7 @@
 import { Ctx } from "blitz"
 import db, { Prisma } from "db"
 
-type GetRecordsInput = Pick<Prisma.FindManyRecordArgs, "where" | "orderBy" | "skip" | "take">
+type GetRecordsInput = Pick<Prisma.RecordFindManyArgs, "where" | "orderBy" | "skip" | "take">
 
 export default async function getRecords(
   { where, orderBy, skip = 0, take }: GetRecordsInput,

@@ -1,7 +1,7 @@
 import { Ctx, NotFoundError } from "blitz"
 import db, { Prisma } from "db"
 
-type GetRecordInput = Pick<Prisma.FindFirstRecordArgs, "where">
+type GetRecordInput = Pick<Prisma.RecordFindFirstArgs, "where">
 
 export default async function getRecord({ where }: GetRecordInput, ctx: Ctx) {
   ctx.session.$authorize()

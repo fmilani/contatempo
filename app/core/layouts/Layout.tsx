@@ -37,7 +37,7 @@ const StartStopContainer = () => {
 }
 const StartStop = ({user}) => {
   const [{ records: recordsInProgress }, { refetch }] = useQuery(getRecords, {
-    where: { finish: null },
+    where: { finish: null, userId: user?.id },
     orderBy: { finish: "asc" },
     skip: 0,
     take: 1,

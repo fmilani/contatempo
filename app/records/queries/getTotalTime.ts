@@ -6,7 +6,6 @@ type GetTotalTimeInput = Pick<Prisma.RecordFindManyArgs, "where">
 export default async function getTotalTime({ where }: GetTotalTimeInput, ctx: Ctx) {
   ctx.session.$authorize()
 
-  return await db.$queryRaw(
-    'select sum(extract(epoch from finish) - extract(epoch from start)) as totalTime from "Record" where finish is not null and "userId" = 1'
-  )
+  return await db.$queryRaw`
+    select sum(extract(epoch from finish) - extract(epoch from start)) as totalTime from "Record" where finish is not null and "userId" = ${where?.userId}`
 }

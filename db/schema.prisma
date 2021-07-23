@@ -23,6 +23,8 @@ model User {
 
   tokens   Token[]
   sessions Session[]
+  Record   Record[]
+  Tag      Tag[]
 }
 
 model Session {
@@ -63,3 +65,28 @@ model Token {
 // enum TokenType {
 //   RESET_PASSWORD
 // }
+
+model Record {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  begin     DateTime  @default(now())
+  end       DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  tags      Tag[]
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  color     String   @default("gray")
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@unique([userId, name], name: "tagIdentifier")
+  Record   Record? @relation(fields: [recordId], references: [id])
+  recordId Int?
+}

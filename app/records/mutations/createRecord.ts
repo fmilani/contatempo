@@ -4,7 +4,7 @@ import { z } from "zod"
 
 const CreateRecord = z.object({
   begin: z.date(),
-  end: z.date(),
+  end: z.date().optional().nullable(),
 })
 
 export default resolver.pipe(

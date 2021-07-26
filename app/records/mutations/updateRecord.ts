@@ -4,7 +4,8 @@ import { z } from "zod"
 
 const UpdateRecord = z.object({
   id: z.number(),
-  name: z.string(),
+  begin: z.date(),
+  end: z.date().optional().nullable(),
 })
 
 export default resolver.pipe(

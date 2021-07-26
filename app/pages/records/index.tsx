@@ -23,7 +23,9 @@ export const RecordsList = () => {
         {records.map((record) => (
           <li key={record.id}>
             <Link href={Routes.ShowRecordPage({ recordId: record.id })}>
-              <a>{record.name}</a>
+              <a>
+                {record.begin.toString()} - {record.end?.toString()}
+              </a>
             </Link>
           </li>
         ))}

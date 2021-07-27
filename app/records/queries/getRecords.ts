@@ -6,8 +6,9 @@ interface GetRecordsInput
 
 export default resolver.pipe(
   resolver.authorize(),
-  async ({ where, orderBy, skip = 0, take = 100 }: GetRecordsInput) => {
+  async ({ where, orderBy, skip = 0, take = 100 }: GetRecordsInput, { session }) => {
     // TODO: in multi-tenant app, you must add validation to ensure correct tenant
+    const whereWithUser = { ...where, userId: session.userId }
     const {
       items: records,
       hasMore,
@@ -16,8 +17,9 @@ export default resolver.pipe(
     } = await paginate({
       skip,
       take,
-      count: () => db.record.count({ where }),
-      query: (paginateArgs) => db.record.findMany({ ...paginateArgs, where, orderBy }),
+      count: () => db.record.count({ where: whereWithUser }),
+      query: (paginateArgs) =>
+        db.record.findMany({ ...paginateArgs, where: whereWithUser, orderBy }),
     })
 
     return {

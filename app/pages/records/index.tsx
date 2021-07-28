@@ -1,6 +1,18 @@
 import { Suspense } from "react"
-import { Head, Link, usePaginatedQuery, useRouter, BlitzPage, Routes } from "blitz"
+import {
+  Head,
+  Link,
+  useMutation,
+  useQuery,
+  usePaginatedQuery,
+  useRouter,
+  invalidateQuery,
+  BlitzPage,
+  Routes,
+} from "blitz"
 import Layout from "app/core/layouts/Layout"
+import createRecord from "app/records/mutations/createRecord"
+import updateRecord from "app/records/mutations/updateRecord"
 import getRecords from "app/records/queries/getRecords"
 import { Record } from "db"
 
@@ -60,6 +72,48 @@ export const RecordsList = () => {
   )
 }
 
+const StartStop = () => {
+  const [{ records: recordsInProgress }] = useQuery(getRecords, {
+    where: { end: null },
+    orderBy: { begin: "asc" },
+    skip: 0,
+    take: 1,
+  })
+  const [createRecordMutation] = useMutation(createRecord)
+  const [updateRecordMutation] = useMutation(updateRecord)
+
+  const saveOrUpdateRecord = async () => {
+    if (recordsInProgress.length == 0) {
+      try {
+        await createRecordMutation({
+          begin: new Date(),
+        })
+        invalidateQuery(getRecords)
+      } catch (error) {
+        alert("Error creating record " + JSON.stringify(error, null, 2))
+      }
+    } else {
+      try {
+        const recordInProgress = recordsInProgress[0]!!
+        await updateRecordMutation({
+          id: recordInProgress.id,
+          begin: recordInProgress.begin,
+          end: new Date(),
+        })
+        invalidateQuery(getRecords)
+      } catch (error) {
+        alert("Error editing record " + JSON.stringify(error, null, 2))
+      }
+    }
+  }
+
+  return (
+    <button onClick={() => saveOrUpdateRecord()}>
+      {recordsInProgress.length > 0 ? "Stop" : "Start"}
+    </button>
+  )
+}
+
 const RecordsPage: BlitzPage = () => {
   return (
     <>
@@ -73,8 +127,8 @@ const RecordsPage: BlitzPage = () => {
             <a>Create Record</a>
           </Link>
         </p>
-
         <Suspense fallback={<div>Loading...</div>}>
+          <StartStop />
           <RecordsList />
         </Suspense>
       </div>

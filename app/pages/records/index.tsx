@@ -1,4 +1,4 @@
-import { Suspense } from "react"
+import { useEffect, useState, useRef, Suspense } from "react"
 import {
   Head,
   Link,
@@ -15,6 +15,8 @@ import createRecord from "app/records/mutations/createRecord"
 import updateRecord from "app/records/mutations/updateRecord"
 import getRecords from "app/records/queries/getRecords"
 import { Record } from "db"
+import getTotalTime from "app/records/queries/getTotalTime"
+import { intervalToDuration } from "date-fns"
 
 const ITEMS_PER_PAGE = 100
 
@@ -26,7 +28,27 @@ export const RecordsList = () => {
     skip: ITEMS_PER_PAGE * page,
     take: ITEMS_PER_PAGE,
   })
+  const [totalTimeResult] = useQuery(getTotalTime, {})
+  const [now, setNow] = useState(new Date())
 
+  const useInterval = (callback: any, timer: number) => {
+    const intervalIdRef = useRef(() => {})
+
+    useEffect(() => {
+      intervalIdRef.current = callback
+    }, [callback])
+
+    useEffect(() => {
+      const fn = () => {
+        intervalIdRef.current()
+      }
+      if (timer !== null) {
+        let intervalId = setInterval(fn, timer)
+        return () => clearInterval(intervalId)
+      }
+    }, [timer])
+  }
+  useInterval(() => setNow(new Date()), 1000)
   const goToPreviousPage = () => router.push({ query: { page: page - 1 } })
   const goToNextPage = () => router.push({ query: { page: page + 1 } })
 
@@ -46,8 +68,29 @@ export const RecordsList = () => {
       `${record.begin.getFullYear()}-${record.begin.getMonth() + 1}-${record.begin.getDate()}`
   )
 
+  const totalTime = totalTimeResult[0].totaltime
+  const recordsDuration = {
+    hours: Math.floor(totalTime / 3600),
+    minutes: Math.floor((totalTime % 3600) / 60),
+  }
+
+  const ongoingRecord = records.filter((record) => record.end === null)[0]
+  const ongoingDuration = ongoingRecord
+    ? intervalToDuration({ start: now, end: ongoingRecord.begin })
+    : { hours: 0, minutes: 0, seconds: 0 }
+  const totalDurationMinutes = recordsDuration.minutes + (ongoingDuration.minutes ?? 0)
+  const totalDuration = {
+    hours:
+      recordsDuration.hours + (ongoingDuration.hours ?? 0) + Math.floor(totalDurationMinutes / 60),
+    minutes: totalDurationMinutes % 60,
+    seconds: ongoingDuration.seconds ?? 0,
+  }
+  const formattedDuration = `${("00" + totalDuration.hours).slice(-2)}:${(
+    "00" + totalDuration.minutes
+  ).slice(-2)}:${("00" + totalDuration.seconds).slice(-2)}`
   return (
     <div>
+      <p>{formattedDuration}</p>
       {Object.entries(groupByDay(records)).map(([day, records]) => (
         <ul key={day}>
           <div>{day}</div>
@@ -101,6 +144,7 @@ const StartStop = () => {
           end: new Date(),
         })
         invalidateQuery(getRecords)
+        invalidateQuery(getTotalTime)
       } catch (error) {
         alert("Error editing record " + JSON.stringify(error, null, 2))
       }

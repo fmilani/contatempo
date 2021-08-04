@@ -27,6 +27,7 @@
   "dependencies": {
     "@prisma/client": "2.27.0",
     "blitz": "0.38.5",
+    "date-fns": "2.23.0",
     "final-form": "4.20.2",
     "react": "alpha",
     "react-datepicker": "4.1.1",
@@ -35,6 +36,7 @@
     "zod": "3.5.1"
   },
   "devDependencies": {
+    "@types/date-fns": "2.6.0",
     "@types/preview-email": "2.0.1",
     "@types/react": "17.0.14",
     "@types/react-datepicker": "4.1.3",

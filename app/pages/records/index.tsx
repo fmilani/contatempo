@@ -28,7 +28,7 @@ export const RecordsList = () => {
     skip: ITEMS_PER_PAGE * page,
     take: ITEMS_PER_PAGE,
   })
-  const [totalTimeResult] = useQuery(getTotalTime, {})
+  const [{ totalTime, ongoingRecord }] = useQuery(getTotalTime, {})
   const [now, setNow] = useState(new Date())
 
   const useInterval = (callback: any, timer: number) => {
@@ -68,13 +68,11 @@ export const RecordsList = () => {
       `${record.begin.getFullYear()}-${record.begin.getMonth() + 1}-${record.begin.getDate()}`
   )
 
-  const totalTime = totalTimeResult[0].totaltime
   const recordsDuration = {
     hours: Math.floor(totalTime / 3600),
     minutes: Math.floor((totalTime % 3600) / 60),
   }
 
-  const ongoingRecord = records.filter((record) => record.end === null)[0]
   const ongoingDuration = ongoingRecord
     ? intervalToDuration({ start: now, end: ongoingRecord.begin })
     : { hours: 0, minutes: 0, seconds: 0 }
@@ -132,6 +130,7 @@ const StartStop = () => {
           begin: new Date(),
         })
         invalidateQuery(getRecords)
+        invalidateQuery(getTotalTime)
       } catch (error) {
         alert("Error creating record " + JSON.stringify(error, null, 2))
       }

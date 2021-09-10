@@ -9,7 +9,7 @@ export { FORM_ERROR } from "app/core/components/Form"
 export function RecordForm<S extends z.ZodType<any, any>>(props: FormProps<S>) {
   function CustomDatePicker(props: { name: string }) {
     const { input } = useField(props.name)
-    const ExampleCustomTimeInput = ({ value, onChange }) => (
+    const CustomTimeInput = ({ value, onChange }) => (
       <input type="time" value={value} onChange={(e) => onChange(e.target.value)} />
     )
     return (
@@ -18,7 +18,7 @@ export function RecordForm<S extends z.ZodType<any, any>>(props: FormProps<S>) {
         selected={input.value}
         onChange={input.onChange}
         showTimeInput
-        customTimeInput={<ExampleCustomTimeInput />}
+        customTimeInput={<CustomTimeInput value={input.value} onChange={input.onChange} />}
       />
     )
   }

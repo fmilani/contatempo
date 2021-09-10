@@ -15,7 +15,7 @@ import createRecord from "app/records/mutations/createRecord"
 import updateRecord from "app/records/mutations/updateRecord"
 import getRecords from "app/records/queries/getRecords"
 import { Record } from "db"
-import getTotalTime from "app/records/queries/getTotalTime"
+import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinishedRecordsTimeAndOngoingRecord"
 import { intervalToDuration } from "date-fns"
 
 const ITEMS_PER_PAGE = 100
@@ -28,7 +28,10 @@ export const RecordsList = () => {
     skip: ITEMS_PER_PAGE * page,
     take: ITEMS_PER_PAGE,
   })
-  const [{ totalTime, ongoingRecord }] = useQuery(getTotalTime, {})
+  const [{ finishedRecordsTime, ongoingRecord }] = useQuery(
+    getFinishedRecordsTimeAndOngoingRecord,
+    {}
+  )
   const [now, setNow] = useState(new Date())
 
   const useInterval = (callback: any, timer: number) => {
@@ -69,8 +72,8 @@ export const RecordsList = () => {
   )
 
   const recordsDuration = {
-    hours: Math.floor(totalTime / 3600),
-    minutes: Math.floor((totalTime % 3600) / 60),
+    hours: Math.floor(finishedRecordsTime / 3600),
+    minutes: Math.floor((finishedRecordsTime % 3600) / 60),
   }
 
   const ongoingDuration = ongoingRecord
@@ -130,7 +133,7 @@ const StartStop = () => {
           begin: new Date(),
         })
         invalidateQuery(getRecords)
-        invalidateQuery(getTotalTime)
+        invalidateQuery(getFinishedRecordsTimeAndOngoingRecord)
       } catch (error) {
         alert("Error creating record " + JSON.stringify(error, null, 2))
       }
@@ -143,7 +146,7 @@ const StartStop = () => {
           end: new Date(),
         })
         invalidateQuery(getRecords)
-        invalidateQuery(getTotalTime)
+        invalidateQuery(getFinishedRecordsTimeAndOngoingRecord)
       } catch (error) {
         alert("Error editing record " + JSON.stringify(error, null, 2))
       }

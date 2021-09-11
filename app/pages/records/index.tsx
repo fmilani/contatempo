@@ -16,14 +16,28 @@ import updateRecord from "app/records/mutations/updateRecord"
 import getRecords from "app/records/queries/getRecords"
 import { Record } from "db"
 import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinishedRecordsTimeAndOngoingRecord"
-import { intervalToDuration } from "date-fns"
+import { endOfDay, intervalToDuration } from "date-fns"
+import ReactDatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
 
 const ITEMS_PER_PAGE = 100
 
 export const RecordsList = () => {
   const router = useRouter()
   const page = Number(router.query.page) || 0
+
+  const [range, setRange] = useState([null, null])
+  const [startDate, endDate] = range
+  const onChangeDates = (newRange) => {
+    setRange(newRange)
+  }
   const [{ records, hasMore }] = usePaginatedQuery(getRecords, {
+    where: {
+      begin: {
+        gte: startDate || undefined,
+        lte: endDate ? endOfDay(endDate) : undefined,
+      },
+    },
     orderBy: { begin: "desc" },
     skip: ITEMS_PER_PAGE * page,
     take: ITEMS_PER_PAGE,
@@ -91,6 +105,15 @@ export const RecordsList = () => {
   ).slice(-2)}:${("00" + totalDuration.seconds).slice(-2)}`
   return (
     <div>
+      <ReactDatePicker
+        dateFormat="dd/MM/yyyy"
+        selected={startDate}
+        onChange={onChangeDates}
+        startDate={startDate}
+        endDate={endDate}
+        selectsRange
+        isClearable
+      />
       <p>{formattedDuration}</p>
       {Object.entries(groupByDay(records)).map(([day, records]) => (
         <ul key={day}>

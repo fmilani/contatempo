@@ -19,6 +19,7 @@ import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinis
 import { endOfDay, intervalToDuration } from "date-fns"
 import ReactDatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
+import sendRecords from "app/records/mutations/sendRecords"
 
 const ITEMS_PER_PAGE = 100
 
@@ -103,6 +104,8 @@ export const RecordsList = () => {
   const formattedDuration = `${("00" + totalDuration.hours).slice(-2)}:${(
     "00" + totalDuration.minutes
   ).slice(-2)}:${("00" + totalDuration.seconds).slice(-2)}`
+
+  const [sendRecordsMutation] = useMutation(sendRecords)
   return (
     <div>
       <ReactDatePicker
@@ -115,6 +118,7 @@ export const RecordsList = () => {
         isClearable
       />
       <p>{formattedDuration}</p>
+      <button onClick={() => sendRecordsMutation({ startDate, endDate })}>Send email</button>
       {Object.entries(groupByDay(records)).map(([day, records]) => (
         <ul key={day}>
           <div>{day}</div>

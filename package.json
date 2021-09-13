@@ -25,10 +25,14 @@
     ]
   },
   "dependencies": {
+    "@chakra-ui/react": "1.6.7",
+    "@emotion/react": "11.1.4",
+    "@emotion/styled": "11.0.0",
     "@prisma/client": "2.27.0",
     "blitz": "0.38.5",
     "date-fns": "2.23.0",
     "final-form": "4.20.2",
+    "framer-motion": "^4",
     "react": "alpha",
     "react-datepicker": "4.1.1",
     "react-dom": "alpha",

@@ -109,7 +109,7 @@ export const RecordsList = () => {
 
   const formatDay = (day) => {
     const [year, month, date] = day.split("-")
-    return format(new Date(year, month, date), "EEEE, MMMM dd yyyy")
+    return format(new Date(year, month - 1, date), "EEEE, MMMM dd yyyy")
   }
   const [sendRecordsMutation] = useMutation(sendRecords)
   return (

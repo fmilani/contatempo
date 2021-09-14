@@ -34,7 +34,7 @@ const Header = () => {
       right="0"
       zIndex="999"
     >
-      <Container height="4.5rem" display="flex" alignItems="center">
+      <Container height={[14, 16]} display="flex" alignItems="center">
         <Link href="/" passHref>
           <chakra.a aria-label="Contatempo, Back to homepage">
             <Heading size="md">Contatempo</Heading>

@@ -59,7 +59,7 @@ const Layout = ({ title, children }: LayoutProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      <Container>{children}</Container>
+      <Container p={[0, 4]}>{children}</Container>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, Suspense } from "react"
+import React, { useEffect, useState, useRef, Suspense } from "react"
 import {
   Head,
   Link,
@@ -16,10 +16,12 @@ import updateRecord from "app/records/mutations/updateRecord"
 import getRecords from "app/records/queries/getRecords"
 import { Record } from "db"
 import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinishedRecordsTimeAndOngoingRecord"
-import { endOfDay, intervalToDuration } from "date-fns"
+import { endOfDay, format, intervalToDuration } from "date-fns"
 import ReactDatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import sendRecords from "app/records/mutations/sendRecords"
+import { Box, chakra, Heading, List, ListIcon, ListItem, VStack } from "@chakra-ui/react"
+import { TimeIcon } from "@chakra-ui/icons"
 
 const ITEMS_PER_PAGE = 100
 
@@ -105,6 +107,10 @@ export const RecordsList = () => {
     "00" + totalDuration.minutes
   ).slice(-2)}:${("00" + totalDuration.seconds).slice(-2)}`
 
+  const formatDay = (day) => {
+    const [year, month, date] = day.split("-")
+    return format(new Date(year, month, date), "EEEE, MMMM dd yyyy")
+  }
   const [sendRecordsMutation] = useMutation(sendRecords)
   return (
     <div>
@@ -119,20 +125,28 @@ export const RecordsList = () => {
       />
       <p>{formattedDuration}</p>
       <button onClick={() => sendRecordsMutation({ startDate, endDate })}>Send email</button>
-      {Object.entries(groupByDay(records)).map(([day, records]) => (
-        <ul key={day}>
-          <div>{day}</div>
-          {(records as Record[]).reverse().map((record: Record) => (
-            <li key={record.id}>
-              <Link href={Routes.ShowRecordPage({ recordId: record.id })}>
-                <a>
-                  {record.begin.toString()} - {record.end?.toString()}
-                </a>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ))}
+      <VStack spacing={4}>
+        {Object.entries(groupByDay(records)).map(([day, records]) => (
+          <Box key={day} p={4} borderWidth="1px" bg="white" shadow="sm" w="full">
+            <Heading size="sm" mb={4}>
+              {formatDay(day)}
+            </Heading>
+            <List spacing={2}>
+              {(records as Record[]).reverse().map((record: Record) => (
+                <ListItem key={record.id} d="flex" alignItems="center">
+                  <ListIcon as={TimeIcon} w={3} mb={1} />
+                  <Link href={Routes.ShowRecordPage({ recordId: record.id })} passHref>
+                    <chakra.a aria-label={`Navigate to record with id ${record.id}`}>
+                      {format(record.begin, "HH:mm")} -{" "}
+                      {record.end ? format(record.end, "HH:mm") : "in progress"}
+                    </chakra.a>
+                  </Link>
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        ))}
+      </VStack>
       <button disabled={page === 0} onClick={goToPreviousPage}>
         Previous
       </button>

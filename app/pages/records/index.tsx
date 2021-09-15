@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, Suspense } from "react"
+import React, { useEffect, useState, useRef, Suspense, forwardRef } from "react"
 import {
   Head,
   Link,
@@ -20,8 +20,21 @@ import { endOfDay, format, intervalToDuration } from "date-fns"
 import ReactDatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import sendRecords from "app/records/mutations/sendRecords"
-import { Box, chakra, Heading, List, ListIcon, ListItem, VStack } from "@chakra-ui/react"
-import { TimeIcon } from "@chakra-ui/icons"
+import {
+  Box,
+  chakra,
+  Heading,
+  HStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  List,
+  ListIcon,
+  ListItem,
+  Spacer,
+  VStack,
+} from "@chakra-ui/react"
+import { CalendarIcon, TimeIcon } from "@chakra-ui/icons"
 
 const ITEMS_PER_PAGE = 100
 
@@ -31,7 +44,7 @@ export const RecordsList = () => {
 
   const [range, setRange] = useState([null, null])
   const [startDate, endDate] = range
-  const onChangeDates = (newRange) => {
+  const onChangeRange = (newRange) => {
     setRange(newRange)
   }
   const [{ records, hasMore }] = usePaginatedQuery(getRecords, {
@@ -114,17 +127,38 @@ export const RecordsList = () => {
   const [sendRecordsMutation] = useMutation(sendRecords)
   return (
     <div>
-      <ReactDatePicker
-        dateFormat="dd/MM/yyyy"
-        selected={startDate}
-        onChange={onChangeDates}
-        startDate={startDate}
-        endDate={endDate}
-        selectsRange
-        isClearable
-      />
-      <p>{formattedDuration}</p>
-      <button onClick={() => sendRecordsMutation({ startDate, endDate })}>Send email</button>
+      <button
+        style={{ display: "block" }}
+        onClick={() => sendRecordsMutation({ startDate, endDate })}
+      >
+        Send email
+      </button>
+      <HStack py={4} px={[4, 0]}>
+        <ReactDatePicker
+          dateFormat="dd/MM/yyyy"
+          selected={startDate}
+          onChange={onChangeRange}
+          startDate={startDate}
+          endDate={endDate}
+          customInput={
+            <VStack spacing={0} align="start" as="button">
+              <Heading size="xs">Period</Heading>
+              <Heading size="md">
+                {startDate && endDate
+                  ? `${format(startDate, "dd/MM/yyyy")} - ${format(endDate, "dd/MM/yyyy")}`
+                  : "All time"}
+              </Heading>
+            </VStack>
+          }
+          selectsRange
+          withPortal
+        />
+        <Spacer />
+        <VStack spacing={0} align="end">
+          <Heading size="xs">Total</Heading>
+          <Heading size="md">{formattedDuration}</Heading>
+        </VStack>
+      </HStack>
       <VStack spacing={4}>
         {Object.entries(groupByDay(records)).map(([day, records]) => (
           <Box key={day} p={4} borderWidth="1px" bg="white" shadow="sm" w="full">

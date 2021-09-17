@@ -8,6 +8,8 @@ import {
   chakra,
   Collapse,
   HStack,
+  Icon,
+  IconButton,
   Portal,
   Spacer,
   useInterval,
@@ -18,6 +20,7 @@ import getRecords from "app/records/queries/getRecords"
 import createRecord from "app/records/mutations/createRecord"
 import updateRecord from "app/records/mutations/updateRecord"
 import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinishedRecordsTimeAndOngoingRecord"
+import { MdPlayArrow, MdStop } from "react-icons/md"
 
 type LayoutProps = {
   title?: string
@@ -75,9 +78,12 @@ const StartStopAndOngoing = ({ headerRef }) => {
 
   return (
     <>
-      <Button size="sm" onClick={() => saveOrUpdateRecord()}>
-        {ongoingRecords.length > 0 ? "Stop" : "Start"}
-      </Button>
+      <IconButton
+        aria-label="Start a record"
+        icon={<Icon w={10} h={10} as={ongoingRecords.length > 0 ? MdStop : MdPlayArrow} />}
+        variant="ghost"
+        onClick={() => saveOrUpdateRecord()}
+      />
       <Portal containerRef={headerRef}>
         <Collapse in={ongoingRecords.length > 0}>
           <Container>

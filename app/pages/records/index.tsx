@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, Suspense, forwardRef } from "react"
+import React, { useEffect, useState, useRef, Suspense } from "react"
 import {
   Head,
   Link,
@@ -6,13 +6,10 @@ import {
   useQuery,
   usePaginatedQuery,
   useRouter,
-  invalidateQuery,
   BlitzPage,
   Routes,
 } from "blitz"
 import Layout from "app/core/layouts/Layout"
-import createRecord from "app/records/mutations/createRecord"
-import updateRecord from "app/records/mutations/updateRecord"
 import getRecords from "app/records/queries/getRecords"
 import { Record } from "db"
 import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinishedRecordsTimeAndOngoingRecord"
@@ -25,18 +22,38 @@ import {
   chakra,
   Heading,
   HStack,
-  Input,
-  InputGroup,
-  InputLeftElement,
   List,
   ListIcon,
   ListItem,
   Spacer,
   VStack,
 } from "@chakra-ui/react"
-import { CalendarIcon, TimeIcon } from "@chakra-ui/icons"
+import { TimeIcon } from "@chakra-ui/icons"
 
 const ITEMS_PER_PAGE = 100
+
+const useInterval = (callback: any, timer: number) => {
+  const intervalIdRef = useRef(() => {})
+
+  useEffect(() => {
+    intervalIdRef.current = callback
+  }, [callback])
+
+  useEffect(() => {
+    const fn = () => {
+      intervalIdRef.current()
+    }
+    if (timer !== null) {
+      let intervalId = setInterval(fn, timer)
+      return () => clearInterval(intervalId)
+    }
+  }, [timer])
+}
+
+const formatDuration = (duration) =>
+  `${("00" + duration.hours).slice(-2)}:${("00" + duration.minutes).slice(-2)}:${(
+    "00" + duration.seconds
+  ).slice(-2)}`
 
 export const RecordsList = () => {
   const router = useRouter()
@@ -64,23 +81,6 @@ export const RecordsList = () => {
   )
   const [now, setNow] = useState(new Date())
 
-  const useInterval = (callback: any, timer: number) => {
-    const intervalIdRef = useRef(() => {})
-
-    useEffect(() => {
-      intervalIdRef.current = callback
-    }, [callback])
-
-    useEffect(() => {
-      const fn = () => {
-        intervalIdRef.current()
-      }
-      if (timer !== null) {
-        let intervalId = setInterval(fn, timer)
-        return () => clearInterval(intervalId)
-      }
-    }, [timer])
-  }
   useInterval(() => setNow(new Date()), 1000)
   const goToPreviousPage = () => router.push({ query: { page: page - 1 } })
   const goToNextPage = () => router.push({ query: { page: page + 1 } })
@@ -116,10 +116,7 @@ export const RecordsList = () => {
     minutes: totalDurationMinutes % 60,
     seconds: ongoingDuration.seconds ?? 0,
   }
-  const formattedDuration = `${("00" + totalDuration.hours).slice(-2)}:${(
-    "00" + totalDuration.minutes
-  ).slice(-2)}:${("00" + totalDuration.seconds).slice(-2)}`
-
+  const formattedDuration = formatDuration(totalDuration)
   const formatDay = (day) => {
     const [year, month, date] = day.split("-")
     return format(new Date(year, month - 1, date), "EEEE, MMMM dd yyyy")
@@ -191,50 +188,6 @@ export const RecordsList = () => {
   )
 }
 
-const StartStop = () => {
-  const [{ records: recordsInProgress }] = useQuery(getRecords, {
-    where: { end: null },
-    orderBy: { begin: "asc" },
-    skip: 0,
-    take: 1,
-  })
-  const [createRecordMutation] = useMutation(createRecord)
-  const [updateRecordMutation] = useMutation(updateRecord)
-
-  const saveOrUpdateRecord = async () => {
-    if (recordsInProgress.length == 0) {
-      try {
-        await createRecordMutation({
-          begin: new Date(),
-        })
-        invalidateQuery(getRecords)
-        invalidateQuery(getFinishedRecordsTimeAndOngoingRecord)
-      } catch (error) {
-        alert("Error creating record " + JSON.stringify(error, null, 2))
-      }
-    } else {
-      try {
-        const recordInProgress = recordsInProgress[0]!!
-        await updateRecordMutation({
-          id: recordInProgress.id,
-          begin: recordInProgress.begin,
-          end: new Date(),
-        })
-        invalidateQuery(getRecords)
-        invalidateQuery(getFinishedRecordsTimeAndOngoingRecord)
-      } catch (error) {
-        alert("Error editing record " + JSON.stringify(error, null, 2))
-      }
-    }
-  }
-
-  return (
-    <button onClick={() => saveOrUpdateRecord()}>
-      {recordsInProgress.length > 0 ? "Stop" : "Start"}
-    </button>
-  )
-}
-
 const RecordsPage: BlitzPage = () => {
   return (
     <>
@@ -243,13 +196,7 @@ const RecordsPage: BlitzPage = () => {
       </Head>
 
       <div>
-        <p>
-          <Link href={Routes.NewRecordPage()}>
-            <a>Create Record</a>
-          </Link>
-        </p>
         <Suspense fallback={<div>Loading...</div>}>
-          <StartStop />
           <RecordsList />
         </Suspense>
       </div>

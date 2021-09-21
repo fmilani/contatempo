@@ -24,6 +24,7 @@ import {
   chakra,
   Heading,
   HStack,
+  Icon,
   List,
   ListIcon,
   ListItem,
@@ -31,6 +32,7 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import { TimeIcon } from "@chakra-ui/icons"
+import { MdArrowDropDown } from "react-icons/md"
 
 const ITEMS_PER_PAGE = 100
 
@@ -142,7 +144,9 @@ export const RecordsList = () => {
           endDate={endDate}
           customInput={
             <VStack spacing={0} align="start" as="button">
-              <Heading size="xs">Period</Heading>
+              <Heading size="xs">
+                Period <Icon as={MdArrowDropDown} />
+              </Heading>
               <Heading size="md">
                 {startDate && endDate
                   ? `${format(startDate, "dd/MM/yy")} - ${format(endDate, "dd/MM/yy")}`

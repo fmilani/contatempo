@@ -29,6 +29,7 @@ import {
   ListIcon,
   ListItem,
   Spacer,
+  useToast,
   VStack,
 } from "@chakra-ui/react"
 import { TimeIcon } from "@chakra-ui/icons"
@@ -125,14 +126,31 @@ export const RecordsList = () => {
     const [year, month, date] = day.split("-")
     return format(new Date(year, month - 1, date), "EEEE, MMMM dd yyyy")
   }
-  const [sendRecordsMutation] = useMutation(sendRecords)
+  const [sendRecordsMutation, { isLoading: isSendingRecords }] = useMutation(sendRecords)
+  const toast = useToast()
   return (
     <div>
       <HStack>
         <Spacer />
-        <ButtonGroup py={2} px={[4, 0]} size="sm" isAttached variant="outline">
-          <Button onClick={() => sendRecordsMutation({ startDate, endDate })}>Email</Button>
-          <Button onClick={() => router.push(Routes.NewRecordPage())}>New</Button>
+        <ButtonGroup py={2} px={[4, 0]} size="sm" variant="outline">
+          <Button
+            onClick={async () => {
+              await sendRecordsMutation({ startDate, endDate })
+              toast({
+                title: "Email sent.",
+                description: "We've sent the records of the period to you.",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+              })
+            }}
+            isLoading={isSendingRecords}
+          >
+            Email
+          </Button>
+          <Button colorScheme="brand" onClick={() => router.push(Routes.NewRecordPage())}>
+            New
+          </Button>
         </ButtonGroup>
       </HStack>
       <HStack py={4} px={[4, 0]}>

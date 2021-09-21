@@ -10,7 +10,6 @@ import {
 import LoginForm from "app/auth/components/LoginForm"
 import { ChakraProvider, theme as defaultTheme, extendTheme } from "@chakra-ui/react"
 
-console.log(defaultTheme)
 const theme = extendTheme({
   colors: {
     brand: {
@@ -32,6 +31,11 @@ const theme = extendTheme({
         maxW: "80ch",
       },
     },
+    Input: {
+      defaultProps: {
+        focusBorderColor: "brand.500",
+      },
+    },
   },
   styles: {
     global: {
@@ -41,6 +45,7 @@ const theme = extendTheme({
     },
   },
 })
+console.log(theme)
 export default function App({ Component, pageProps }: AppProps) {
   const getLayout = Component.getLayout || ((page) => page)
 

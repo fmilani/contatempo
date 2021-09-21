@@ -35,7 +35,7 @@ export function RecordForm<S extends z.ZodType<any, any>>(
       {formProps.endDisabled ? (
         <p>Record in progress</p>
       ) : (
-        <FormControl id="end">
+        <FormControl id="end" isRequired>
           <FormLabel>End</FormLabel>
           <CustomDatePicker name="end" />
         </FormControl>

@@ -1,15 +1,19 @@
-import { Link, useRouter, useMutation, BlitzPage, Routes } from "blitz"
+import { useRouter, useMutation, BlitzPage, Routes } from "blitz"
 import Layout from "app/core/layouts/Layout"
 import createRecord from "app/records/mutations/createRecord"
 import { RecordForm, FORM_ERROR } from "app/records/components/RecordForm"
+import React from "react"
+import { Box, Heading } from "@chakra-ui/react"
 
 const NewRecordPage: BlitzPage = () => {
   const router = useRouter()
   const [createRecordMutation] = useMutation(createRecord)
 
   return (
-    <div>
-      <h1>Create New Record</h1>
+    <Box p={4} borderWidth="1px" bg="white" shadow="sm" w="full">
+      <Heading size="sm" mb={4}>
+        Create New Record
+      </Heading>
 
       <RecordForm
         submitText="Create Record"
@@ -20,8 +24,8 @@ const NewRecordPage: BlitzPage = () => {
         // initialValues={{}}
         onSubmit={async (values) => {
           try {
-            const record = await createRecordMutation(values)
-            router.push(Routes.ShowRecordPage({ recordId: record.id }))
+            await createRecordMutation(values)
+            router.push(Routes.RecordsPage())
           } catch (error) {
             console.error(error)
             return {
@@ -30,13 +34,7 @@ const NewRecordPage: BlitzPage = () => {
           }
         }}
       />
-
-      <p>
-        <Link href={Routes.RecordsPage()}>
-          <a>Records</a>
-        </Link>
-      </p>
-    </div>
+    </Box>
   )
 }
 

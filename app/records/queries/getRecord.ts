@@ -7,11 +7,15 @@ const GetRecord = z.object({
   id: z.number().optional().refine(Boolean, "Required"),
 })
 
-export default resolver.pipe(resolver.zod(GetRecord), resolver.authorize(), async ({ id }) => {
-  // TODO: in multi-tenant app, you must add validation to ensure correct tenant
-  const record = await db.record.findFirst({ where: { id } })
+export default resolver.pipe(
+  resolver.zod(GetRecord),
+  resolver.authorize(),
+  async ({ id }, { session }) => {
+    // TODO: in multi-tenant app, you must add validation to ensure correct tenant
+    const record = await db.record.findFirst({ where: { id } })
 
-  if (!record) throw new NotFoundError()
+    if (!record || record.userId !== session.userId) throw new NotFoundError()
 
-  return record
-})
+    return record
+  }
+)

@@ -23,12 +23,19 @@ export const Record = () => {
   const recordId = useParam("recordId", "number")
   const [deleteRecordMutation] = useMutation(deleteRecord)
   const [updateRecordMutation] = useMutation(updateRecord)
-  const [record, { setQueryData }] = useQuery(getRecord, { id: recordId })
+  const [record, { setQueryData }] = useQuery(
+    getRecord,
+    { id: recordId },
+    {
+      // This ensures the query never refreshes and overwrites the form data while the user is editing.
+      staleTime: Infinity,
+    }
+  )
 
   return (
     <>
       <Head>
-        <title>Record {record.id}</title>
+        <title>Record details</title>
       </Head>
 
       <Box p={4} borderWidth="1px" bg="white" shadow="sm" w="full">

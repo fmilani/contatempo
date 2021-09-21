@@ -145,7 +145,7 @@ export const RecordsList = () => {
               <Heading size="xs">Period</Heading>
               <Heading size="md">
                 {startDate && endDate
-                  ? `${format(startDate, "dd/MM/yyyy")} - ${format(endDate, "dd/MM/yyyy")}`
+                  ? `${format(startDate, "dd/MM/yy")} - ${format(endDate, "dd/MM/yy")}`
                   : "All time"}
               </Heading>
             </VStack>

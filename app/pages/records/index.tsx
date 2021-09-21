@@ -19,6 +19,8 @@ import "react-datepicker/dist/react-datepicker.css"
 import sendRecords from "app/records/mutations/sendRecords"
 import {
   Box,
+  Button,
+  ButtonGroup,
   chakra,
   Heading,
   HStack,
@@ -124,12 +126,13 @@ export const RecordsList = () => {
   const [sendRecordsMutation] = useMutation(sendRecords)
   return (
     <div>
-      <button
-        style={{ display: "block" }}
-        onClick={() => sendRecordsMutation({ startDate, endDate })}
-      >
-        Send email
-      </button>
+      <HStack>
+        <Spacer />
+        <ButtonGroup py={2} px={[4, 0]} size="sm" isAttached variant="outline">
+          <Button onClick={() => sendRecordsMutation({ startDate, endDate })}>Email</Button>
+          <Button onClick={() => router.push(Routes.NewRecordPage())}>New</Button>
+        </ButtonGroup>
+      </HStack>
       <HStack py={4} px={[4, 0]}>
         <ReactDatePicker
           dateFormat="dd/MM/yyyy"

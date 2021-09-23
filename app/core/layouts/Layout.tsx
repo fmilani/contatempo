@@ -1,15 +1,19 @@
 import React, { ReactNode, Suspense, useEffect, useRef, useState } from "react"
-import { Head, invalidateQuery, Link, useMutation, useQuery } from "blitz"
+import { Head, invalidateQuery, Link, Routes, useMutation, useQuery, useRouter } from "blitz"
 import { Container, Heading } from "@chakra-ui/layout"
 import {
+  Avatar,
   Badge,
   Box,
-  Button,
   chakra,
   Collapse,
   HStack,
   Icon,
   IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Portal,
   Spacer,
   useInterval,
@@ -21,12 +25,69 @@ import createRecord from "app/records/mutations/createRecord"
 import updateRecord from "app/records/mutations/updateRecord"
 import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinishedRecordsTimeAndOngoingRecord"
 import { MdPlayArrow, MdStop } from "react-icons/md"
+import { useCurrentUser } from "../hooks/useCurrentUser"
+import logout from "app/auth/mutations/logout"
 
 type LayoutProps = {
   title?: string
   children: ReactNode
 }
 
+const UserInfo = () => {
+  const currentUser = useCurrentUser()
+  const [logoutMutation] = useMutation(logout)
+  const router = useRouter()
+
+  if (currentUser) {
+    return (
+      <>
+        <Menu>
+          <MenuButton>
+            <Avatar size="sm" />
+          </MenuButton>
+          <MenuList>
+            <MenuItem
+              onClick={async () => {
+                await logoutMutation()
+                router.push(Routes.Home())
+              }}
+            >
+              Logout
+            </MenuItem>
+          </MenuList>
+        </Menu>
+      </>
+    )
+  } else {
+    return (
+      <>
+        <Link href={Routes.SignupPage()}>
+          <a>
+            <strong>Sign Up</strong>
+          </a>
+        </Link>
+        <Link href={Routes.LoginPage()}>
+          <a>
+            <strong>Login</strong>
+          </a>
+        </Link>
+      </>
+    )
+  }
+}
+
+const UserActionsAndLinks = ({ headerRef }) => {
+  const currentUser = useCurrentUser()
+  if (!currentUser) return null
+  return (
+    <>
+      <Link href="/records" passHref>
+        <chakra.a aria-label="Navigate to records page">Records</chakra.a>
+      </Link>
+      <StartStopAndOngoing headerRef={headerRef} />
+    </>
+  )
+}
 const StartStopAndOngoing = ({ headerRef }) => {
   const [{ records: ongoingRecords }] = useQuery(getRecords, {
     where: { end: null },
@@ -131,11 +192,9 @@ const Header = () => {
         </Link>
         <Spacer />
         <HStack spacing="4">
-          <Link href="/records" passHref>
-            <chakra.a aria-label="Navigate to records page">Records</chakra.a>
-          </Link>
           <Suspense fallback={<div>Loading...</div>}>
-            <StartStopAndOngoing headerRef={ref} />
+            <UserActionsAndLinks headerRef={ref} />
+            <UserInfo />
           </Suspense>
         </HStack>
       </Container>

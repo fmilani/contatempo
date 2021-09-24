@@ -82,7 +82,14 @@ export const RecordsList = () => {
   })
   const [{ finishedRecordsTime, ongoingRecord }] = useQuery(
     getFinishedRecordsTimeAndOngoingRecord,
-    {}
+    {
+      where: {
+        begin: {
+          gte: startDate || undefined,
+          lte: endDate ? endOfDay(endDate) : undefined,
+        },
+      },
+    }
   )
   const [now, setNow] = useState(new Date())
 

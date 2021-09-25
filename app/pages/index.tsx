@@ -1,19 +1,18 @@
-import { BlitzPage, useQuery } from "blitz"
+import { BlitzPage, Link, Routes, useQuery } from "blitz"
 import Layout from "app/core/layouts/Layout"
 import { useCurrentUser } from "app/core/hooks/useCurrentUser"
 import { Suspense, useState } from "react"
 import {
-  Box,
   Center,
   Heading,
+  LinkBox,
+  LinkOverlay,
   SimpleGrid,
   Stat,
   StatHelpText,
   StatLabel,
   StatNumber,
   useInterval,
-  Wrap,
-  WrapItem,
 } from "@chakra-ui/react"
 import getFinishedRecordsTimeAndOngoingRecord from "app/records/queries/getFinishedRecordsTimeAndOngoingRecord"
 import {
@@ -67,16 +66,28 @@ const Summary = ({ label, startDate, endDate }) => {
     seconds: ongoingDuration.seconds ?? 0,
   }
   return (
-    <Box p={4} borderWidth="1px" bg="white" shadow="sm">
+    <LinkBox p={4} borderWidth="1px" bg="white" shadow="sm">
       <Stat>
         <StatLabel>{label}</StatLabel>
-        <StatNumber>{formatDuration(totalDuration, { format: ["hours", "minutes"] })}</StatNumber>
+        <Link
+          href={Routes.RecordsPage({
+            from: format(startDate, "yyyy-MM-dd"),
+            to: format(endDate, "yyyy-MM-dd"),
+          })}
+          passHref
+        >
+          <LinkOverlay>
+            <StatNumber>
+              {formatDuration(totalDuration, { format: ["hours", "minutes"] }) || "Nothing"}
+            </StatNumber>
+          </LinkOverlay>
+        </Link>
         <StatHelpText>
           {format(startDate, "MMM dd")}
           {!isSameDay(startDate, endDate) && ` - ${format(endDate, "MMM dd")}`}
         </StatHelpText>
       </Stat>
-    </Box>
+    </LinkBox>
   )
 }
 const Home: BlitzPage = () => {

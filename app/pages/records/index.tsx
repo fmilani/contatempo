@@ -110,8 +110,8 @@ export const RecordsList = () => {
   const [now, setNow] = useState(new Date())
 
   useInterval(() => setNow(new Date()), 1000)
-  const goToPreviousPage = () => router.push({ query: { page: page - 1 } })
-  const goToNextPage = () => router.push({ query: { page: page + 1 } })
+  const goToPreviousPage = () => router.push({ query: { ...router.query, page: page - 1 } })
+  const goToNextPage = () => router.push({ query: { ...router.query, page: page + 1 } })
 
   function groupBy(propertyExtractor: (r: Record) => string) {
     return function group(array: Record[]) {
@@ -229,12 +229,16 @@ export const RecordsList = () => {
           </Box>
         ))}
       </VStack>
-      <button disabled={page === 0} onClick={goToPreviousPage}>
-        Previous
-      </button>
-      <button disabled={!hasMore} onClick={goToNextPage}>
-        Next
-      </button>
+      {(hasMore || page !== 0) && (
+        <HStack padding={4} spacing={4} justify="center">
+          <Button disabled={page === 0} onClick={goToPreviousPage}>
+            Previous
+          </Button>
+          <Button disabled={!hasMore} onClick={goToNextPage}>
+            Next
+          </Button>
+        </HStack>
+      )}
     </div>
   )
 }

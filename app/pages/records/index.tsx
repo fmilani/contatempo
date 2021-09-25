@@ -60,20 +60,36 @@ const formatDuration = (duration) =>
     "00" + duration.seconds
   ).slice(-2)}`
 
+const parseDate = (date) => {
+  if (!date) return null
+  const [year, month, day] = date.split("-")
+  if (!year || !month || !day) return null
+  return new Date(Number(year), Number(month) - 1, Number(day))
+}
 export const RecordsList = () => {
   const router = useRouter()
   const page = Number(router.query.page) || 0
+  const from = parseDate(router.query.from)
+  const to = parseDate(router.query.to)
 
-  const [range, setRange] = useState([null, null])
+  const [range, setRange] = useState<[Date | null, Date | null]>([from, to])
   const [startDate, endDate] = range
   const onChangeRange = (newRange) => {
     setRange(newRange)
+    if (newRange[1])
+      router.replace(
+        Routes.RecordsPage({
+          from: format(newRange[0], "yyyy-MM-dd"),
+          to: format(newRange[1], "yyyy-MM-dd"),
+        })
+      )
   }
+
   const [{ records, hasMore }] = usePaginatedQuery(getRecords, {
     where: {
       begin: {
-        gte: startDate || undefined,
-        lte: endDate ? endOfDay(endDate) : undefined,
+        gte: from || undefined,
+        lte: to ? endOfDay(to) : undefined,
       },
     },
     orderBy: { begin: "desc" },
@@ -85,8 +101,8 @@ export const RecordsList = () => {
     {
       where: {
         begin: {
-          gte: startDate || undefined,
-          lte: endDate ? endOfDay(endDate) : undefined,
+          gte: from || undefined,
+          lte: to ? endOfDay(to) : undefined,
         },
       },
     }
@@ -142,7 +158,7 @@ export const RecordsList = () => {
         <ButtonGroup py={2} px={[4, 0]} size="sm" variant="outline">
           <Button
             onClick={async () => {
-              await sendRecordsMutation({ startDate, endDate })
+              await sendRecordsMutation({ from, to })
               toast({
                 title: "Email sent.",
                 description: "We've sent the records of the period to you.",
@@ -163,8 +179,10 @@ export const RecordsList = () => {
       <HStack py={4} px={[4, 0]}>
         <ReactDatePicker
           dateFormat="dd/MM/yyyy"
-          selected={startDate}
           onChange={onChangeRange}
+          onCalendarClose={() => {
+            if (!endDate) setRange([from, to])
+          }}
           startDate={startDate}
           endDate={endDate}
           customInput={
@@ -173,12 +191,13 @@ export const RecordsList = () => {
                 Period <Icon as={MdArrowDropDown} />
               </Heading>
               <Heading size="md">
-                {startDate && endDate
-                  ? `${format(startDate, "dd/MM/yy")} - ${format(endDate, "dd/MM/yy")}`
+                {from && to
+                  ? `${format(from, "dd/MM/yy")} - ${format(to, "dd/MM/yy")}`
                   : "All time"}
               </Heading>
             </VStack>
           }
+          todayButton={<Button variant="unstyled">Today</Button>}
           selectsRange
           withPortal
         />

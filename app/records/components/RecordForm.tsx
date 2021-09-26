@@ -13,7 +13,14 @@ export function RecordForm<S extends z.ZodType<any, any>>(
   function CustomDatePicker(props: { name: string }) {
     const { input } = useField(props.name)
     const CustomTimeInput = ({ value, onChange }) => (
-      <Input type="time" value={value} onChange={(e) => onChange(e.target.value)} />
+      <Input
+        type="time"
+        value={value}
+        onChange={(e) => {
+          if (!e.target.value) return
+          onChange(e.target.value)
+        }}
+      />
     )
     return (
       <DatePicker
@@ -23,6 +30,7 @@ export function RecordForm<S extends z.ZodType<any, any>>(
         showTimeInput
         customTimeInput={<CustomTimeInput value={input.value} onChange={input.onChange} />}
         customInput={<Input type="datetime" />}
+        withPortal
       />
     )
   }

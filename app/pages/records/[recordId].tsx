@@ -58,7 +58,7 @@ export const Record = () => {
               })
               if (record.begin && !record.end) invalidateQuery(getRecords)
               await setQueryData(updated)
-              router.push(Routes.RecordsPage())
+              router.back()
             } catch (error) {
               console.error(error)
               return {
@@ -75,7 +75,7 @@ export const Record = () => {
           onClick={async () => {
             if (window.confirm("This will be deleted")) {
               await deleteRecordMutation({ id: record.id })
-              router.push(Routes.RecordsPage())
+              router.back()
             }
           }}
         >

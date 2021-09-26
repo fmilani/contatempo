@@ -25,7 +25,7 @@ const NewRecordPage: BlitzPage = () => {
         onSubmit={async (values) => {
           try {
             await createRecordMutation(values)
-            router.push(Routes.RecordsPage())
+            router.back()
           } catch (error) {
             console.error(error)
             return {

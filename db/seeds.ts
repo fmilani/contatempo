@@ -1,16 +1,26 @@
-// import db from "./index"
+import { setHours, startOfToday, subDays } from "date-fns"
+import db from "./index"
 
-/*
- * This seed function is executed when you run `blitz db seed`.
- *
- * Probably you want to use a library like https://chancejs.com
- * or https://github.com/Marak/Faker.js to easily generate
- * realistic data.
- */
 const seed = async () => {
-  // for (let i = 0; i < 5; i++) {
-  //   await db.project.create({ data: { name: "Project " + i } })
-  // }
+  await db.record.deleteMany({})
+  for (let j = 0; j < 6; j++) {
+    for (let i = 0; i < 4; i++) {
+      await db.record.create({
+        data: {
+          begin: subDays(setHours(startOfToday(), 2 * i + 5), 7 * j),
+          end: subDays(setHours(startOfToday(), 2 * i + 6), 7 * j),
+          user: { connect: { id: 1 } },
+        },
+      })
+      await db.record.create({
+        data: {
+          begin: subDays(setHours(startOfToday(), 2 * i + 5), 7 * j + 1),
+          end: subDays(setHours(startOfToday(), 2 * i + 6), 7 * j + 1),
+          user: { connect: { id: 1 } },
+        },
+      })
+    }
+  }
 }
 
 export default seed

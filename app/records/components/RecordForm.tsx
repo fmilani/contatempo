@@ -3,7 +3,7 @@ import { useField } from "react-final-form"
 import { z } from "zod"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import { FormControl, FormLabel, forwardRef, Input } from "@chakra-ui/react"
+import { FormControl, FormLabel, Input } from "@chakra-ui/react"
 
 export { FORM_ERROR } from "app/core/components/Form"
 
@@ -19,7 +19,6 @@ export function RecordForm<S extends z.ZodType<any, any>>(
         onChange={input.onChange}
         showTimeInput
         customInput={<Input type="datetime" />}
-        withPortal
       />
     )
   }
@@ -38,6 +37,11 @@ export function RecordForm<S extends z.ZodType<any, any>>(
           <CustomDatePicker name="end" />
         </FormControl>
       )}
+      <style global jsx>{`
+        .react-datepicker-time__input input {
+          border: 2px solid rgb(53, 68, 151);
+        }
+      `}</style>
     </Form>
   )
 }

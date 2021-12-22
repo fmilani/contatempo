@@ -1,15 +1,8 @@
-# npm dependencies
-node_modules/
+node_modules
 
-# npm logs
-npm-debug.log
+.cache
+.vercel
+.output
 
-# settings files
-settings.json
-settings.coverage.json
-
-#coverage report folder
-.coverage
-
-#swap files
-*.swp
+public/build
+api/_build

@@ -15,32 +15,38 @@ type LayoutProps = {
 }
 export default function Layout({ children }: LayoutProps) {
   return (
-    <Container maxWidth="md" disableGutters sx={{backgroundColor: theme.palette.common.white}}>
-      <Box sx={{height: '100vh'}}>
-        <AppBar position="relative">
-          <Toolbar>
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
+    <Container
+      maxWidth="md"
+      disableGutters
+      sx={{
+        backgroundColor: theme.palette.common.white,
+        height: '100vh',
+        overflowY: 'scroll',
+      }}
+    >
+      <AppBar position="relative">
+        <Toolbar>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+          >
+            Contatempo
+          </Typography>
+          <Box sx={{flexGrow: 1}} />
+          <Box sx={{ display: 'flex' }}>
+            <IconButton
+              size="large"
+              edge="end"
+              aria-label="account of current user"
+              color="inherit"
             >
-              Contatempo
-            </Typography>
-            <Box sx={{flexGrow: 1}} />
-            <Box sx={{ display: 'flex' }}>
-              <IconButton
-                size="large"
-                edge="end"
-                aria-label="account of current user"
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </AppBar>
-        <Box component="main">{children}</Box>
-      </Box>
+              <AccountCircle />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
+      <Box component="main" sx={{p: 2}}>{children}</Box>
       <Box component="footer" sx={{textAlign: 'center'}}>
         <Divider sx={{marginBottom: 2}}/>
         <Typography>

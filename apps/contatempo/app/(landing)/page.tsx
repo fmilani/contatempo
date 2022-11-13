@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import LoginButton from "../components/LoginButton";
-import { getCurrentUser } from "../lib/session";
+import LoginButton from "@/components/LoginButton";
+import { getCurrentUser } from "@/lib/session";
 
 export default async function Home() {
   const user = await getCurrentUser();
   if (user) {
-    return redirect("/dashboard");
+    redirect("/dashboard");
   }
 
   return (

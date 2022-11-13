@@ -6,6 +6,5 @@ declare module "next-auth" {
   }
   interface User {
     accessToken: string;
-    image: string | undefined;
   }
 }

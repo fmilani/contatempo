@@ -7,7 +7,7 @@ export default async function RecordsPage() {
   });
   return (
     <div>
-      <p>Records</p>
+      <h1 className="text-3xl font-bold">Records</h1>
       <ul>
         {records.map((record) => (
           <li key={record.id}>

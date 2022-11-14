@@ -11,31 +11,35 @@ interface CurrentRecordProps {
 export default function CurrentRecord({ record }: CurrentRecordProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState(record);
   return (
     <div>
       <button
+        disabled={isSaving}
         className="p-4"
         onClick={async () => {
           setIsSaving(true);
-          if (record) {
-            await fetch(`/api/records/${record.id}`, {
+          if (currentRecord) {
+            setCurrentRecord(null);
+            await fetch(`/api/records/${currentRecord.id}`, {
               method: "PUT",
               body: JSON.stringify({
-                begin: record.begin,
-                end: new Date(),
+                ...currentRecord,
+                end: new Date().toISOString(),
               }),
               headers: {
                 "Content-Type": "application/json",
               },
             });
           } else {
-            await fetch(`/api/records`, {
+            const newRecord = await fetch(`/api/records`, {
               method: "POST",
-              body: JSON.stringify({ begin: new Date() }),
+              body: JSON.stringify({ id: "", begin: new Date().toISOString() }),
               headers: {
                 "Content-Type": "application/json",
               },
-            });
+            }).then((r) => r.json());
+            setCurrentRecord(newRecord);
           }
           setIsSaving(false);
           router.refresh();
@@ -43,7 +47,7 @@ export default function CurrentRecord({ record }: CurrentRecordProps) {
       >
         {isSaving ? (
           <Loader2 className="animate-spin" />
-        ) : record ? (
+        ) : currentRecord ? (
           <StopCircle />
         ) : (
           <Play />

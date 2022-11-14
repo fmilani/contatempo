@@ -1,9 +1,9 @@
 import { getSession } from "./session";
 
-type Record = {
+export type Record = {
   id: string;
   begin: string;
-  end: string;
+  end?: string;
 };
 
 interface GetRecordsRequest {

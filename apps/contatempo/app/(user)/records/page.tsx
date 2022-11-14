@@ -1,3 +1,4 @@
+import CurrentRecord from "@/components/CurrentRecord";
 import { getRecords } from "@/lib/api";
 
 export default async function RecordsPage() {
@@ -7,7 +8,10 @@ export default async function RecordsPage() {
   });
   return (
     <div>
-      <h1 className="text-3xl font-bold">Records</h1>
+      <div className="flex items-center justify-between">
+        <span className="text-xl font-bold">Records</span>
+        <CurrentRecord record={records.find((r) => !r.end)} />
+      </div>
       <ul>
         {records.map((record) => (
           <li key={record.id}>

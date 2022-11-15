@@ -1,9 +1,12 @@
 "use client";
 
 import { Record } from "@/lib/api";
+import useInterval from "@/lib/hooks/useInterval";
+import formatDuration from "date-fns/formatDuration";
+import intervalToDuration from "date-fns/intervalToDuration";
 import { Loader2, Play, StopCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface CurrentRecordProps {
   record?: Record;
@@ -12,8 +15,21 @@ export default function CurrentRecord({ record }: CurrentRecordProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(record);
+  const [now, setNow] = useState<Date>();
+  useInterval(() => setNow(new Date()), 1000);
+  // useEffect(() => {
+  //   setNow(new Date());
+  // }, []);
   return (
     <div>
+      {currentRecord &&
+        now &&
+        formatDuration(
+          intervalToDuration({
+            start: new Date(currentRecord.begin),
+            end: now,
+          })
+        )}
       <button
         disabled={isSaving}
         className="p-4"

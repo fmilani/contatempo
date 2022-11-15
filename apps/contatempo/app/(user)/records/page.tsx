@@ -12,7 +12,7 @@ export default async function RecordsPage() {
         <span className="text-xl font-bold">Records</span>
         <CurrentRecord record={records.find((r) => !r.end)} />
       </div>
-      <ul>
+      <ul className="mt-8">
         {records.map((record) => (
           <li key={record.id}>
             {record.begin} - {record.end}

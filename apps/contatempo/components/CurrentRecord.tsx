@@ -1,35 +1,42 @@
 "use client";
 
 import { Record } from "@/lib/api";
+import { zeroPad } from "@/lib/helpers";
 import useInterval from "@/lib/hooks/useInterval";
-import formatDuration from "date-fns/formatDuration";
 import intervalToDuration from "date-fns/intervalToDuration";
-import { Loader2, Play, StopCircle } from "lucide-react";
+import { Loader2, PlayCircle, StopCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface CurrentRecordProps {
   record?: Record;
 }
+function Duration({ duration }) {
+  return (
+    <span className="py-4 pl-4">
+      {duration.hours}:{zeroPad(duration.minutes)}:{zeroPad(duration.seconds)}
+    </span>
+  );
+}
+
 export default function CurrentRecord({ record }: CurrentRecordProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(record);
   const [now, setNow] = useState<Date>();
+
   useInterval(() => setNow(new Date()), 1000);
-  // useEffect(() => {
-  //   setNow(new Date());
-  // }, []);
+
   return (
-    <div>
-      {currentRecord &&
-        now &&
-        formatDuration(
-          intervalToDuration({
+    <div className="rounded-xl drop-shadow-sm bg-white flex items-center">
+      {currentRecord && now && (
+        <Duration
+          duration={intervalToDuration({
             start: new Date(currentRecord.begin),
             end: now,
-          })
-        )}
+          })}
+        />
+      )}
       <button
         disabled={isSaving}
         className="p-4"
@@ -66,7 +73,7 @@ export default function CurrentRecord({ record }: CurrentRecordProps) {
         ) : currentRecord ? (
           <StopCircle />
         ) : (
-          <Play />
+          <PlayCircle />
         )}
       </button>
     </div>

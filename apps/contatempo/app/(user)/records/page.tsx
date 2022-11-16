@@ -1,7 +1,7 @@
 import CurrentRecord from "@/components/CurrentRecord";
 import { getRecords, Record } from "@/lib/api";
 import ptbr from "date-fns/locale/pt-BR";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, zonedTimeToUtc } from "date-fns-tz";
 
 function groupRecords(records: Record[]): { [key: string]: Record[] } {
   return records.reduce((acc, record) => {
@@ -17,8 +17,8 @@ function groupRecords(records: Record[]): { [key: string]: Record[] } {
 }
 export default async function RecordsPage() {
   const records = await getRecords({
-    from: new Date(2020, 1, 1),
-    to: new Date(2023, 2, 1),
+    from: zonedTimeToUtc("2020-01-01 00:00:00", "America/Sao_Paulo"),
+    to: zonedTimeToUtc("2025-12-31 23:59:59", "America/Sao_Paulo"),
   });
   return (
     <div>
@@ -45,14 +45,15 @@ export default async function RecordsPage() {
                   {formatInTimeZone(
                     new Date(record.begin),
                     "America/Sao_Paulo",
-                    "HH:mm:ss O"
+                    "HH:mm:ss"
                   )}{" "}
                   -{" "}
-                  {formatInTimeZone(
-                    new Date(record.end),
-                    "America/Sao_Paulo",
-                    "HH:mm:ss"
-                  )}
+                  {record.end &&
+                    formatInTimeZone(
+                      new Date(record.end),
+                      "America/Sao_Paulo",
+                      "HH:mm:ss"
+                    )}
                 </li>
               ))}
             </ul>

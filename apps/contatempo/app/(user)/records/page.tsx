@@ -1,12 +1,15 @@
 import CurrentRecord from "@/components/CurrentRecord";
 import { getRecords, Record } from "@/lib/api";
-import format from "date-fns/format";
 import ptbr from "date-fns/locale/pt-BR";
-import parse from "date-fns/parse";
+import { formatInTimeZone } from "date-fns-tz";
 
 function groupRecords(records: Record[]): { [key: string]: Record[] } {
   return records.reduce((acc, record) => {
-    const day = format(new Date(record.begin), "yyyy-MM-dd");
+    const day = formatInTimeZone(
+      new Date(record.begin),
+      "America/Sao_Paulo",
+      "yyyy-MM-dd"
+    );
     acc[day] = acc[day] ?? [];
     acc[day].push(record);
     return acc;
@@ -27,15 +30,29 @@ export default async function RecordsPage() {
         {Object.entries(groupRecords(records)).map(([day, recordsOfDay]) => (
           <div key={day}>
             <div className="mb-2">
-              {format(parse(day, "yyyy-MM-dd", new Date()), "dd 'de' MMMM", {
-                locale: ptbr,
-              })}
+              {formatInTimeZone(
+                new Date(recordsOfDay[0].begin),
+                "America/Sao_Paulo",
+                "dd 'de' MMMM",
+                {
+                  locale: ptbr,
+                }
+              )}
             </div>
             <ul className="rounded-lg drop-shadow-sm bg-white divide divide-y">
               {recordsOfDay.reverse().map((record) => (
                 <li className="p-4" key={record.id}>
-                  {format(new Date(record.begin), "HH:mm:ss O")} -{" "}
-                  {format(new Date(record.end), "HH:mm:ss")}
+                  {formatInTimeZone(
+                    new Date(record.begin),
+                    "America/Sao_Paulo",
+                    "HH:mm:ss O"
+                  )}{" "}
+                  -{" "}
+                  {formatInTimeZone(
+                    new Date(record.end),
+                    "America/Sao_Paulo",
+                    "HH:mm:ss"
+                  )}
                 </li>
               ))}
             </ul>

@@ -32,9 +32,9 @@ export default async function RecordsPage() {
               })}
             </div>
             <ul className="rounded-lg drop-shadow-sm bg-white divide divide-y">
-              {recordsOfDay.map((record) => (
+              {recordsOfDay.reverse().map((record) => (
                 <li className="p-4" key={record.id}>
-                  {format(new Date(record.begin), "HH:mm:ss")} -{" "}
+                  {format(new Date(record.begin), "HH:mm:ss O")} -{" "}
                   {format(new Date(record.end), "HH:mm:ss")}
                 </li>
               ))}

@@ -9,7 +9,6 @@ export default withAuth(
   async function middleware(req) {
     const token = await getToken({ req });
     const loggedIn = !!token;
-    console.log("LOGADO???", loggedIn);
 
     if (loggedIn) {
       req.nextUrl.pathname = "/dashboard";

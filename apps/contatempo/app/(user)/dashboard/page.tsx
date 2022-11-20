@@ -28,6 +28,9 @@ export default async function DashboardPage() {
   const lastMonth = await getSummary(getSummaryInterval(solm, eolm));
   return (
     <>
+      <div>
+        {process.env.TZ} - {format(new Date(), "yyyy-MM-dd HH:mm:ss OOOO")}
+      </div>
       <p className="text-xl font-bold mb-8">Dashboard</p>
       <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Link

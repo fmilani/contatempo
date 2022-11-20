@@ -2,6 +2,7 @@ import CurrentRecord from "@/components/CurrentRecord";
 import { getRecords, Record } from "@/lib/api";
 import ptbr from "date-fns/locale/pt-BR";
 import { formatInTimeZone, zonedTimeToUtc } from "date-fns-tz";
+import Loading from "./loading";
 
 function groupRecords(records: Record[]): { [key: string]: Record[] } {
   return records.reduce((acc, record) => {
@@ -28,11 +29,9 @@ export default async function RecordsPage({
   });
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <span className="text-xl font-bold">Registros</span>
-        <CurrentRecord record={records.find((r) => !r.end)} />
-      </div>
-      <div className="mt-8 space-y-4">
+      <CurrentRecord record={records.find((r) => !r.end)} />
+      <p className="text-xl font-bold my-8">Registros</p>
+      <div className="space-y-4">
         {Object.entries(groupRecords(records)).map(([day, recordsOfDay]) => (
           <div key={day}>
             <div className="mb-2">

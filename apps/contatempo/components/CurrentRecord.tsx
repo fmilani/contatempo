@@ -13,7 +13,7 @@ interface CurrentRecordProps {
 }
 function Duration({ duration }) {
   return (
-    <span className="py-4 pl-4">
+    <span className="py-4 pr-4">
       {duration.hours}:{zeroPad(duration.minutes)}:{zeroPad(duration.seconds)}
     </span>
   );
@@ -28,15 +28,7 @@ export default function CurrentRecord({ record }: CurrentRecordProps) {
   useInterval(() => setNow(new Date()), 1000);
 
   return (
-    <div className="rounded-xl drop-shadow-sm bg-white flex items-center">
-      {currentRecord && now && (
-        <Duration
-          duration={intervalToDuration({
-            start: new Date(currentRecord.begin),
-            end: now,
-          })}
-        />
-      )}
+    <div className="rounded-xl drop-shadow-sm bg-white inline-flex items-center">
       <button
         disabled={isSaving}
         className="p-4"
@@ -76,6 +68,14 @@ export default function CurrentRecord({ record }: CurrentRecordProps) {
           <PlayCircle />
         )}
       </button>
+      {currentRecord && now && (
+        <Duration
+          duration={intervalToDuration({
+            start: new Date(currentRecord.begin),
+            end: now,
+          })}
+        />
+      )}
     </div>
   );
 }

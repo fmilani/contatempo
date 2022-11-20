@@ -27,12 +27,15 @@ export default async function DashboardPage() {
   const eolm = endOfMonth(sub(todayOffseted, { months: 1 }));
   const lastMonth = await getSummary(getSummaryInterval(solm, eolm));
   return (
-    <div>
+    <>
       <p className="text-xl font-bold mb-8">Dashboard</p>
-      <Link href={`/records?${buildQueryParams({ from: sot, to: eot })}`}>
-        <Card title="Hoje" time={today} />
-      </Link>
       <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
+        <Link
+          href={`/records?${buildQueryParams({ from: sot, to: eot })}`}
+          className="sm:col-span-2"
+        >
+          <Card title="Hoje" time={today} />
+        </Link>
         <Link href={`/records?${buildQueryParams({ from: som, to: eom })}`}>
           <Card title="Esse mês" time={thisMonth} />
         </Link>
@@ -40,7 +43,7 @@ export default async function DashboardPage() {
           <Card title="Último mês" time={lastMonth} />
         </Link>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -58,14 +61,25 @@ function buildQueryParams({ from, to }) {
   });
 }
 
-function Card({ title, time }) {
+export function Card({ title, time }) {
   const h = Math.floor(time / 3600);
   const m = Math.floor((time % 3600) / 60);
   const s = (time % 3600) % 60;
   return (
-    <div className="rounded-lg drop-shadow-sm bg-white p-4 hover:bg-slate-200">
+    <div className="rounded-lg drop-shadow-sm bg-white p-4 hover:bg-slate-200 flex flex-col gap-1">
       <div className="font-bold text-lg">{title}</div>
       <div className="">{`${zeroPad(h)}h ${zeroPad(m)}m ${zeroPad(s)}s`}</div>
     </div>
   );
 }
+
+Card.Skeleton = function CardSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={`rounded-lg drop-shadow-sm bg-white p-4 flex flex-col gap-1 ${className}`}
+    >
+      <div className="h-7 w-24 animate-pulse rounded-lg bg-slate-200"></div>
+      <div className="h-6 w-32 animate-pulse rounded-lg bg-slate-200"></div>
+    </div>
+  );
+};

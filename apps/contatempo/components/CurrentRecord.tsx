@@ -49,7 +49,7 @@ export default function CurrentRecord({ record }: CurrentRecordProps) {
           } else {
             const newRecord = await fetch(`/api/records`, {
               method: "POST",
-              body: JSON.stringify({ id: "", begin: new Date().toISOString() }),
+              body: JSON.stringify({ begin: new Date().toISOString() }),
               headers: {
                 "Content-Type": "application/json",
               },

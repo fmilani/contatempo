@@ -35,7 +35,7 @@ export default function CurrentRecord({ record }: CurrentRecordProps) {
         onClick={async () => {
           setIsSaving(true);
           if (currentRecord) {
-            setCurrentRecord(null);
+            setCurrentRecord(undefined);
             await fetch(`/api/records/${currentRecord.id}`, {
               method: "PUT",
               body: JSON.stringify({

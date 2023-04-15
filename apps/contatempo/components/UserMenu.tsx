@@ -15,7 +15,7 @@ export default function UserMenu({ user }: UserMenuProps) {
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="p-4">
         <Avatar.Root className="h-8 w-8 flex items-center justify-center overflow-hidden rounded-full bg-slate-200">
-          <Avatar.Image alt="User picture" src={user.image} />
+          <Avatar.Image alt="User picture" src={user.image || ""} />
           <Avatar.Fallback delayMs={500}>
             <span className="sr-only">{user.name}</span>
             <UserIcon />

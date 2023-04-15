@@ -8,10 +8,11 @@ import * as Dialog from "@radix-ui/react-dialog";
 export default function NewRecord() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const beginRef = useRef(null);
-  const endRef = useRef(null);
+  const beginRef = useRef<HTMLInputElement>(null);
+  const endRef = useRef<HTMLInputElement>(null);
 
   async function handle() {
+    if (!beginRef.current || !endRef.current) return;
     setIsSaving(true);
     await fetch(`/api/records`, {
       method: "POST",

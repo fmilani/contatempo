@@ -1,5 +1,4 @@
 import { getSummary } from "@/lib/api";
-import { zeroPad } from "@/lib/helpers";
 import getTimezoneOffset from "date-fns-tz/getTimezoneOffset";
 import zonedTimeToUtc from "date-fns-tz/zonedTimeToUtc";
 import endOfDay from "date-fns/endOfDay";
@@ -15,7 +14,9 @@ export default async function DashboardPage() {
   const todayOffseted = sub(new Date(), {
     seconds:
       (getTimezoneOffset(
-        process.env.TZ === ":UTC" ? "Europe/London" : process.env.TZ
+        process.env.TZ === ":UTC"
+          ? "Europe/London"
+          : process.env.TZ || "America/Sao_Paulo"
       ) -
         getTimezoneOffset("America/Sao_Paulo")) /
       1000,

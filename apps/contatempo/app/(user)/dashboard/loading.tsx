@@ -1,4 +1,4 @@
-import { Card } from "./page";
+import Card from "./Card";
 
 export default function Loading() {
   return (

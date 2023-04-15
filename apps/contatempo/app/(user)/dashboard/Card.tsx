@@ -1,3 +1,5 @@
+import { zeroPad } from "@/lib/helpers";
+
 export default function Card({ title, time }) {
   const h = Math.floor(time / 3600);
   const m = Math.floor((time % 3600) / 60);

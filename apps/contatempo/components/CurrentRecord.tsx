@@ -10,6 +10,7 @@ import { useState } from "react";
 
 interface CurrentRecordProps {
   record?: Record;
+  initialNow: string;
 }
 function Duration({ duration }) {
   return (
@@ -19,13 +20,16 @@ function Duration({ duration }) {
   );
 }
 
-export default function CurrentRecord({ record }: CurrentRecordProps) {
+export default function CurrentRecord({
+  record,
+  initialNow,
+}: CurrentRecordProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(record);
-  const [now, setNow] = useState<Date>();
+  const [now, setNow] = useState<Date>(new Date(initialNow));
 
-  useInterval(() => setNow(new Date()), 1000);
+  useInterval(() => setNow(new Date()), 500);
 
   return (
     <div className="rounded-xl drop-shadow-sm bg-white inline-flex items-center">

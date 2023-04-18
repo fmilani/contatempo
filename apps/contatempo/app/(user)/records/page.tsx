@@ -31,7 +31,10 @@ export default async function RecordsPage({
   return (
     <div>
       <div className="flex justify-between">
-        <CurrentRecord record={records.find((r) => !r.end)} />
+        <CurrentRecord
+          record={records.find((r) => !r.end)}
+          initialNow={new Date().toISOString()}
+        />
         <NewRecord />
       </div>
       <p className="text-xl font-bold my-8">Registros</p>

@@ -32,7 +32,11 @@ export default function CurrentRecord({
   useInterval(() => setNow(new Date()), 500);
 
   return (
-    <div className="rounded-xl drop-shadow-sm bg-white inline-flex items-center">
+    <div
+      className={`rounded-xl drop-shadow-sm bg-white inline-flex items-center ${
+        currentRecord ? "w-full overflow-hidden" : "w-14"
+      } transition-all duration-500`}
+    >
       <button
         disabled={isSaving}
         className="p-4"

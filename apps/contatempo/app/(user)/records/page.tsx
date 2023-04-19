@@ -30,7 +30,7 @@ export default async function RecordsPage({
   });
   return (
     <div>
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-4">
         <CurrentRecord
           record={records.find((r) => !r.end)}
           initialNow={new Date().toISOString()}

@@ -40,7 +40,7 @@ export default function CurrentRecord({
           setIsSaving(true);
           if (currentRecord) {
             setCurrentRecord(undefined);
-            await fetch(`/api/records/${currentRecord.id}`, {
+            const response = await fetch(`/api/records/${currentRecord.id}`, {
               method: "PUT",
               body: JSON.stringify({
                 ...currentRecord,
@@ -50,15 +50,26 @@ export default function CurrentRecord({
                 "Content-Type": "application/json",
               },
             });
+            if (response.status !== 200) {
+              // TODO: user feedback
+              setCurrentRecord(currentRecord);
+            }
           } else {
-            const newRecord = await fetch(`/api/records`, {
-              method: "POST",
-              body: JSON.stringify({ begin: new Date().toISOString() }),
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }).then((r) => r.json());
-            setCurrentRecord(newRecord);
+            const newDate = new Date().toISOString();
+            setCurrentRecord({ id: "optmistic-new-record", begin: newDate });
+            try {
+              const newRecord = await fetch(`/api/records`, {
+                method: "POST",
+                body: JSON.stringify({ begin: newDate }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              }).then((r) => r.json());
+              setCurrentRecord(newRecord);
+            } catch (e) {
+              // TODO: user feedback
+              setCurrentRecord(undefined);
+            }
           }
           setIsSaving(false);
           router.refresh();

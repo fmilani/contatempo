@@ -1,23 +1,16 @@
 "use client";
 
 import { Record } from "@/lib/api";
-import { zeroPad } from "@/lib/helpers";
 import useInterval from "@/lib/hooks/useInterval";
 import intervalToDuration from "date-fns/intervalToDuration";
 import { Loader2, PlayCircle, StopCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Duration from "./Duration";
 
 interface CurrentRecordProps {
   record?: Record;
   initialNow: string;
-}
-function Duration({ duration }) {
-  return (
-    <span className="py-4 pr-4">
-      {duration.hours}:{zeroPad(duration.minutes)}:{zeroPad(duration.seconds)}
-    </span>
-  );
 }
 
 export default function CurrentRecord({
@@ -88,12 +81,7 @@ export default function CurrentRecord({
         )}
       </button>
       {currentRecord && now && (
-        <Duration
-          duration={intervalToDuration({
-            start: new Date(currentRecord.begin),
-            end: now,
-          })}
-        />
+        <Duration records={[{ begin: currentRecord.begin, end: now }]} />
       )}
     </div>
   );

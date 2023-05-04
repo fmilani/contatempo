@@ -3,6 +3,13 @@ import { getRecords, Record } from "@/lib/api";
 import ptbr from "date-fns/locale/pt-BR";
 import { formatInTimeZone, zonedTimeToUtc } from "date-fns-tz";
 import NewRecord from "@/components/NewRecord";
+import Duration from "@/components/Duration";
+import {
+  differenceInCalendarDays,
+  formatRelative,
+  intervalToDuration,
+} from "date-fns";
+import { zeroPad } from "@/lib/helpers";
 
 function groupRecords(records: Record[]): { [key: string]: Record[] } {
   return records.reduce((acc, record) => {
@@ -15,6 +22,23 @@ function groupRecords(records: Record[]): { [key: string]: Record[] } {
     acc[day].push(record);
     return acc;
   }, {});
+}
+
+function Time({ date }) {
+  return (
+    <>
+      <span>
+        {formatInTimeZone(new Date(date), "America/Sao_Paulo", "HH:mm")}
+      </span>
+      <span className="text-sm text-gray-400">
+        {formatInTimeZone(new Date(date), "America/Sao_Paulo", ":ss")}
+      </span>
+    </>
+  );
+}
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 export default async function RecordsPage({
@@ -37,35 +61,54 @@ export default async function RecordsPage({
         />
         <NewRecord />
       </div>
-      <p className="text-xl font-bold my-8">Registros</p>
-      <div className="space-y-4">
+      <h2 className="text-xl font-bold mt-8 mb-6">Registros</h2>
+      <div className="space-y-8">
         {Object.entries(groupRecords(records)).map(([day, recordsOfDay]) => (
-          <div key={day}>
-            <div className="mb-2">
-              {formatInTimeZone(
-                new Date(recordsOfDay[0].begin),
-                "America/Sao_Paulo",
-                "dd 'de' MMMM",
-                {
-                  locale: ptbr,
-                }
-              )}
-            </div>
-            <ul className="rounded-lg drop-shadow-sm bg-white divide divide-y">
-              {recordsOfDay.reverse().map((record) => (
-                <li className="p-4" key={record.id}>
-                  {formatInTimeZone(
-                    new Date(record.begin),
-                    "America/Sao_Paulo",
-                    "HH:mm:ss"
-                  )}{" "}
-                  -{" "}
-                  {record.end &&
-                    formatInTimeZone(
-                      new Date(record.end),
+          <div
+            key={day}
+            className="rounded-lg drop-shadow-sm bg-white divide-y overflow-hidden"
+          >
+            <div className="flex justify-between text-lg font-bold p-4 bg-slate-200">
+              <span>
+                {differenceInCalendarDays(
+                  new Date(),
+                  new Date(recordsOfDay[0].begin)
+                ) > 1
+                  ? capitalize(
+                      formatInTimeZone(
+                        new Date(recordsOfDay[0].begin),
+                        "America/Sao_Paulo",
+                        "eeeeee, dd 'de' MMM",
+                        { locale: ptbr }
+                      )
+                    )
+                  : `${capitalize(
+                      formatRelative(
+                        new Date(recordsOfDay[0].begin),
+                        new Date(),
+                        {
+                          locale: ptbr,
+                        }
+                      ).split(" ")[0]
+                    )}, ${formatInTimeZone(
+                      new Date(recordsOfDay[0].begin),
                       "America/Sao_Paulo",
-                      "HH:mm:ss"
-                    )}
+                      "dd 'de' MMM",
+                      { locale: ptbr }
+                    )}`}
+              </span>
+              <span>
+                <Duration records={recordsOfDay} />
+              </span>
+            </div>
+            <ul className="divide-y">
+              {recordsOfDay.reverse().map((record) => (
+                <li className="p-4 flex justify-between" key={record.id}>
+                  <div>
+                    <Time date={record.begin} /> -{" "}
+                    {record.end && <Time date={record.end} />}
+                  </div>
+                  <Duration records={[record]} />
                 </li>
               ))}
             </ul>

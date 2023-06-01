@@ -1,6 +1,6 @@
-import { Meteor } from 'meteor/meteor';
-import { Email } from 'meteor/email';
-import reportEmail from './report-email.jsx';
+import { Meteor } from "meteor/meteor";
+import { Email } from "meteor/email";
+import reportEmail from "./report-email.jsx";
 
 const sendReportEmail = ({
   userName,
@@ -16,9 +16,9 @@ const sendReportEmail = ({
   if (!Meteor.isServer) return;
 
   console.log(
-    `Sending ${userName} report to ${userReportsEmail}. ${sendCopyToUser
-      ? `Also sending a copy to them (to ${userEmail}). `
-      : ''}`,
+    `Sending ${userName} report to ${userReportsEmail}. ${
+      sendCopyToUser ? `Also sending a copy to them (to ${userEmail}). ` : ""
+    }`
   );
 
   const recipientEmails = userReportsEmail.split(/, *|; */);
@@ -27,7 +27,7 @@ const sendReportEmail = ({
   }
 
   Email.send({
-    from: 'Contatempo@contatempo.com',
+    from: "felmilani@gmail.com",
     to: recipientEmails,
     subject: `Relatório de horas - ${userName} - ${monthString}`,
     html: reportEmail({ userName, userTimezone, records, interval }),

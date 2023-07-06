@@ -4,6 +4,9 @@ import intervalToDuration from "date-fns/intervalToDuration";
 export default function Duration({ records }) {
   const duration = records.reduce(
     (acc, record) => {
+      if (!record.end) {
+        return acc;
+      }
       const duration = intervalToDuration({
         start: new Date(record.begin),
         end: new Date(record.end),

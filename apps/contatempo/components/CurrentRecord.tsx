@@ -19,7 +19,6 @@ export default function CurrentRecord({
 }: CurrentRecordProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [currentRecord, setCurrentRecord] = useState(record);
   const [now, setNow] = useState<Date>(new Date(initialNow));
 
   useInterval(() => setNow(new Date()), 500);
@@ -27,61 +26,24 @@ export default function CurrentRecord({
   return (
     <div
       className={`rounded-xl drop-shadow-sm bg-white inline-flex items-center ${
-        currentRecord ? "w-full overflow-hidden" : "w-14"
+        record ? "w-full overflow-hidden" : "w-14"
       } transition-all duration-500`}
     >
       <button
+        type="submit"
         disabled={isSaving}
         className="p-4"
-        onClick={async () => {
-          setIsSaving(true);
-          if (currentRecord) {
-            setCurrentRecord(undefined);
-            const response = await fetch(`/api/records/${currentRecord.id}`, {
-              method: "PUT",
-              body: JSON.stringify({
-                ...currentRecord,
-                end: new Date().toISOString(),
-              }),
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-            if (response.status !== 200) {
-              // TODO: user feedback
-              setCurrentRecord(currentRecord);
-            }
-          } else {
-            const newDate = new Date().toISOString();
-            setCurrentRecord({ id: "optmistic-new-record", begin: newDate });
-            try {
-              const newRecord = await fetch(`/api/records`, {
-                method: "POST",
-                body: JSON.stringify({ begin: newDate }),
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }).then((r) => r.json());
-              setCurrentRecord(newRecord);
-            } catch (e) {
-              // TODO: user feedback
-              setCurrentRecord(undefined);
-            }
-          }
-          setIsSaving(false);
-          router.refresh();
-        }}
       >
         {isSaving ? (
           <Loader2 className="animate-spin" />
-        ) : currentRecord ? (
+        ) : record ? (
           <StopCircle />
         ) : (
           <PlayCircle />
         )}
       </button>
-      {currentRecord && now && (
-        <Duration records={[{ begin: currentRecord.begin, end: now }]} />
+      {record && now && (
+        <Duration records={[{ begin: record.begin, end: now }]} />
       )}
     </div>
   );

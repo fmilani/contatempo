@@ -14,8 +14,6 @@ export default async function RecordsPage({
     to: zonedTimeToUtc(`${toParam} 23:59:59`, "America/Sao_Paulo"),
   });
   return (
-    <div>
-      <RecordsList records={records} />
-    </div>
+    <RecordsList records={records} />
   );
 }

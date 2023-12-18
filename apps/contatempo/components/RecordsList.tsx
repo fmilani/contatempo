@@ -24,8 +24,8 @@ export default function RecordsList({records}) {
     }
   });
   return (
-    <>
-      <h2 className="text-xl font-bold mt-8 mb-6">Registros</h2>
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold">Registros</h2>
       <form
         action={async () => {
           addOptimisticRecord(currentRecord)
@@ -40,7 +40,7 @@ export default function RecordsList({records}) {
         <NewRecord />
       </div>
       </form>
-      <div className="space-y-8">
+      <div className="space-y-2">
         {Object.entries(groupRecords(optmisticRecords)).map(([day, recordsOfDay]) => (
           <div
             key={day}
@@ -93,7 +93,7 @@ export default function RecordsList({records}) {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 

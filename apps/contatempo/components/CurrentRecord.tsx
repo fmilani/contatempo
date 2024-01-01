@@ -2,7 +2,6 @@
 
 import { Record } from "@/lib/api";
 import useInterval from "@/lib/hooks/useInterval";
-import intervalToDuration from "date-fns/intervalToDuration";
 import { Loader2, PlayCircle, StopCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -15,13 +14,9 @@ interface CurrentRecordProps {
 
 export default function CurrentRecord({
   record,
-  initialNow,
+  now,
 }: CurrentRecordProps) {
-  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [now, setNow] = useState<Date>(new Date(initialNow));
-
-  useInterval(() => setNow(new Date()), 500);
 
   return (
     <div

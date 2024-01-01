@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useOptimistic } from "react";
+import React, { useOptimistic, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import { Record } from "@/lib/api";
 import ptbr from "date-fns/locale/pt-BR";
@@ -12,8 +12,11 @@ import {
 import CurrentRecord from "@/components/CurrentRecord";
 import NewRecord from "@/components/NewRecord";
 import {startStopRecord} from "../actions";
+import useInterval from "@/lib/hooks/useInterval";
 
 export default function RecordsList({records}) {
+  const [now, setNow] = useState<Date>(new Date(new Date().toISOString()));
+  useInterval(() => setNow(new Date()), 500);
   const currentRecord = records.find((r) => !r.end);
   const [optmisticRecords, addOptimisticRecord] = useOptimistic(records, (state: any, newRecord: any) => {
     if (newRecord) {
@@ -35,7 +38,7 @@ export default function RecordsList({records}) {
       <div className="flex justify-between gap-4">
         <CurrentRecord
           record={optmisticRecords.find(r => !r.end)}
-          initialNow={new Date().toISOString()}
+          now={now}
         />
         <NewRecord />
       </div>
@@ -76,7 +79,7 @@ export default function RecordsList({records}) {
                     )}`}
               </span>
               <span>
-                <Duration records={recordsOfDay} />
+                <Duration records={recordsOfDay} now={now}/>
               </span>
             </div>
             <ul className="divide-y">
@@ -86,7 +89,7 @@ export default function RecordsList({records}) {
                     <Time date={record.begin} /> -{" "}
                     {record.end && <Time date={record.end} />}
                   </div>
-                  <Duration records={[record]} />
+                  <Duration records={[record]} now={now}/>
                 </li>
               ))}
             </ul>

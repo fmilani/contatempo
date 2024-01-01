@@ -1,15 +1,13 @@
 "use client";
 
 import { Record } from "@/lib/api";
-import useInterval from "@/lib/hooks/useInterval";
 import { Loader2, PlayCircle, StopCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Duration from "./Duration";
 
 interface CurrentRecordProps {
   record?: Record;
-  initialNow: string;
+  now: Date;
 }
 
 export default function CurrentRecord({
@@ -38,7 +36,7 @@ export default function CurrentRecord({
         )}
       </button>
       {record && now && (
-        <Duration records={[{ begin: record.begin, end: now }]} />
+        <Duration records={[{ begin: record.begin, end: now }]} now={now} />
       )}
     </div>
   );

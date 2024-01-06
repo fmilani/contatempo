@@ -3,14 +3,14 @@
 import React from "react";
 import { signIn } from "next-auth/react";
 
-export default function LoginButton() {
+export default function GithubLoginButton() {
   return (
     <button
       onClick={() =>
-        signIn("google", { callbackUrl: `${window.location.origin}/dashboard` })
+        signIn("github", { callbackUrl: `${window.location.origin}/dashboard` })
       }
     >
-      Login
+      Login com Github
     </button>
   );
 }

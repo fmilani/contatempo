@@ -32,5 +32,18 @@ export const startStopRecord = async (currentRecord: any) => {
               // TODO: user feedback
             }
           }
-          revalidatePath("/records");
+    revalidatePath("/records");
+}
+
+export const deleteRecord = async (id: string) => {
+  const session = await getServerSession(authOptions);
+  await fetch(`${process.env.BACKEND_URL}/records/${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session?.accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+  revalidatePath("/records");
 }

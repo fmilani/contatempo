@@ -13,17 +13,23 @@ import CurrentRecord from "@/components/CurrentRecord";
 import NewRecord from "@/components/NewRecord";
 import {startStopRecord} from "../actions";
 import useInterval from "@/lib/hooks/useInterval";
+import RecordDetails from "@/components/RecordDetails";
 
 export default function RecordsList({records}) {
   const [now, setNow] = useState<Date>(new Date(new Date().toISOString()));
   useInterval(() => setNow(new Date()), 500);
   const currentRecord = records.find((r) => !r.end);
-  const [optmisticRecords, addOptimisticRecord] = useOptimistic(records, (state: any, newRecord: any) => {
-    if (newRecord) {
-      return state.map(record => record.id === newRecord.id ? {...record, end: new Date().toISOString()} : record)
-      
+  const [optmisticRecords, setOptimisticRecords] = useOptimistic(records, (state: any, {action, newRecord}: any) => {
+    if (action === 'delete') {
+      return state.filter(record => record.id !== newRecord.id);
     } else {
-      return [{ id: "optmistic-new-record", begin: new Date().toISOString() }, ...state];
+      if (newRecord) {
+        return state.map(record => record.id === newRecord.id ? {...record, end: new Date().toISOString()} : record)
+        
+      } else {
+        return [{ id: "optmistic-new-record", begin: new Date().toISOString() }, ...state];
+      }
+
     }
   });
   return (
@@ -31,7 +37,7 @@ export default function RecordsList({records}) {
       <h2 className="text-xl font-bold">Registros</h2>
       <form
         action={async () => {
-          addOptimisticRecord(currentRecord)
+          setOptimisticRecords({action: 'edit', newRecord: currentRecord})
           await startStopRecord(currentRecord);
         }}
       >
@@ -84,12 +90,8 @@ export default function RecordsList({records}) {
             </div>
             <ul className="divide-y">
               {recordsOfDay.reverse().map((record) => (
-                <li className="p-4 flex justify-between" key={record.id}>
-                  <div>
-                    <Time date={record.begin} /> -{" "}
-                    {record.end && <Time date={record.end} />}
-                  </div>
-                  <Duration records={[record]} now={now}/>
+                <li key={record.id}>
+                  <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords}/>
                 </li>
               ))}
             </ul>
@@ -111,19 +113,6 @@ function groupRecords(records: Record[]): { [key: string]: Record[] } {
     acc[day].push(record);
     return acc;
   }, {});
-}
-
-function Time({ date }) {
-  return (
-    <>
-      <span>
-        {formatInTimeZone(new Date(date), "America/Sao_Paulo", "HH:mm")}
-      </span>
-      <span className="text-sm text-gray-400">
-        {formatInTimeZone(new Date(date), "America/Sao_Paulo", ":ss")}
-      </span>
-    </>
-  );
 }
 
 function capitalize(str: string) {

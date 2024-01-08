@@ -12,19 +12,20 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Button } from "./ui/button";
 
 export default function RecordDetails({record, now, setOptimisticRecords}) {
   return (
     <>
     <Drawer>
       <DrawerTrigger asChild>
-        <button className="p-4 flex justify-between w-full">
+        <Button variant="outline" className="p-4 flex justify-between w-full">
           <div>
             <Time date={record.begin} /> -{" "}
             {record.end && <Time date={record.end} />}
           </div>
           <Duration records={[record]} now={now}/>
-        </button>
+        </Button>
       </DrawerTrigger>
       <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
@@ -49,11 +50,11 @@ export default function RecordDetails({record, now, setOptimisticRecords}) {
                 setOptimisticRecords({action: 'delete', newRecord: record})
                 await deleteRecord(record.id);
               }}>
-              <button type="submit" className="w-full text-red-700">Deletar registro</button>
+              <Button variant="destructive" type="submit" className="w-full">Deletar registro</Button>
               </form>
             </DrawerClose>
             <DrawerClose asChild>
-              <button>Fechar</button>
+              <Button variant="outline">Fechar</Button>
             </DrawerClose>
           </DrawerFooter>
         </div>

@@ -29,6 +29,9 @@ importers:
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.0.1
         version: 2.0.1(@types/react@18.2.43)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
+      '@radix-ui/react-slot':
+        specifier: ^1.0.2
+        version: 1.0.2(@types/react@18.2.43)(react@18.3.0-canary-5bcade5fc-20231208)
       '@types/node':
         specifier: ^17.0.12
         version: 17.0.45
@@ -824,7 +827,7 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@radix-ui/react-primitive': 1.0.1(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
       react: 18.3.0-canary-5bcade5fc-20231208
       react-dom: 18.3.0-canary-5bcade5fc-20231208(react@18.3.0-canary-5bcade5fc-20231208)
@@ -1422,7 +1425,7 @@ packages:
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@radix-ui/rect': 1.0.0
       react: 18.3.0-canary-5bcade5fc-20231208
     dev: false
@@ -1432,7 +1435,7 @@ packages:
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@radix-ui/react-use-layout-effect': 1.0.0(react@18.3.0-canary-5bcade5fc-20231208)
       react: 18.3.0-canary-5bcade5fc-20231208
     dev: false
@@ -1440,7 +1443,7 @@ packages:
   /@radix-ui/rect@1.0.0:
     resolution: {integrity: sha512-d0O68AYy/9oeEy1DdC07bz1/ZXX+DqCskRd3i4JzLSTXwefzaepQrKjXC7aNM8lTHjFLDO0pDgaEiQ7jEk+HVg==}
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
     dev: false
 
   /@rushstack/eslint-patch@1.2.0:

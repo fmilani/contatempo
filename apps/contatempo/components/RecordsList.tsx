@@ -53,9 +53,9 @@ export default function RecordsList({records}) {
         {Object.entries(groupRecords(optmisticRecords)).map(([day, recordsOfDay]) => (
           <div
             key={day}
-            className="rounded-lg drop-shadow-sm bg-white divide-y overflow-hidden"
+            className="overflow-hidden"
           >
-            <div className="flex justify-between text-lg font-bold p-4 bg-slate-200">
+            <div className="flex justify-between font-bold px-4 py-2">
               <span>
                 {differenceInCalendarDays(
                   new Date(),
@@ -88,7 +88,7 @@ export default function RecordsList({records}) {
                 <Duration records={recordsOfDay} now={now}/>
               </span>
             </div>
-            <ul className="divide-y">
+            <ul className="space-y-1">
               {recordsOfDay.reverse().map((record) => (
                 <li key={record.id}>
                   <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords}/>

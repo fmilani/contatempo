@@ -19,7 +19,7 @@ export default function RecordDetails({record, now, setOptimisticRecords}) {
     <>
     <Drawer>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="p-4 flex justify-between w-full">
+        <Button variant="outline" className="flex justify-between w-full">
           <div>
             <Time date={record.begin} /> -{" "}
             {record.end && <Time date={record.end} />}
@@ -70,7 +70,7 @@ function Time({ date }) {
       <span>
         {formatInTimeZone(new Date(date), "America/Sao_Paulo", "HH:mm")}
       </span>
-      <span className="text-sm text-gray-400">
+      <span className="text-gray-400">
         {formatInTimeZone(new Date(date), "America/Sao_Paulo", ":ss")}
       </span>
     </span>

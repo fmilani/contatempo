@@ -34,7 +34,6 @@ export default function RecordsList({records}) {
   });
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Registros</h2>
       <form
         action={async () => {
           setOptimisticRecords({action: 'edit', newRecord: currentRecord})

@@ -8,9 +8,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html>
       <head />
-      <body className="antialiased bg-background min-h-screen">
+      <body className="antialiased bg-background">
         <div vaul-drawer-wrapper="">
-          <div className="bg-background min-h-screen">
+          <div className="bg-background">
             {children}
           </div>
         </div>

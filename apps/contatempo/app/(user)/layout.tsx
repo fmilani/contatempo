@@ -14,8 +14,10 @@ export default async function UserLayout({ children }: UserLayoutProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 h-full w-full max-w-4xl mx-auto px-4 min-h-screen">
-      <header className="mt-4 rounded-xl drop-shadow-sm bg-white flex">
+    <>
+      <div className="h-full min-h-screen">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex max-w-2xl mx-auto">
         <div className="p-4 flex-1">
           <Link href="/dashboard">
             <span className="text-2xl">
@@ -24,9 +26,13 @@ export default async function UserLayout({ children }: UserLayoutProps) {
           </Link>
         </div>
         <UserMenu user={user} />
+        </div>
       </header>
-      <main className="flex-1">{children}</main>
-      <footer className="p-4 text-center border-t border-t-gray-200">
+      <main className="max-w-2xl mx-auto px-4">
+        {children}
+      </main>
+      </div>
+      <footer className="mt-4 p-4 text-center border-t border-border/40">
         <a
           href="https://www.github.com/fmilani"
           target="_blank"
@@ -35,6 +41,6 @@ export default async function UserLayout({ children }: UserLayoutProps) {
           Feito com ❤️ por fmilani
         </a>
       </footer>
-    </div>
+    </>
   );
 }

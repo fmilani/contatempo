@@ -6,11 +6,13 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html className="antialiased bg-gray-100">
+    <html>
       <head />
-      <body>
-        <div vaul-drawer-wrapper="" className="bg-gray-100 h-[100svh]">
-          {children}
+      <body className="antialiased bg-background min-h-screen">
+        <div vaul-drawer-wrapper="">
+          <div className="bg-background min-h-screen">
+            {children}
+          </div>
         </div>
       </body>
     </html>

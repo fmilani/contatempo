@@ -14,7 +14,7 @@ export default async function UserLayout({ children }: UserLayoutProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 h-full w-full max-w-4xl mx-auto px-4">
+    <div className="flex flex-col gap-4 h-full w-full max-w-4xl mx-auto px-4 min-h-screen">
       <header className="mt-4 rounded-xl drop-shadow-sm bg-white flex">
         <div className="p-4 flex-1">
           <Link href="/dashboard">

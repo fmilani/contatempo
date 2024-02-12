@@ -17,7 +17,7 @@ import { Button } from "./ui/button";
 export default function RecordDetails({record, now, setOptimisticRecords}) {
   return (
     <>
-    <Drawer>
+    <Drawer shouldScaleBackground={false}>
       <DrawerTrigger asChild>
         <Button variant="outline" className="flex justify-between w-full">
           <div>

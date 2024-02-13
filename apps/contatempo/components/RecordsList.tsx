@@ -14,6 +14,7 @@ import NewRecord from "@/components/NewRecord";
 import {startStopRecord} from "../actions";
 import useInterval from "@/lib/hooks/useInterval";
 import RecordDetails from "@/components/RecordDetails";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RecordsList({records}) {
   const [now, setNow] = useState<Date>(new Date(new Date().toISOString()));
@@ -50,51 +51,54 @@ export default function RecordsList({records}) {
       </form>
       <div className="space-y-2">
         {Object.entries(groupRecords(optmisticRecords)).map(([day, recordsOfDay]) => (
-          <div
+          <Card
             key={day}
-            className="overflow-hidden"
           >
-            <div className="flex justify-between font-bold px-4 py-2">
-              <span>
-                {differenceInCalendarDays(
-                  new Date(),
-                  new Date(recordsOfDay[0].begin)
-                ) > 1
-                  ? capitalize(
-                      formatInTimeZone(
+            <CardHeader>
+              <CardTitle className="text-base flex justify-between">
+                <span>
+                  {differenceInCalendarDays(
+                    new Date(),
+                    new Date(recordsOfDay[0].begin)
+                  ) > 1
+                    ? capitalize(
+                        formatInTimeZone(
+                          new Date(recordsOfDay[0].begin),
+                          "America/Sao_Paulo",
+                          "eeeeee, dd 'de' MMM",
+                          { locale: ptbr }
+                        )
+                      )
+                    : `${capitalize(
+                        formatRelative(
+                          new Date(recordsOfDay[0].begin),
+                          new Date(),
+                          {
+                            locale: ptbr,
+                          }
+                        ).split(" ")[0]
+                      )}, ${formatInTimeZone(
                         new Date(recordsOfDay[0].begin),
                         "America/Sao_Paulo",
-                        "eeeeee, dd 'de' MMM",
+                        "dd 'de' MMM",
                         { locale: ptbr }
-                      )
-                    )
-                  : `${capitalize(
-                      formatRelative(
-                        new Date(recordsOfDay[0].begin),
-                        new Date(),
-                        {
-                          locale: ptbr,
-                        }
-                      ).split(" ")[0]
-                    )}, ${formatInTimeZone(
-                      new Date(recordsOfDay[0].begin),
-                      "America/Sao_Paulo",
-                      "dd 'de' MMM",
-                      { locale: ptbr }
-                    )}`}
-              </span>
-              <span>
-                <Duration records={recordsOfDay} now={now}/>
-              </span>
-            </div>
-            <ul className="space-y-1">
-              {recordsOfDay.reverse().map((record) => (
-                <li key={record.id}>
-                  <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords}/>
-                </li>
-              ))}
-            </ul>
-          </div>
+                      )}`}
+                </span>
+                <span>
+                  <Duration records={recordsOfDay} now={now}/>
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 pb-4">
+              <ul className="space-y-1">
+                {recordsOfDay.reverse().map((record) => (
+                  <li key={record.id}>
+                    <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords}/>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

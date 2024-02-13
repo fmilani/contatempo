@@ -19,7 +19,7 @@ export default function RecordDetails({record, now, setOptimisticRecords}) {
     <>
     <Drawer shouldScaleBackground={false}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="flex justify-between w-full">
+        <Button variant="ghost" className="rounded-none px-6 flex justify-between w-full">
           <div>
             <Time date={record.begin} /> -{" "}
             {record.end && <Time date={record.end} />}

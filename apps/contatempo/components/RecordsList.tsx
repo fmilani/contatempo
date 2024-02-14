@@ -19,13 +19,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function RecordsList({records}) {
   const [now, setNow] = useState<Date>(new Date(new Date().toISOString()));
   useInterval(() => setNow(new Date()), 500);
-  const currentRecord = records.find((r) => !r.end);
+  const currentRecord = records.find((record: Record) => !record.end);
   const [optmisticRecords, setOptimisticRecords] = useOptimistic(records, (state: any, {action, newRecord}: any) => {
     if (action === 'delete') {
-      return state.filter(record => record.id !== newRecord.id);
+      return state.filter((record: Record) => record.id !== newRecord.id);
     } else {
       if (newRecord) {
-        return state.map(record => record.id === newRecord.id ? {...record, end: new Date().toISOString()} : record)
+        return state.map((record: Record) => record.id === newRecord.id ? {...record, end: new Date().toISOString()} : record)
         
       } else {
         return [{ id: "optmistic-new-record", begin: new Date().toISOString() }, ...state];
@@ -43,12 +43,20 @@ export default function RecordsList({records}) {
       >
       <div className="flex justify-between gap-4">
         <CurrentRecord
-          record={optmisticRecords.find(r => !r.end)}
+          record={optmisticRecords.find((record: Record) => !record.end)}
           now={now}
         />
         <NewRecord />
       </div>
       </form>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex justify-between">
+            Total
+            <Duration records={optmisticRecords} now={now} />
+          </CardTitle>
+        </CardHeader>
+      </Card>
       <div className="space-y-2">
         {Object.entries(groupRecords(optmisticRecords)).map(([day, recordsOfDay]) => (
           <Card

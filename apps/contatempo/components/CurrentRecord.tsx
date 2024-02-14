@@ -1,9 +1,9 @@
 "use client";
 
 import { Record } from "@/lib/api";
-import { Loader2, PlayCircle, StopCircle } from "lucide-react";
-import { useState } from "react";
+import {PlayCircle, StopCircle } from "lucide-react";
 import Duration from "./Duration";
+import { Button } from "@/components/ui/button";
 
 interface CurrentRecordProps {
   record?: Record;
@@ -14,30 +14,27 @@ export default function CurrentRecord({
   record,
   now,
 }: CurrentRecordProps) {
-  const [isSaving, setIsSaving] = useState(false);
-
   return (
     <div
-      className={`rounded-xl drop-shadow-sm bg-white inline-flex items-center ${
-        record ? "w-full overflow-hidden" : "w-14"
-      } transition-all duration-500`}
+      className={`inline-flex items-center gap-2`}
     >
-      <button
+      <Button
         type="submit"
-        disabled={isSaving}
-        className="p-4"
+        variant="outline"
+        size="icon"
       >
-        {isSaving ? (
-          <Loader2 className="animate-spin" />
-        ) : record ? (
+        {record ? (
           <StopCircle />
         ) : (
           <PlayCircle />
         )}
-      </button>
-      {record && now && (
-        <Duration records={[{ begin: record.begin, end: now }]} now={now} />
-      )}
+      </Button>
+      {record && now &&
+        <Duration
+          records={[{ begin: record.begin, end: now }]}
+          now={now}
+        />
+      }
     </div>
   );
 }

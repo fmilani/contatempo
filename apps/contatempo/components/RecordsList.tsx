@@ -41,13 +41,13 @@ export default function RecordsList({records}) {
           await startStopRecord(currentRecord);
         }}
       >
-      <div className="flex justify-between gap-4">
-        <CurrentRecord
-          record={optmisticRecords.find((record: Record) => !record.end)}
-          now={now}
-        />
-        <NewRecord />
-      </div>
+        <div className="flex justify-between gap-4">
+          <CurrentRecord
+            record={optmisticRecords.find((record: Record) => !record.end)}
+            now={now}
+          />
+          <NewRecord />
+        </div>
       </form>
       <Card>
         <CardHeader>

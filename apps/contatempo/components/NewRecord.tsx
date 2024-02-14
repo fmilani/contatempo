@@ -4,6 +4,7 @@ import { Loader2, PlusCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { Button } from "@/components/ui/button";
 
 export default function NewRecord() {
   const router = useRouter();
@@ -31,12 +32,14 @@ export default function NewRecord() {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           disabled={isSaving}
-          className="p-4 rounded-xl drop-shadow-sm bg-white inline-flex items-center"
+          className="inline-flex items-center"
         >
           {isSaving ? <Loader2 className="animate-spin" /> : <PlusCircle />}
-        </button>
+        </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="bg-black/40 fixed inset-0" />

@@ -17,28 +17,29 @@ import RecordDetails from "@/components/RecordDetails";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RecordsList({records}) {
-  const [now, setNow] = useState<Date>(new Date(new Date().toISOString()));
+  const [now, setNow] = useState<Date>(new Date());
   useInterval(() => setNow(new Date()), 500);
-  const currentRecord = records.find((record: Record) => !record.end);
-  const [optmisticRecords, setOptimisticRecords] = useOptimistic(records, (state: any, {action, newRecord}: any) => {
+  const [optmisticRecords, setOptimisticRecords] = useOptimistic(records, (state: any, {action, newRecord, time}: any) => {
     if (action === 'delete') {
       return state.filter((record: Record) => record.id !== newRecord.id);
     } else {
       if (newRecord) {
-        return state.map((record: Record) => record.id === newRecord.id ? {...record, end: new Date().toISOString()} : record)
+        return state.map((record: Record) => record.id === newRecord.id ? {...record, end: time.toISOString()} : record)
         
       } else {
-        return [{ id: "optmistic-new-record", begin: new Date().toISOString() }, ...state];
+        return [{ id: "optmistic-new-record", begin: time.toISOString() }, ...state];
       }
 
     }
   });
+  const currentRecord = optmisticRecords.find((record: Record) => !record.end);
   return (
     <div className="space-y-4">
       <form
         action={async () => {
-          setOptimisticRecords({action: 'edit', newRecord: currentRecord})
-          await startStopRecord(currentRecord);
+          const time = new Date();
+          setOptimisticRecords({action: 'edit', newRecord: currentRecord, time})
+          await startStopRecord(currentRecord, time);
         }}
       >
         <div className="flex justify-between gap-4">

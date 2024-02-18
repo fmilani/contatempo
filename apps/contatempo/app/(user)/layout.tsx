@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import UserMenu from "@/components/UserMenu";
 import { getCurrentUser } from "@/lib/session";
-import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 interface UserLayoutProps {
   children: React.ReactNode;
@@ -19,11 +19,7 @@ export default async function UserLayout({ children }: UserLayoutProps) {
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex max-w-2xl mx-auto">
             <div className="p-4 flex-1">
-              <Link href="/dashboard">
-                <span className="text-2xl">
-                  conta<span className="font-bold">tempo</span>
-                </span>
-              </Link>
+              <Logo />
             </div>
             <UserMenu user={user} />
           </div>

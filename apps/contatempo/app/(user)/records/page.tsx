@@ -13,8 +13,7 @@ export default async function RecordsPage({
   const toParam = searchParams?.to ?? "2025-12-31";
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-end">
-        <span className="text-xl font-bold">Records</span>
+      <div className="flex justify-center items-center">
         <RecordsRange />
       </div>
       <Suspense key={`${fromParam}-${toParam}`} fallback="carregando">

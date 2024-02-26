@@ -33,7 +33,6 @@ export default async function DashboardPage() {
   const lastMonth = await getSummary(getSummaryInterval(solm, eolm));
   return (
     <>
-      <p className="text-xl font-bold mb-8">Dashboard</p>
       <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Link
           href={`/records?${buildRangeQueryParams({ from: sot, to: eot })}`}

@@ -9,6 +9,7 @@ import startOfMonth from "date-fns/startOfMonth";
 import sub from "date-fns/sub";
 import Link from "next/link";
 import Card from "./Card";
+import { buildRangeQueryParams } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const todayOffseted = sub(new Date(), {
@@ -35,15 +36,15 @@ export default async function DashboardPage() {
       <p className="text-xl font-bold mb-8">Dashboard</p>
       <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
         <Link
-          href={`/records?${buildQueryParams({ from: sot, to: eot })}`}
+          href={`/records?${buildRangeQueryParams({ from: sot, to: eot })}`}
           className="sm:col-span-2"
         >
           <Card title="Hoje" time={today} />
         </Link>
-        <Link href={`/records?${buildQueryParams({ from: som, to: eom })}`}>
+        <Link href={`/records?${buildRangeQueryParams({ from: som, to: eom })}`}>
           <Card title="Esse mês" time={thisMonth} />
         </Link>
-        <Link href={`/records?${buildQueryParams({ from: solm, to: eolm })}`}>
+        <Link href={`/records?${buildRangeQueryParams({ from: solm, to: eolm })}`}>
           <Card title="Último mês" time={lastMonth} />
         </Link>
       </div>
@@ -58,9 +59,3 @@ function getSummaryInterval(from: Date, to: Date) {
   };
 }
 
-function buildQueryParams({ from, to }) {
-  return new URLSearchParams({
-    from: format(from, "yyyy-MM-dd"),
-    to: format(to, "yyyy-MM-dd"),
-  });
-}

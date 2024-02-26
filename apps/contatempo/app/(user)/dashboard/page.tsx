@@ -3,13 +3,13 @@ import getTimezoneOffset from "date-fns-tz/getTimezoneOffset";
 import zonedTimeToUtc from "date-fns-tz/zonedTimeToUtc";
 import endOfDay from "date-fns/endOfDay";
 import endOfMonth from "date-fns/endOfMonth";
-import format from "date-fns/format";
 import startOfDay from "date-fns/startOfDay";
 import startOfMonth from "date-fns/startOfMonth";
 import sub from "date-fns/sub";
 import Link from "next/link";
-import Card from "./Card";
 import { buildRangeQueryParams } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import TimeFormat from "@/components/TimeFormat";
 
 export default async function DashboardPage() {
   const todayOffseted = sub(new Date(), {
@@ -38,13 +38,28 @@ export default async function DashboardPage() {
           href={`/records?${buildRangeQueryParams({ from: sot, to: eot })}`}
           className="sm:col-span-2"
         >
-          <Card title="Hoje" time={today} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Hoje</CardTitle>
+            </CardHeader>
+            <CardContent><TimeFormat time={today} /></CardContent>
+          </Card>
         </Link>
         <Link href={`/records?${buildRangeQueryParams({ from: som, to: eom })}`}>
-          <Card title="Esse mês" time={thisMonth} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Esse mês</CardTitle>
+            </CardHeader>
+            <CardContent><TimeFormat time={thisMonth} /></CardContent>
+          </Card>
         </Link>
         <Link href={`/records?${buildRangeQueryParams({ from: solm, to: eolm })}`}>
-          <Card title="Último mês" time={lastMonth} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Último mês</CardTitle>
+            </CardHeader>
+            <CardContent><TimeFormat time={lastMonth} /></CardContent>
+          </Card>
         </Link>
       </div>
     </>

@@ -61,7 +61,9 @@ async function Time({from, to}) {
   const time = await getSummary(getSummaryInterval(from, to));
   return <TimeFormat time={time} />
 }
-Time.Skeleton = () => <Skeleton className="w-[82px] h-[26px]"/>
+Time.Skeleton = function TimeSkeleton() {
+  return <Skeleton className="w-[82px] h-[26px]"/>
+}
 
 function getSummaryInterval(from: Date, to: Date) {
   return {

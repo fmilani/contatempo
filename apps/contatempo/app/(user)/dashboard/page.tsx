@@ -57,7 +57,6 @@ function DashboardCard({from, to, title}) {
 }
 
 async function Time({from, to}) {
-  await new Promise(r => setTimeout(r, 5000));
   const time = await getSummary(getSummaryInterval(from, to));
   return <TimeFormat time={time} />
 }

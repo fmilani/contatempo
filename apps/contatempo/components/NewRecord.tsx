@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader } from "./ui/card";
 
 export default function NewRecord() {
   const router = useRouter();
@@ -32,14 +33,18 @@ export default function NewRecord() {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          disabled={isSaving}
-          className="inline-flex items-center"
-        >
-          {isSaving ? <Loader2 className="animate-spin" /> : <PlusCircle />}
-        </Button>
+        <Card>
+          <CardHeader className="p-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={isSaving}
+              className="inline-flex items-center"
+            >
+              {isSaving ? <Loader2 className="animate-spin" /> : <PlusCircle />}
+            </Button>
+          </CardHeader>
+        </Card>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="bg-black/40 fixed inset-0" />

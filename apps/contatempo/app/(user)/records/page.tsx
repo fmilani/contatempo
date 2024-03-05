@@ -22,7 +22,6 @@ export default async function RecordsPage({
     </div>
   );
 }
-import React from "react";
 
 async function Records({from, to}) {
   const records = await getRecords({

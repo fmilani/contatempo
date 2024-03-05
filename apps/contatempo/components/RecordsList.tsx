@@ -35,21 +35,14 @@ export default function RecordsList({records}) {
   const currentRecord = optmisticRecords.find((record: Record) => !record.end);
   return (
     <div className="space-y-4">
-      <form
-        action={async () => {
-          const time = new Date();
-          setOptimisticRecords({action: 'edit', newRecord: currentRecord, time})
-          await startStopRecord(currentRecord, time);
-        }}
-      >
         <div className="flex justify-between gap-4">
           <CurrentRecord
             record={optmisticRecords.find((record: Record) => !record.end)}
             now={now}
+            setOptimisticRecords={setOptimisticRecords}
           />
           <NewRecord />
         </div>
-      </form>
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between">

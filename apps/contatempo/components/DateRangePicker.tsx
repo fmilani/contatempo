@@ -1,14 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { addDays, format } from "date-fns"
+import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
-
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-
+import { Badge } from "@/components/ui/badge"
 import {
   Popover,
   PopoverContent,
@@ -31,13 +30,19 @@ export function DateRangePicker({
 
   return (
     <div className="grid gap-2">
-      <Popover open={open} onOpenChange={open => setOpen(open)}>
-        <PopoverTrigger asChild>
-          <Button
+      <Popover
+        open={open}
+        onOpenChange={(open) => {
+          if (!open) setDate(initialRange);
+          setOpen(open);
+        }}
+      >
+        <PopoverTrigger>
+          <Badge
             id="date"
-            variant={"outline"}
+            variant="secondary"
             className={cn(
-              "w-[230px] justify-start font-normal",
+              "font-normal",
               !date && "text-muted-foreground"
             )}
           >
@@ -54,9 +59,9 @@ export function DateRangePicker({
             ) : (
               <span>Pick a date</span>
             )}
-          </Button>
+          </Badge>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="center">
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             initialFocus
             mode="range"
@@ -65,7 +70,16 @@ export function DateRangePicker({
             onSelect={setDate}
             numberOfMonths={isDesktop ? 2 : 1}
           />
-          <div className="flex justify-center pb-3">
+          <div className="flex justify-center pb-3 gap-4">
+            <Button
+              onClick={() => {
+                setDate(initialRange);
+                setOpen(false);
+              }}
+              variant="outline"
+            >
+              Cancelar
+            </Button>
             <Button
               onClick={()=> {
                 setOpen(false);

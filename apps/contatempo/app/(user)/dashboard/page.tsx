@@ -1,10 +1,7 @@
 import { getSummary } from "@/lib/api";
 import getTimezoneOffset from "date-fns-tz/getTimezoneOffset";
 import zonedTimeToUtc from "date-fns-tz/zonedTimeToUtc";
-import endOfDay from "date-fns/endOfDay";
-import endOfMonth from "date-fns/endOfMonth";
-import startOfDay from "date-fns/startOfDay";
-import startOfMonth from "date-fns/startOfMonth";
+import { endOfDay, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from "date-fns";
 import sub from "date-fns/sub";
 import Link from "next/link";
 import { buildRangeQueryParams } from "@/lib/utils";
@@ -26,15 +23,18 @@ export default async function DashboardPage() {
   });
   const sot = startOfDay(todayOffseted);
   const eot = endOfDay(todayOffseted);
+  const sow = startOfWeek(todayOffseted);
+  const eow = endOfWeek(todayOffseted);
   const som = startOfMonth(todayOffseted);
   const eom = endOfMonth(todayOffseted);
   const solm = startOfMonth(sub(todayOffseted, { months: 1 }));
   const eolm = endOfMonth(sub(todayOffseted, { months: 1 }));
   return (
     <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
-      <DashboardCard from={sot} to={eot} title="Hoje" />
-      <DashboardCard from={som} to={eom} title="Este mês" />
-      <DashboardCard from={solm} to={eolm} title="Último mês" />
+      <DashboardCard from={sot} to={eot} title="Today" />
+      <DashboardCard from={sow} to={eow} title="This week" />
+      <DashboardCard from={som} to={eom} title="This month" />
+      <DashboardCard from={solm} to={eolm} title="Last month" />
     </div>
   );
 }

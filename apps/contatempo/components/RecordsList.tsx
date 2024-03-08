@@ -3,7 +3,7 @@
 import React, { useOptimistic, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import { Record } from "@/lib/api";
-import ptbr from "date-fns/locale/pt-BR";
+import locale from "date-fns/locale/en-US";
 import Duration from "@/components/Duration";
 import {
   differenceInCalendarDays,
@@ -11,7 +11,6 @@ import {
 } from "date-fns";
 import CurrentRecord from "@/components/CurrentRecord";
 import NewRecord from "@/components/NewRecord";
-import {startStopRecord} from "../actions";
 import useInterval from "@/lib/hooks/useInterval";
 import RecordDetails from "@/components/RecordDetails";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +31,6 @@ export default function RecordsList({records}) {
 
     }
   });
-  const currentRecord = optmisticRecords.find((record: Record) => !record.end);
   return (
     <div className="space-y-4">
         <div className="flex justify-between gap-4">
@@ -67,8 +65,8 @@ export default function RecordsList({records}) {
                         formatInTimeZone(
                           new Date(recordsOfDay[0].begin),
                           "America/Sao_Paulo",
-                          "eeeeee, dd 'de' MMM",
-                          { locale: ptbr }
+                          "eeee, MMM dd",
+                          { locale: locale }
                         )
                       )
                     : `${capitalize(
@@ -76,14 +74,14 @@ export default function RecordsList({records}) {
                           new Date(recordsOfDay[0].begin),
                           new Date(),
                           {
-                            locale: ptbr,
+                            locale: locale,
                           }
                         ).split(" ")[0]
                       )}, ${formatInTimeZone(
                         new Date(recordsOfDay[0].begin),
                         "America/Sao_Paulo",
-                        "dd 'de' MMM",
-                        { locale: ptbr }
+                        "MMM dd",
+                        { locale: locale }
                       )}`}
                 </span>
                 <span>

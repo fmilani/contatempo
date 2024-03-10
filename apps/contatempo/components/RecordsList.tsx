@@ -14,6 +14,7 @@ import NewRecord from "@/components/NewRecord";
 import useInterval from "@/lib/hooks/useInterval";
 import RecordDetails from "@/components/RecordDetails";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export default function RecordsList({records}) {
   const [now, setNow] = useState<Date>(new Date());
@@ -23,10 +24,10 @@ export default function RecordsList({records}) {
       return state.filter((record: Record) => record.id !== newRecord.id);
     } else {
       if (newRecord) {
-        return state.map((record: Record) => record.id === newRecord.id ? {...record, end: time.toISOString()} : record)
+        return state.map((record: Record) => record.id === newRecord.id ? {...record, end: time.toISOString(), isSaving: true} : record)
         
       } else {
-        return [{ id: "optmistic-new-record", begin: time.toISOString() }, ...state];
+        return [{ id: "optmistic-new-record", begin: time.toISOString(), isSaving: true}, ...state];
       }
 
     }
@@ -92,7 +93,7 @@ export default function RecordsList({records}) {
             <CardContent className="p-0 pb-4">
               <ul className="space-y-1">
                 {recordsOfDay.reverse().map((record) => (
-                  <li key={record.id}>
+                  <li key={record.id} className={cn((record as any).isSaving  && "animate-pulse")}>
                     <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords}/>
                   </li>
                 ))}

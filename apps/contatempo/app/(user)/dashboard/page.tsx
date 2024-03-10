@@ -9,6 +9,12 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import TimeFormat from "@/components/TimeFormat";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: 'Dashboard | Contatempo',
+  description: 'Check your time tracking',
+}
 
 export default async function DashboardPage() {
   const todayOffseted = sub(new Date(), {

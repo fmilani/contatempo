@@ -3,6 +3,12 @@ import { zonedTimeToUtc } from "date-fns-tz";
 import { Suspense } from "react";
 import RecordsList from "@/components/RecordsList"
 import { RecordsRange } from "@/components/RecordsRange"
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: 'Records | Contatempo',
+  description: 'Track your time',
+}
 
 export default async function RecordsPage({
   searchParams,

@@ -10,7 +10,6 @@ import {
   formatRelative,
 } from "date-fns";
 import CurrentRecord from "@/components/CurrentRecord";
-import NewRecord from "@/components/NewRecord";
 import useInterval from "@/lib/hooks/useInterval";
 import RecordDetails from "@/components/RecordDetails";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,14 +33,11 @@ export default function RecordsList({records}) {
   });
   return (
     <div className="space-y-4">
-        <div className="flex justify-between gap-4">
-          <CurrentRecord
-            record={optmisticRecords.find((record: Record) => !record.end)}
-            now={now}
-            setOptimisticRecords={setOptimisticRecords}
-          />
-          <NewRecord />
-        </div>
+      <CurrentRecord
+        record={optmisticRecords.find((record: Record) => !record.end)}
+        now={now}
+        setOptimisticRecords={setOptimisticRecords}
+      />
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between">

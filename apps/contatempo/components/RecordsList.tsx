@@ -15,24 +15,24 @@ import RecordDetails from "@/components/RecordDetails";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export default function RecordsList({records}) {
+export default function RecordsList({ records }) {
   const [now, setNow] = useState<Date>(new Date());
   useInterval(() => setNow(new Date()), 500);
-  const [optmisticRecords, setOptimisticRecords] = useOptimistic(records, (state: any, {action, newRecord, time}: any) => {
+  const [optmisticRecords, setOptimisticRecords] = useOptimistic(records, (state: any, { action, newRecord, time }: any) => {
     if (action === 'delete') {
       return state.filter((record: Record) => record.id !== newRecord.id);
     } else {
       if (newRecord) {
-        return state.map((record: Record) => record.id === newRecord.id ? {...record, end: time.toISOString(), isSaving: true} : record)
-        
+        return state.map((record: Record) => record.id === newRecord.id ? { ...record, end: time.toISOString(), isSaving: true } : record)
+
       } else {
-        return [{ id: "optmistic-new-record", begin: time.toISOString(), isSaving: true}, ...state];
+        return [{ id: "optmistic-new-record", begin: time.toISOString(), isSaving: true }, ...state];
       }
 
     }
   });
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <CurrentRecord
         record={optmisticRecords.find((record: Record) => !record.end)}
         now={now}
@@ -59,38 +59,38 @@ export default function RecordsList({records}) {
                     new Date(recordsOfDay[0].begin)
                   ) > 1
                     ? capitalize(
-                        formatInTimeZone(
-                          new Date(recordsOfDay[0].begin),
-                          "America/Sao_Paulo",
-                          "eeee, MMM dd",
-                          { locale: locale }
-                        )
-                      )
-                    : `${capitalize(
-                        formatRelative(
-                          new Date(recordsOfDay[0].begin),
-                          new Date(),
-                          {
-                            locale: locale,
-                          }
-                        ).split(" ")[0]
-                      )}, ${formatInTimeZone(
+                      formatInTimeZone(
                         new Date(recordsOfDay[0].begin),
                         "America/Sao_Paulo",
-                        "MMM dd",
+                        "eeee, MMM dd",
                         { locale: locale }
-                      )}`}
+                      )
+                    )
+                    : `${capitalize(
+                      formatRelative(
+                        new Date(recordsOfDay[0].begin),
+                        new Date(),
+                        {
+                          locale: locale,
+                        }
+                      ).split(" ")[0]
+                    )}, ${formatInTimeZone(
+                      new Date(recordsOfDay[0].begin),
+                      "America/Sao_Paulo",
+                      "MMM dd",
+                      { locale: locale }
+                    )}`}
                 </span>
                 <span>
-                  <Duration records={recordsOfDay} now={now}/>
+                  <Duration records={recordsOfDay} now={now} />
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 pb-4">
               <ul className="space-y-1">
                 {recordsOfDay.reverse().map((record) => (
-                  <li key={record.id} className={cn((record as any).isSaving  && "animate-pulse")}>
-                    <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords}/>
+                  <li key={record.id} className={cn((record as any).isSaving && "animate-pulse")}>
+                    <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords} />
                   </li>
                 ))}
               </ul>

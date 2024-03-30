@@ -16,17 +16,17 @@ export default async function UserLayout({ children }: UserLayoutProps) {
 
   return (
     <>
-      <div className="h-full min-h-[100svh] pb-4 space-y-4">
+      <div className="h-full min-h-[100svh] pb-2 space-y-2">
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex max-w-2xl mx-auto">
-            <div className="p-4 flex items-baseline flex-1 space-x-4">
+            <div className="px-2 py-4 flex items-baseline flex-1 space-x-4">
               <Logo />
               <CurrentPage />
             </div>
             <UserMenu user={user} />
           </div>
         </header>
-        <main className="max-w-2xl mx-auto px-4">
+        <main className="max-w-2xl mx-auto px-2">
           {children}
         </main>
       </div>

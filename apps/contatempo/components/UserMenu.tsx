@@ -13,7 +13,7 @@ interface UserMenuProps {
 export default function UserMenu({ user }: UserMenuProps) {
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="p-4">
+      <DropdownMenu.Trigger className="px-2 py-4">
         <Avatar.Root className="h-8 w-8 flex items-center justify-center overflow-hidden rounded-full bg-slate-200">
           <Avatar.Image alt="User picture" src={user.image || ""} />
           <Avatar.Fallback delayMs={500}>

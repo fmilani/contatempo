@@ -1,7 +1,14 @@
-"use client"
+"use client";
 
 import { Record } from "@/lib/api";
-import {CheckCircle, Loader2, PlayCircle, PlusCircle, StopCircle, X } from "lucide-react";
+import {
+  CheckCircle,
+  Loader2,
+  PlayCircle,
+  PlusCircle,
+  StopCircle,
+  X,
+} from "lucide-react";
 import Duration from "./Duration";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -28,13 +35,18 @@ export default function CurrentRecord({
   const beginRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLInputElement>(null);
   async function handle() {
-    if (!dateRef.current?.value || !beginRef.current?.value || !endRef.current?.value) return;
+    if (
+      !dateRef.current?.value ||
+      !beginRef.current?.value ||
+      !endRef.current?.value
+    )
+      return;
     setIsSaving(true);
     await fetch(`/api/records`, {
       method: "POST",
       body: JSON.stringify({
-        begin: new Date(dateRef.current.value+'T'+beginRef.current.value),
-        end: new Date(dateRef.current.value+'T'+endRef.current.value),
+        begin: new Date(dateRef.current.value + "T" + beginRef.current.value),
+        end: new Date(dateRef.current.value + "T" + endRef.current.value),
       }),
       headers: {
         "Content-Type": "application/json",
@@ -50,80 +62,63 @@ export default function CurrentRecord({
         className={cn(
           "overflow-hidden",
           record && "w-full",
-          isOpen && "hidden",
+          isOpen && "hidden"
         )}
       >
         <CardHeader className="p-2">
           <form
             action={async () => {
               const time = new Date();
-              setOptimisticRecords({action: 'edit', newRecord: record, time})
+              setOptimisticRecords({ action: "edit", newRecord: record, time });
               await startStopRecord(record, time);
             }}
           >
-            <div
-              className={cn(
-                "flex items-center gap-2",
-              )}
-            >
-              <Button
-                type="submit"
-                variant="ghost"
-                size="icon"
-              >
-                {record ? (
-                  <StopCircle />
-                ) : (
-                  <PlayCircle />
-                )}
+            <div className={cn("flex items-center gap-2")}>
+              <Button type="submit" variant="ghost" size="icon">
+                {record ? <StopCircle /> : <PlayCircle />}
               </Button>
-              {record && now &&
+              {record && now && (
                 <Duration
                   records={[{ begin: record.begin, end: now }]}
                   now={now}
                 />
-              }
+              )}
             </div>
           </form>
         </CardHeader>
       </Card>
-      <Card className={cn(isOpen && 'w-full', record && 'hidden')}>
+      <Card className={cn(isOpen && "w-full", record && "hidden")}>
         <CardHeader className="p-2">
-          <div className="flex flex-row items-center justify-between">
-            {isOpen &&
-            <div className="flex flex-row items-center">
-            <input
-              id="date"
-              type="date"
-              ref={dateRef}
-              className="block"
-              defaultValue={new Date().toISOString().split('T')[0]}
-            />
-            <input
-              id="begin"
-              type="time"
-              ref={beginRef}
-              className="block"
-            />
-            <input
-              id="end"
-              type="time"
-              ref={endRef}
-              className="block"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={isSaving}
-              onClick={() => {
-                handle();
-              }}
-              className="inline-flex items-center"
-            >
-              <CheckCircle />
-            </Button>
-            </div>
-            }
+          <div className="flex flex-row items-center justify-between gap-1">
+            {isOpen && (
+              <div className="flex flex-row items-center overflow-auto">
+                <input
+                  id="date"
+                  type="date"
+                  ref={dateRef}
+                  className="block"
+                  defaultValue={new Date().toISOString().split("T")[0]}
+                />
+                <input
+                  id="begin"
+                  type="time"
+                  ref={beginRef}
+                  className="block"
+                />
+                <input id="end" type="time" ref={endRef} className="block" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={isSaving}
+                  onClick={() => {
+                    handle();
+                  }}
+                  className="inline-flex items-center"
+                >
+                  <CheckCircle />
+                </Button>
+              </div>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -133,7 +128,13 @@ export default function CurrentRecord({
                 setIsOpen(!isOpen);
               }}
             >
-              {!isOpen ? <PlusCircle /> : isSaving ? <Loader2 className="animate-spin" /> : <X />}
+              {!isOpen ? (
+                <PlusCircle />
+              ) : isSaving ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <X />
+              )}
             </Button>
           </div>
         </CardHeader>

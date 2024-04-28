@@ -16,35 +16,32 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 
 interface DateRangePickerProps {
-  initialRange: DateRange;
-  onSelect: any;
+  initialRange: DateRange
+  onSelect: any
 }
 
 export function DateRangePicker({
   initialRange,
   onSelect,
 }: DateRangePickerProps) {
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   const [date, setDate] = React.useState<DateRange | undefined>(initialRange)
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false)
 
   return (
     <div className="grid gap-2">
       <Popover
         open={open}
         onOpenChange={(open) => {
-          if (!open) setDate(initialRange);
-          setOpen(open);
+          if (!open) setDate(initialRange)
+          setOpen(open)
         }}
       >
         <PopoverTrigger>
           <Badge
             id="date"
             variant="secondary"
-            className={cn(
-              "font-normal",
-              !date && "text-muted-foreground"
-            )}
+            className={cn("font-normal", !date && "text-muted-foreground")}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date?.from ? (
@@ -73,19 +70,19 @@ export function DateRangePicker({
           <div className="flex justify-center pb-3 gap-4">
             <Button
               onClick={() => {
-                setDate(initialRange);
-                setOpen(false);
+                setDate(initialRange)
+                setOpen(false)
               }}
               variant="outline"
             >
               Cancelar
             </Button>
             <Button
-              onClick={()=> {
-                setOpen(false);
-                onSelect(date);
+              onClick={() => {
+                setOpen(false)
+                onSelect(date)
               }}
-                disabled={!date || !date.from || !date.to}
+              disabled={!date || !date.from || !date.to}
             >
               Selecionar
             </Button>
@@ -95,4 +92,3 @@ export function DateRangePicker({
     </div>
   )
 }
-

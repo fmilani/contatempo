@@ -1,17 +1,17 @@
-import { redirect } from "next/navigation";
-import UserMenu from "@/components/UserMenu";
-import { getCurrentUser } from "@/lib/session";
-import { Logo } from "@/components/Logo";
-import { CurrentPage } from "@/components/CurrentPage";
+import { redirect } from "next/navigation"
+import UserMenu from "@/components/UserMenu"
+import { getCurrentUser } from "@/lib/session"
+import { Logo } from "@/components/Logo"
+import { CurrentPage } from "@/components/CurrentPage"
 
 interface UserLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default async function UserLayout({ children }: UserLayoutProps) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser()
   if (!user) {
-    redirect("/");
+    redirect("/")
   }
 
   return (
@@ -26,9 +26,7 @@ export default async function UserLayout({ children }: UserLayoutProps) {
             <UserMenu user={user} />
           </div>
         </header>
-        <main className="max-w-2xl mx-auto px-2">
-          {children}
-        </main>
+        <main className="max-w-2xl mx-auto px-2">{children}</main>
       </div>
       <footer className="p-4 text-center border-t border-border/40">
         <a
@@ -40,5 +38,5 @@ export default async function UserLayout({ children }: UserLayoutProps) {
         </a>
       </footer>
     </>
-  );
+  )
 }

@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { Record } from "@/lib/api";
+import { Record } from "@/lib/api"
 import {
   CheckCircle,
   Loader2,
@@ -8,19 +8,19 @@ import {
   PlusCircle,
   StopCircle,
   X,
-} from "lucide-react";
-import Duration from "./Duration";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { startStopRecord } from "../actions";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+} from "lucide-react"
+import Duration from "./Duration"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { startStopRecord } from "../actions"
+import { useRouter } from "next/navigation"
+import { useRef, useState } from "react"
 
 interface CurrentRecordProps {
-  record?: Record;
-  now: Date;
-  setOptimisticRecords: any;
+  record?: Record
+  now: Date
+  setOptimisticRecords: any
 }
 
 export default function CurrentRecord({
@@ -28,20 +28,20 @@ export default function CurrentRecord({
   now,
   setOptimisticRecords,
 }: CurrentRecordProps) {
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const dateRef = useRef<HTMLInputElement>(null);
-  const beginRef = useRef<HTMLInputElement>(null);
-  const endRef = useRef<HTMLInputElement>(null);
+  const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const dateRef = useRef<HTMLInputElement>(null)
+  const beginRef = useRef<HTMLInputElement>(null)
+  const endRef = useRef<HTMLInputElement>(null)
   async function handle() {
     if (
       !dateRef.current?.value ||
       !beginRef.current?.value ||
       !endRef.current?.value
     )
-      return;
-    setIsSaving(true);
+      return
+    setIsSaving(true)
     await fetch(`/api/records`, {
       method: "POST",
       body: JSON.stringify({
@@ -51,10 +51,10 @@ export default function CurrentRecord({
       headers: {
         "Content-Type": "application/json",
       },
-    }).then((r) => r.json());
-    setIsSaving(false);
-    setIsOpen(false);
-    router.refresh();
+    }).then((r) => r.json())
+    setIsSaving(false)
+    setIsOpen(false)
+    router.refresh()
   }
   return (
     <div className="flex justify-between gap-4">
@@ -62,15 +62,15 @@ export default function CurrentRecord({
         className={cn(
           "overflow-hidden",
           record && "w-full",
-          isOpen && "hidden"
+          isOpen && "hidden",
         )}
       >
         <CardHeader className="p-2">
           <form
             action={async () => {
-              const time = new Date();
-              setOptimisticRecords({ action: "edit", newRecord: record, time });
-              await startStopRecord(record, time);
+              const time = new Date()
+              setOptimisticRecords({ action: "edit", newRecord: record, time })
+              await startStopRecord(record, time)
             }}
           >
             <div className={cn("flex items-center gap-2")}>
@@ -111,7 +111,7 @@ export default function CurrentRecord({
                   size="icon"
                   disabled={isSaving}
                   onClick={() => {
-                    handle();
+                    handle()
                   }}
                   className="inline-flex items-center"
                 >
@@ -125,7 +125,7 @@ export default function CurrentRecord({
               disabled={isSaving}
               className="inline-flex items-center"
               onClick={() => {
-                setIsOpen(!isOpen);
+                setIsOpen(!isOpen)
               }}
             >
               {!isOpen ? (
@@ -140,5 +140,5 @@ export default function CurrentRecord({
         </CardHeader>
       </Card>
     </div>
-  );
+  )
 }

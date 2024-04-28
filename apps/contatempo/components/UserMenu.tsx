@@ -1,13 +1,13 @@
-"use client";
+"use client"
 
-import * as Avatar from "@radix-ui/react-avatar";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { User as UserIcon } from "lucide-react";
-import { User } from "next-auth";
-import { signOut } from "next-auth/react";
+import * as Avatar from "@radix-ui/react-avatar"
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
+import { User as UserIcon } from "lucide-react"
+import { User } from "next-auth"
+import { signOut } from "next-auth/react"
 
 interface UserMenuProps {
-  user: Pick<User, "name" | "email" | "image">;
+  user: Pick<User, "name" | "email" | "image">
 }
 
 export default function UserMenu({ user }: UserMenuProps) {
@@ -38,8 +38,8 @@ export default function UserMenu({ user }: UserMenuProps) {
           <DropdownMenu.Item
             className="flex cursor-pointer select-none items-center py-2 px-4 text-sm outline-none focus:bg-slate-50 focus:text-black"
             onSelect={(event) => {
-              event.preventDefault();
-              signOut({ callbackUrl: "/" });
+              event.preventDefault()
+              signOut({ callbackUrl: "/" })
             }}
           >
             Sign out
@@ -47,5 +47,5 @@ export default function UserMenu({ user }: UserMenuProps) {
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
-  );
+  )
 }

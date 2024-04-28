@@ -1,36 +1,45 @@
-"use client";
+"use client"
 
-import React, { useOptimistic, useState } from "react";
-import { formatInTimeZone } from "date-fns-tz";
-import { Record } from "@/lib/api";
-import locale from "date-fns/locale/en-US";
-import Duration from "@/components/Duration";
-import {
-  differenceInCalendarDays,
-  formatRelative,
-} from "date-fns";
-import CurrentRecord from "@/components/CurrentRecord";
-import useInterval from "@/lib/hooks/useInterval";
-import RecordDetails from "@/components/RecordDetails";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import React, { useOptimistic, useState } from "react"
+import { formatInTimeZone } from "date-fns-tz"
+import { Record } from "@/lib/api"
+import locale from "date-fns/locale/en-US"
+import Duration from "@/components/Duration"
+import { differenceInCalendarDays, formatRelative } from "date-fns"
+import CurrentRecord from "@/components/CurrentRecord"
+import useInterval from "@/lib/hooks/useInterval"
+import RecordDetails from "@/components/RecordDetails"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 export default function RecordsList({ records }) {
-  const [now, setNow] = useState<Date>(new Date());
-  useInterval(() => setNow(new Date()), 500);
-  const [optmisticRecords, setOptimisticRecords] = useOptimistic(records, (state: any, { action, newRecord, time }: any) => {
-    if (action === 'delete') {
-      return state.filter((record: Record) => record.id !== newRecord.id);
-    } else {
-      if (newRecord) {
-        return state.map((record: Record) => record.id === newRecord.id ? { ...record, end: time.toISOString(), isSaving: true } : record)
-
+  const [now, setNow] = useState<Date>(new Date())
+  useInterval(() => setNow(new Date()), 500)
+  const [optmisticRecords, setOptimisticRecords] = useOptimistic(
+    records,
+    (state: any, { action, newRecord, time }: any) => {
+      if (action === "delete") {
+        return state.filter((record: Record) => record.id !== newRecord.id)
       } else {
-        return [{ id: "optmistic-new-record", begin: time.toISOString(), isSaving: true }, ...state];
+        if (newRecord) {
+          return state.map((record: Record) =>
+            record.id === newRecord.id
+              ? { ...record, end: time.toISOString(), isSaving: true }
+              : record,
+          )
+        } else {
+          return [
+            {
+              id: "optmistic-new-record",
+              begin: time.toISOString(),
+              isSaving: true,
+            },
+            ...state,
+          ]
+        }
       }
-
-    }
-  });
+    },
+  )
   return (
     <div className="space-y-2">
       <CurrentRecord
@@ -47,59 +56,68 @@ export default function RecordsList({ records }) {
         </CardHeader>
       </Card>
       <div className="space-y-2">
-        {Object.entries(groupRecords(optmisticRecords)).map(([day, recordsOfDay]) => (
-          <Card
-            key={day}
-          >
-            <CardHeader>
-              <CardTitle className="text-base flex justify-between">
-                <span>
-                  {differenceInCalendarDays(
-                    new Date(),
-                    new Date(recordsOfDay[0].begin)
-                  ) > 1
-                    ? capitalize(
-                      formatInTimeZone(
-                        new Date(recordsOfDay[0].begin),
-                        "America/Sao_Paulo",
-                        "eeee, MMM dd",
-                        { locale: locale }
-                      )
-                    )
-                    : `${capitalize(
-                      formatRelative(
-                        new Date(recordsOfDay[0].begin),
-                        new Date(),
-                        {
-                          locale: locale,
-                        }
-                      ).split(" ")[0]
-                    )}, ${formatInTimeZone(
+        {Object.entries(groupRecords(optmisticRecords)).map(
+          ([day, recordsOfDay]) => (
+            <Card key={day}>
+              <CardHeader>
+                <CardTitle className="text-base flex justify-between">
+                  <span>
+                    {differenceInCalendarDays(
+                      new Date(),
                       new Date(recordsOfDay[0].begin),
-                      "America/Sao_Paulo",
-                      "MMM dd",
-                      { locale: locale }
-                    )}`}
-                </span>
-                <span>
-                  <Duration records={recordsOfDay} now={now} />
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 pb-4">
-              <ul className="space-y-1">
-                {recordsOfDay.reverse().map((record) => (
-                  <li key={record.id} className={cn((record as any).isSaving && "animate-pulse")}>
-                    <RecordDetails record={record} now={now} setOptimisticRecords={setOptimisticRecords} />
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        ))}
+                    ) > 1
+                      ? capitalize(
+                          formatInTimeZone(
+                            new Date(recordsOfDay[0].begin),
+                            "America/Sao_Paulo",
+                            "eeee, MMM dd",
+                            { locale: locale },
+                          ),
+                        )
+                      : `${capitalize(
+                          formatRelative(
+                            new Date(recordsOfDay[0].begin),
+                            new Date(),
+                            {
+                              locale: locale,
+                            },
+                          ).split(" ")[0],
+                        )}, ${formatInTimeZone(
+                          new Date(recordsOfDay[0].begin),
+                          "America/Sao_Paulo",
+                          "MMM dd",
+                          { locale: locale },
+                        )}`}
+                  </span>
+                  <span>
+                    <Duration records={recordsOfDay} now={now} />
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 pb-4">
+                <ul className="space-y-1">
+                  {recordsOfDay.reverse().map((record) => (
+                    <li
+                      key={record.id}
+                      className={cn(
+                        (record as any).isSaving && "animate-pulse",
+                      )}
+                    >
+                      <RecordDetails
+                        record={record}
+                        now={now}
+                        setOptimisticRecords={setOptimisticRecords}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ),
+        )}
       </div>
     </div>
-  );
+  )
 }
 
 function groupRecords(records: Record[]): { [key: string]: Record[] } {
@@ -107,15 +125,14 @@ function groupRecords(records: Record[]): { [key: string]: Record[] } {
     const day = formatInTimeZone(
       new Date(record.begin),
       "America/Sao_Paulo",
-      "yyyy-MM-dd"
-    );
-    acc[day] = acc[day] ?? [];
-    acc[day].push(record);
-    return acc;
-  }, {});
+      "yyyy-MM-dd",
+    )
+    acc[day] = acc[day] ?? []
+    acc[day].push(record)
+    return acc
+  }, {})
 }
 
 function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }
-

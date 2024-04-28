@@ -1,7 +1,7 @@
-import "./globals.css";
+import "./globals.css"
 
 interface RootLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
@@ -10,11 +10,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head />
       <body className="antialiased bg-background">
         <div vaul-drawer-wrapper="">
-          <div className="bg-background">
-            {children}
-          </div>
+          <div className="bg-background">{children}</div>
         </div>
       </body>
     </html>
-  );
+  )
 }

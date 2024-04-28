@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import React from "react";
-import { signIn } from "next-auth/react";
+import React from "react"
+import { signIn } from "next-auth/react"
 
 export default function LoginButton() {
   return (
@@ -12,5 +12,5 @@ export default function LoginButton() {
     >
       Login com Google
     </button>
-  );
+  )
 }

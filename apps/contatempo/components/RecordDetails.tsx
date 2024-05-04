@@ -14,7 +14,6 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 import { deleteRecord } from "../actions"
-import { X } from "lucide-react"
 import differenceInCalendarDays from "date-fns/differenceInCalendarDays"
 import formatRelative from "date-fns/formatRelative"
 
@@ -110,8 +109,10 @@ export default function RecordDetails({ record, now, setOptimisticRecords }) {
 function RecordTags({ tags }) {
   return (
     <>
-      {tags.map((tag: { value: string }) => (
-        <Badge className="snap-start">{tag.value}</Badge>
+      {tags.map((tag: { id: string; value: string }) => (
+        <Badge key={tag.id} className="snap-start">
+          {tag.value}
+        </Badge>
       ))}
     </>
   )

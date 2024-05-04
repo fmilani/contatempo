@@ -1,7 +1,8 @@
 import { formatInTimeZone } from "date-fns-tz"
-import ptbr from "date-fns/locale/pt-BR"
+import locale from "date-fns/locale/en-US"
 import Duration from "@/components/Duration"
-import { deleteRecord } from "../actions"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Drawer,
   DrawerClose,
@@ -12,43 +13,67 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { Button } from "./ui/button"
+import { deleteRecord } from "../actions"
+import { X } from "lucide-react"
+import differenceInCalendarDays from "date-fns/differenceInCalendarDays"
+import formatRelative from "date-fns/formatRelative"
 
 export default function RecordDetails({ record, now, setOptimisticRecords }) {
   return (
     <>
       <Drawer shouldScaleBackground={false}>
         <DrawerTrigger asChild>
-          <Button
-            variant="ghost"
-            className="rounded-none px-6 flex justify-between w-full"
-          >
-            <div>
-              <Time date={record.begin} /> -{" "}
-              {record.end && <Time date={record.end} />}
+          <Button variant="ghost" className="w-full px-6 rounded-none">
+            <div className="flex flex-col gap-1 w-full">
+              <div className="w-full flex justify-between">
+                <div>
+                  <Time date={record.begin} /> -{" "}
+                  {record.end && <Time date={record.end} />}
+                </div>
+                <Duration records={[record]} now={now} />
+              </div>
+              <div className="flex gap-1 items-start w-full overflow-auto snap-x">
+                <RecordTags tags={record.tags} />
+              </div>
             </div>
-            <Duration records={[record]} now={now} />
           </Button>
         </DrawerTrigger>
         <DrawerContent>
           <div className="mx-auto w-full max-w-sm">
             <DrawerHeader>
-              <DrawerTitle>Detalhes do registro</DrawerTitle>
-              <DrawerDescription>
-                No dia{" "}
-                {formatInTimeZone(
-                  new Date(record.begin),
-                  "America/Sao_Paulo",
-                  "dd 'de' MMMM",
-                  { locale: ptbr },
-                )}
-              </DrawerDescription>
+              <DrawerTitle>
+                On{" "}
+                {differenceInCalendarDays(new Date(), new Date(record.begin)) >
+                1
+                  ? capitalize(
+                      formatInTimeZone(
+                        new Date(record.begin),
+                        "America/Sao_Paulo",
+                        "eeee, MMM dd",
+                        { locale },
+                      ),
+                    )
+                  : `${capitalize(
+                      formatRelative(new Date(record.begin), new Date(), {
+                        locale,
+                      }).split(" ")[0],
+                    )}, ${formatInTimeZone(
+                      new Date(record.begin),
+                      "America/Sao_Paulo",
+                      "MMM dd",
+                      { locale },
+                    )}`}
+              </DrawerTitle>
+              <DrawerDescription>Record details</DrawerDescription>
             </DrawerHeader>
-            <div className="p-4 pb-0">
+            <div className="flex flex-col gap-4 p-4">
               <div className="flex items-center justify-center space-x-2">
                 <Time date={record.begin} />
                 <span>-</span>
                 {record.end && <Time date={record.end} />}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                <RecordTags tags={record.tags} />
               </div>
             </div>
             <DrawerFooter>
@@ -67,17 +92,27 @@ export default function RecordDetails({ record, now, setOptimisticRecords }) {
                     type="submit"
                     className="w-full"
                   >
-                    Deletar registro
+                    Delete
                   </Button>
                 </form>
               </DrawerClose>
               <DrawerClose asChild>
-                <Button variant="outline">Fechar</Button>
+                <Button variant="outline">Close</Button>
               </DrawerClose>
             </DrawerFooter>
           </div>
         </DrawerContent>
       </Drawer>
+    </>
+  )
+}
+
+function RecordTags({ tags }) {
+  return (
+    <>
+      {tags.map((tag: { value: string }) => (
+        <Badge className="snap-start">{tag.value}</Badge>
+      ))}
     </>
   )
 }
@@ -93,4 +128,8 @@ function Time({ date }) {
       </span>
     </span>
   )
+}
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }

@@ -32,6 +32,7 @@ export default function RecordsList({ records }) {
             {
               id: "optmistic-new-record",
               begin: time.toISOString(),
+              tags: [],
               isSaving: true,
             },
             ...state,
@@ -71,7 +72,7 @@ export default function RecordsList({ records }) {
                             new Date(recordsOfDay[0].begin),
                             "America/Sao_Paulo",
                             "eeee, MMM dd",
-                            { locale: locale },
+                            { locale },
                           ),
                         )
                       : `${capitalize(
@@ -79,14 +80,14 @@ export default function RecordsList({ records }) {
                             new Date(recordsOfDay[0].begin),
                             new Date(),
                             {
-                              locale: locale,
+                              locale,
                             },
                           ).split(" ")[0],
                         )}, ${formatInTimeZone(
                           new Date(recordsOfDay[0].begin),
                           "America/Sao_Paulo",
                           "MMM dd",
-                          { locale: locale },
+                          { locale },
                         )}`}
                   </span>
                   <span>
@@ -95,7 +96,7 @@ export default function RecordsList({ records }) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 pb-4">
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {recordsOfDay.reverse().map((record) => (
                     <li
                       key={record.id}

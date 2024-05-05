@@ -13,9 +13,11 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { deleteRecord } from "../actions"
+import { deleteRecord, removeTagFromRecord } from "../actions"
 import differenceInCalendarDays from "date-fns/differenceInCalendarDays"
 import formatRelative from "date-fns/formatRelative"
+import { X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function RecordDetails({ record, now, setOptimisticRecords }) {
   return (
@@ -32,7 +34,7 @@ export default function RecordDetails({ record, now, setOptimisticRecords }) {
                 <Duration records={[record]} now={now} />
               </div>
               <div className="flex gap-1 items-start w-full overflow-auto snap-x">
-                <RecordTags tags={record.tags} />
+                <RecordTags record={record} />
               </div>
             </div>
           </Button>
@@ -72,7 +74,11 @@ export default function RecordDetails({ record, now, setOptimisticRecords }) {
                 {record.end && <Time date={record.end} />}
               </div>
               <div className="flex flex-wrap gap-1">
-                <RecordTags tags={record.tags} />
+                <RecordTags
+                  record={record}
+                  deletable
+                  setOptimisticRecords={setOptimisticRecords}
+                />
               </div>
             </div>
             <DrawerFooter>
@@ -106,12 +112,43 @@ export default function RecordDetails({ record, now, setOptimisticRecords }) {
   )
 }
 
-function RecordTags({ tags }) {
+function RecordTags({
+  record,
+  deletable = false,
+  setOptimisticRecords = ({}) => {},
+}) {
   return (
     <>
-      {tags.map((tag: { id: string; value: string }) => (
-        <Badge key={tag.id} className="snap-start">
+      {record.tags.map((tag: { id: string; value: string }) => (
+        <Badge
+          key={tag.id}
+          className={cn(
+            "gap-1 snap-start pr-1",
+            record.isSaving && "animate-pulse",
+          )}
+        >
           {tag.value}
+          {deletable && (
+            <form
+              action={async () => {
+                setOptimisticRecords({
+                  action: "remove_tag",
+                  newRecord: record,
+                  tag,
+                })
+                await removeTagFromRecord(tag.id, record.id)
+              }}
+            >
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                className="h-4 w-4 rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </form>
+          )}
         </Badge>
       ))}
     </>

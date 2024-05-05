@@ -17,8 +17,18 @@ export default function RecordsList({ records }) {
   useInterval(() => setNow(new Date()), 500)
   const [optmisticRecords, setOptimisticRecords] = useOptimistic(
     records,
-    (state: any, { action, newRecord, time }: any) => {
-      if (action === "delete") {
+    (state: any, { action, newRecord, tag, time }: any) => {
+      if (action === "remove_tag") {
+        return state.map((record: Record) =>
+          record.id === newRecord.id
+            ? {
+                ...record,
+                isSaving: true,
+                tags: record.tags.filter((t) => t.id !== tag.id),
+              }
+            : record,
+        )
+      } else if (action === "delete") {
         return state.filter((record: Record) => record.id !== newRecord.id)
       } else {
         if (newRecord) {

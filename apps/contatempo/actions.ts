@@ -51,6 +51,18 @@ export const deleteRecord = async (id: string) => {
   revalidatePath("/records")
 }
 
+export const addTagToRecord = async (tagId: string, record: string) => {
+  const session = await getServerSession(authOptions)
+  await fetch(`${process.env.BACKEND_URL}/records/${record}/tags`, {
+    method: "POST",
+    body: JSON.stringify({ tagId }),
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+      "Content-Type": "application/json",
+    },
+  })
+  revalidatePath("/records")
+}
 export const removeTagFromRecord = async (tag: string, record: string) => {
   const session = await getServerSession(authOptions)
   await fetch(`${process.env.BACKEND_URL}/records/${record}/tags/${tag}`, {

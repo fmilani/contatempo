@@ -20,6 +20,9 @@ importers:
 
   apps/contatempo:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^3.3.4
+        version: 3.3.4(react-hook-form@7.51.4)
       '@radix-ui/react-avatar':
         specifier: ^1.0.1
         version: 1.0.1(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
@@ -29,6 +32,9 @@ importers:
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.0.1
         version: 2.0.1(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
+      '@radix-ui/react-label':
+        specifier: ^2.0.2
+        version: 2.0.2(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
       '@radix-ui/react-popover':
         specifier: ^1.0.7
         version: 1.0.7(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
@@ -53,6 +59,9 @@ importers:
       clsx:
         specifier: ^2.1.0
         version: 2.1.0
+      cmdk:
+        specifier: ^1.0.0
+        version: 1.0.0(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
       date-fns:
         specifier: ^2.29.3
         version: 2.29.3
@@ -86,6 +95,9 @@ importers:
       react-dom:
         specifier: 18.3.0-canary-5bcade5fc-20231208
         version: 18.3.0-canary-5bcade5fc-20231208(react@18.3.0-canary-5bcade5fc-20231208)
+      react-hook-form:
+        specifier: ^7.51.4
+        version: 7.51.4(react@18.3.0-canary-5bcade5fc-20231208)
       tailwind-merge:
         specifier: ^2.2.0
         version: 2.2.0
@@ -98,6 +110,9 @@ importers:
       vaul:
         specifier: ^0.8.0
         version: 0.8.0(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
+      zod:
+        specifier: ^3.23.6
+        version: 3.23.6
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.3
@@ -536,6 +551,14 @@ packages:
     resolution: {integrity: sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==}
     dev: false
 
+  /@hookform/resolvers@3.3.4(react-hook-form@7.51.4):
+    resolution: {integrity: sha512-o5cgpGOuJYrd+iMKvkttOclgwRW86EsWJZZRC23prf0uU2i48Htq4PuT73AVb9ionFyZrwYEITuOFGF+BydEtQ==}
+    peerDependencies:
+      react-hook-form: ^7.0.0
+    dependencies:
+      react-hook-form: 7.51.4(react@18.3.0-canary-5bcade5fc-20231208)
+    dev: false
+
   /@humanwhocodes/config-array@0.11.7:
     resolution: {integrity: sha512-kBbPWzN8oVMLb0hOUYXhmxggL/1cJE6ydvjDIGi9EnAGUyA7cLVKQg+d/Dsm+KZwx2czGHrCmMVLiyg8s5JPKw==}
     engines: {node: '>=10.10.0'}
@@ -915,7 +938,7 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@radix-ui/react-compose-refs': 1.0.0(react@18.3.0-canary-5bcade5fc-20231208)
       '@radix-ui/react-context': 1.0.0(react@18.3.0-canary-5bcade5fc-20231208)
       '@radix-ui/react-primitive': 1.0.1(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
@@ -1036,7 +1059,7 @@ packages:
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       react: 18.3.0-canary-5bcade5fc-20231208
     dev: false
 
@@ -1186,6 +1209,27 @@ packages:
       react: 18.3.0-canary-5bcade5fc-20231208
     dev: false
 
+  /@radix-ui/react-label@2.0.2(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208):
+    resolution: {integrity: sha512-N5ehvlM7qoTLx7nWPodsPYPgMzA5WM8zZChQg8nyFJKnDO5WHdba1vv5/H6IO5LtJMfD2Q3wh1qHFGNtK0w3bQ==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0
+      react-dom: ^16.8 || ^17.0 || ^18.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+    dependencies:
+      '@babel/runtime': 7.23.5
+      '@radix-ui/react-primitive': 1.0.3(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
+      '@types/react': 18.2.57
+      '@types/react-dom': 18.2.19
+      react: 18.3.0-canary-5bcade5fc-20231208
+      react-dom: 18.3.0-canary-5bcade5fc-20231208(react@18.3.0-canary-5bcade5fc-20231208)
+    dev: false
+
   /@radix-ui/react-menu@2.0.1(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208):
     resolution: {integrity: sha512-I5FFZQxCl2fHoJ7R0m5/oWA9EX8/ttH4AbgneoCH7DAXQioFeb0XMAYnOVSp1GgJZ1Nx/mohxNQSeTMcaF1YPw==}
     peerDependencies:
@@ -1258,7 +1302,7 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@floating-ui/react-dom': 0.7.2(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
       '@radix-ui/react-arrow': 1.0.1(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
       '@radix-ui/react-compose-refs': 1.0.0(react@18.3.0-canary-5bcade5fc-20231208)
@@ -1411,7 +1455,7 @@ packages:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@radix-ui/primitive': 1.0.0
       '@radix-ui/react-collection': 1.0.1(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
       '@radix-ui/react-compose-refs': 1.0.0(react@18.3.0-canary-5bcade5fc-20231208)
@@ -1503,7 +1547,7 @@ packages:
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@radix-ui/react-use-callback-ref': 1.0.0(react@18.3.0-canary-5bcade5fc-20231208)
       react: 18.3.0-canary-5bcade5fc-20231208
     dev: false
@@ -1924,7 +1968,7 @@ packages:
     resolution: {integrity: sha512-o/HelwhuKpTj/frsOsbNLNgnNGVIFsVP/SW2BSF14gVl7kAfMOJ6/8wUAUvG1R1NHKrfG+2sHZTu0yauT1qBrA==}
     engines: {node: '>=6.0'}
     dependencies:
-      '@babel/runtime': 7.20.1
+      '@babel/runtime': 7.23.5
       '@babel/runtime-corejs3': 7.20.1
     dev: false
 
@@ -2111,6 +2155,21 @@ packages:
   /clsx@2.1.0:
     resolution: {integrity: sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==}
     engines: {node: '>=6'}
+    dev: false
+
+  /cmdk@1.0.0(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208):
+    resolution: {integrity: sha512-gDzVf0a09TvoJ5jnuPvygTB77+XdOSwEmJ88L6XPFPlv7T3RxbP9jgenfylrAMD0+Le1aO0nVjQUzl2g+vjz5Q==}
+    peerDependencies:
+      react: ^18.0.0
+      react-dom: ^18.0.0
+    dependencies:
+      '@radix-ui/react-dialog': 1.0.5(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
+      '@radix-ui/react-primitive': 1.0.3(@types/react-dom@18.2.19)(@types/react@18.2.57)(react-dom@18.3.0-canary-5bcade5fc-20231208)(react@18.3.0-canary-5bcade5fc-20231208)
+      react: 18.3.0-canary-5bcade5fc-20231208
+      react-dom: 18.3.0-canary-5bcade5fc-20231208(react@18.3.0-canary-5bcade5fc-20231208)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
     dev: false
 
   /color-convert@1.9.3:
@@ -3968,6 +4027,15 @@ packages:
       scheduler: 0.24.0-canary-5bcade5fc-20231208
     dev: false
 
+  /react-hook-form@7.51.4(react@18.3.0-canary-5bcade5fc-20231208):
+    resolution: {integrity: sha512-V14i8SEkh+V1gs6YtD0hdHYnoL4tp/HX/A45wWQN15CYr9bFRmmRdYStSO5L65lCCZRF+kYiSKhm9alqbcdiVA==}
+    engines: {node: '>=12.22.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18
+    dependencies:
+      react: 18.3.0-canary-5bcade5fc-20231208
+    dev: false
+
   /react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
     dev: false
@@ -4674,4 +4742,8 @@ packages:
 
   /yoga-wasm-web@0.3.3:
     resolution: {integrity: sha512-N+d4UJSJbt/R3wqY7Coqs5pcV0aUj2j9IaQ3rNj9bVCLld8tTGKRa2USARjnvZJWVx1NDmQev8EknoczaOQDOA==}
+    dev: false
+
+  /zod@3.23.6:
+    resolution: {integrity: sha512-RTHJlZhsRbuA8Hmp/iNL7jnfc4nZishjsanDAfEY1QpDQZCahUp3xDzl+zfweE9BklxMUcgBgS1b7Lvie/ZVwA==}
     dev: false

@@ -1,9 +1,10 @@
-import { getRecords } from "@/lib/api"
+import { getRecords, getTags } from "@/lib/api"
 import { zonedTimeToUtc } from "date-fns-tz"
 import { Suspense } from "react"
 import RecordsList from "@/components/RecordsList"
 import { RecordsRange } from "@/components/RecordsRange"
 import type { Metadata } from "next"
+import { AddTag } from "@/components/AddTag"
 
 export const metadata: Metadata = {
   title: "Records | Contatempo",
@@ -34,5 +35,6 @@ async function Records({ from, to }) {
     from: zonedTimeToUtc(`${from} 00:00:00`, "America/Sao_Paulo"),
     to: zonedTimeToUtc(`${to} 23:59:59`, "America/Sao_Paulo"),
   })
-  return <RecordsList records={records} />
+  const tags = await getTags()
+  return <RecordsList records={records} tags={tags} />
 }

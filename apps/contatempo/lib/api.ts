@@ -4,8 +4,9 @@ export type Record = {
   id: string
   begin: string
   end?: string
-  tags: { id: string; value: string }[]
+  tags: Tag[]
 }
+export type Tag = { id: string; value: string }
 
 interface GetRecordsRequest {
   from: Date
@@ -37,4 +38,12 @@ export async function getSummary({ from, to }: GetRecordsRequest) {
   ).then((r) => r.json())
 
   return summary.value
+}
+
+export async function getTags() {
+  const session = await getSession()
+  const tags: Tag[] = await fetch(`${process.env.BACKEND_URL}/tags`, {
+    headers: { Authorization: `Bearer ${session?.accessToken}` },
+  }).then((r) => r.json())
+  return tags
 }

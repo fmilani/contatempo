@@ -3,6 +3,7 @@
 import { getServerSession } from "next-auth/next"
 import { revalidatePath } from "next/cache"
 import { authOptions } from "pages/api/auth/[...nextauth]"
+import { Tag } from "./lib/api"
 
 export const startStopRecord = async (currentRecord: any, time: Date) => {
   const session = await getServerSession(authOptions)
@@ -51,11 +52,11 @@ export const deleteRecord = async (id: string) => {
   revalidatePath("/records")
 }
 
-export const addTagToRecord = async (tagId: string, record: string) => {
+export const addTagToRecord = async (tag: Tag, record: string) => {
   const session = await getServerSession(authOptions)
   await fetch(`${process.env.BACKEND_URL}/records/${record}/tags`, {
     method: "POST",
-    body: JSON.stringify({ tagId }),
+    body: JSON.stringify({ tag }),
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,
       "Content-Type": "application/json",

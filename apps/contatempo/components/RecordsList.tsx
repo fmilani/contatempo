@@ -38,6 +38,7 @@ import {
 import { addTagToRecord, deleteRecord, removeTagFromRecord } from "../actions"
 import { useForm } from "react-hook-form"
 import { Form } from "./ui/form"
+import { useCommandState } from "cmdk"
 
 export default function RecordsList({ records, tags }) {
   const [now, setNow] = useState<Date>(new Date())
@@ -337,6 +338,39 @@ function AddTag({
   setOptimisticRecords: ({}) => void
 }) {
   const form = useForm()
+  const submitForm = form.handleSubmit(async ({ tagId, tagValue }) => {
+    let tag = tags.find((t) => t.id === tagId)
+    if (!tag) {
+      tag = {
+        id: "new-tag",
+        value: tagValue,
+      }
+    }
+    if (!tag.value) {
+      throw new Error("Tag has to have a value. wat")
+    }
+    setOptimisticRecords({
+      action: "add_tag",
+      newRecord: record,
+      tag,
+    })
+    await addTagToRecord(tag, record.id)
+  })
+  const CreateNewTag = () => {
+    const newTag = useCommandState((state) => state.search)
+    return (
+      <CommandItem
+        value="new-tag"
+        onSelect={() => {
+          form.setValue("tagId", null)
+          form.setValue("tagValue", newTag)
+          submitForm()
+        }}
+      >
+        Create tag {newTag}
+      </CommandItem>
+    )
+  }
 
   return (
     <Form {...form}>
@@ -350,10 +384,17 @@ function AddTag({
           </PopoverTrigger>
           <PopoverContent className="p-0">
             <Command
-              label="Command Menu"
+              label="Tags"
               filter={(value, search) => {
                 const tag = tags.find((t) => t.id === value)
                 if (tag?.value.toLowerCase().includes(search.toLowerCase())) {
+                  return 1
+                } else if (
+                  value === "new-tag" &&
+                  !tags.find(
+                    (t) => t.value.toLowerCase() === search.toLowerCase(),
+                  )
+                ) {
                   return 1
                 }
                 return 0
@@ -361,7 +402,6 @@ function AddTag({
             >
               <CommandInput />
               <CommandList>
-                <CommandEmpty>No results found.</CommandEmpty>
                 {tags
                   .filter(
                     (tag) =>
@@ -373,23 +413,13 @@ function AddTag({
                       value={tag.id}
                       onSelect={(tagId) => {
                         form.setValue("tagId", tagId)
-                        form.handleSubmit(async ({ tagId }) => {
-                          const tag = tags.find((t) => t.id === tagId)
-                          if (!tag) {
-                            throw new Error("Tag not found. wat")
-                          }
-                          setOptimisticRecords({
-                            action: "add_tag",
-                            newRecord: record,
-                            tag,
-                          })
-                          await addTagToRecord(tagId, record.id)
-                        })()
+                        submitForm()
                       }}
                     >
                       {tag.value}
                     </CommandItem>
                   ))}
+                <CreateNewTag />
               </CommandList>
             </Command>
           </PopoverContent>

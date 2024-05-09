@@ -276,7 +276,8 @@ function RecordTags({
         <Badge
           key={tag.id}
           className={cn(
-            "gap-1 snap-start pr-1",
+            "gap-1 snap-start",
+            deletable && "pr-1",
             record.isSaving && "animate-pulse",
           )}
         >

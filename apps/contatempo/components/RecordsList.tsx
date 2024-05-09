@@ -359,6 +359,7 @@ function AddTag({
   })
   const CreateNewTag = () => {
     const newTag = useCommandState((state) => state.search)
+    if (!newTag) return null
     return (
       <CommandItem
         value="new-tag"
@@ -368,7 +369,7 @@ function AddTag({
           submitForm()
         }}
       >
-        Create tag {newTag}
+        Create tag: {newTag}
       </CommandItem>
     )
   }
@@ -393,7 +394,8 @@ function AddTag({
                 } else if (
                   value === "new-tag" &&
                   !tags.find(
-                    (t) => t.value.toLowerCase() === search.toLowerCase(),
+                    (t) =>
+                      t.value.toLowerCase() === search.toLowerCase().trim(),
                   )
                 ) {
                   return 1

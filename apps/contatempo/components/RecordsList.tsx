@@ -11,7 +11,7 @@ import CurrentRecord from "@/components/CurrentRecord"
 import useInterval from "@/lib/hooks/useInterval"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   Command,
@@ -184,8 +184,8 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
                 </div>
                 <Duration records={[record]} now={now} />
               </div>
-              <div className="flex gap-1 items-start w-full overflow-auto snap-x">
-                <RecordTags record={record} tags={tags} />
+              <div className="flex gap-1 items-start w-full overflow-auto">
+                <RecordTags record={record} />
               </div>
             </div>
           </Button>
@@ -219,18 +219,24 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
               <DrawerDescription>Record details</DrawerDescription>
             </DrawerHeader>
             <div className="flex flex-col gap-4 px-4 pb-4">
-              <div className="flex flex-wrap gap-1">
-                <RecordTags
-                  record={record}
-                  deletable
-                  setOptimisticRecords={setOptimisticRecords}
-                  tags={tags}
-                />
-              </div>
               <div className="flex items-center justify-center space-x-2">
                 <Time date={record.begin} />
                 <span>-</span>
                 {record.end && <Time date={record.end} />}
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap gap-1">
+                  <RecordTags
+                    record={record}
+                    deletable
+                    setOptimisticRecords={setOptimisticRecords}
+                  />
+                </div>
+                <AddTag
+                  tags={tags}
+                  record={record}
+                  setOptimisticRecords={setOptimisticRecords}
+                />
               </div>
             </div>
             <DrawerFooter>
@@ -268,7 +274,6 @@ function RecordTags({
   record,
   deletable = false,
   setOptimisticRecords = ({}) => {},
-  tags,
 }) {
   return (
     <>
@@ -276,7 +281,7 @@ function RecordTags({
         <Badge
           key={tag.id}
           className={cn(
-            "gap-1 snap-start",
+            "gap-1",
             deletable && "pr-1",
             record.isSaving && "animate-pulse",
           )}
@@ -305,13 +310,6 @@ function RecordTags({
           )}
         </Badge>
       ))}
-      {deletable && (
-        <AddTag
-          tags={tags}
-          record={record}
-          setOptimisticRecords={setOptimisticRecords}
-        />
-      )}
     </>
   )
 }
@@ -378,12 +376,13 @@ function AddTag({
     <Form {...form}>
       <form>
         <Popover>
-          <PopoverTrigger className="inline-flex">
-            <Badge className="gap-1 pl-1" variant="outline">
-              <Plus className="h-4 w-4" />
-              Tag
-            </Badge>
-          </PopoverTrigger>
+          <div className="w-full text-center">
+            <PopoverTrigger
+              className={cn(buttonVariants({ variant: "ghost" }))}
+            >
+              + Add Tag
+            </PopoverTrigger>
+          </div>
           <PopoverContent className="p-0">
             <Command
               label="Tags"

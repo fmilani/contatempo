@@ -190,80 +190,73 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
             </div>
           </Button>
         </DrawerTrigger>
-        <DrawerContent>
-          <div className="mx-auto w-full max-w-sm">
-            <DrawerHeader>
-              <DrawerTitle>
-                On{" "}
-                {differenceInCalendarDays(new Date(), new Date(record.begin)) >
-                1
-                  ? capitalize(
-                      formatInTimeZone(
-                        new Date(record.begin),
-                        "America/Sao_Paulo",
-                        "eeee, MMM dd",
-                        { locale },
-                      ),
-                    )
-                  : `${capitalize(
-                      formatRelative(new Date(record.begin), new Date(), {
-                        locale,
-                      }).split(" ")[0],
-                    )}, ${formatInTimeZone(
+        <DrawerContent className="h-[90vh] mx-auto w-full max-w-sm">
+          <DrawerHeader>
+            <DrawerTitle>
+              On{" "}
+              {differenceInCalendarDays(new Date(), new Date(record.begin)) > 1
+                ? capitalize(
+                    formatInTimeZone(
                       new Date(record.begin),
                       "America/Sao_Paulo",
-                      "MMM dd",
+                      "eeee, MMM dd",
                       { locale },
-                    )}`}
-              </DrawerTitle>
-              <DrawerDescription>Record details</DrawerDescription>
-            </DrawerHeader>
-            <div className="flex flex-col gap-4 px-4 pb-4">
-              <div className="flex items-center justify-center space-x-2">
-                <Time date={record.begin} />
-                <span>-</span>
-                {record.end && <Time date={record.end} />}
-              </div>
-              <div className="space-y-1">
-                <div className="flex flex-wrap gap-1">
-                  <RecordTags
-                    record={record}
-                    deletable
-                    setOptimisticRecords={setOptimisticRecords}
-                  />
-                </div>
-                <AddTag
-                  tags={tags}
+                    ),
+                  )
+                : `${capitalize(
+                    formatRelative(new Date(record.begin), new Date(), {
+                      locale,
+                    }).split(" ")[0],
+                  )}, ${formatInTimeZone(
+                    new Date(record.begin),
+                    "America/Sao_Paulo",
+                    "MMM dd",
+                    { locale },
+                  )}`}
+            </DrawerTitle>
+            <DrawerDescription>Record details</DrawerDescription>
+          </DrawerHeader>
+          <div className="flex flex-col gap-2 px-4 pb-4">
+            <div className="flex items-center justify-center space-x-2">
+              <Time date={record.begin} />
+              <span>-</span>
+              {record.end && <Time date={record.end} />}
+            </div>
+            <div className="space-y-1">
+              <AddTag
+                tags={tags}
+                record={record}
+                setOptimisticRecords={setOptimisticRecords}
+              />
+              <div className="flex flex-wrap gap-1">
+                <RecordTags
                   record={record}
+                  deletable
                   setOptimisticRecords={setOptimisticRecords}
                 />
               </div>
             </div>
-            <DrawerFooter>
-              <DrawerClose asChild>
-                <form
-                  action={async () => {
-                    setOptimisticRecords({
-                      action: "delete",
-                      newRecord: record,
-                    })
-                    await deleteRecord(record.id)
-                  }}
-                >
-                  <Button
-                    variant="destructive"
-                    type="submit"
-                    className="w-full"
-                  >
-                    Delete
-                  </Button>
-                </form>
-              </DrawerClose>
-              <DrawerClose asChild>
-                <Button variant="outline">Close</Button>
-              </DrawerClose>
-            </DrawerFooter>
           </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <form
+                action={async () => {
+                  setOptimisticRecords({
+                    action: "delete",
+                    newRecord: record,
+                  })
+                  await deleteRecord(record.id)
+                }}
+              >
+                <Button variant="destructive" type="submit" className="w-full">
+                  Delete
+                </Button>
+              </form>
+            </DrawerClose>
+            <DrawerClose asChild>
+              <Button variant="outline">Close</Button>
+            </DrawerClose>
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     </>

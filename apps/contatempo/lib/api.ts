@@ -14,6 +14,11 @@ interface GetRecordsRequest {
   tags: string[]
 }
 
+interface DashboardRequest {
+  from: Date
+  to: Date
+}
+
 export async function getRecords({ from, to, tags }: GetRecordsRequest) {
   const session = await getSession()
   const records: Record[] = await fetch(
@@ -29,7 +34,7 @@ export async function getRecords({ from, to, tags }: GetRecordsRequest) {
   return records
 }
 
-export async function getSummary({ from, to }: GetRecordsRequest) {
+export async function getSummary({ from, to }: DashboardRequest) {
   const session = await getSession()
   const summary = await fetch(
     `${

@@ -11,14 +11,17 @@ export type Tag = { id: string; value: string }
 interface GetRecordsRequest {
   from: Date
   to: Date
+  tags: string[]
 }
 
-export async function getRecords({ from, to }: GetRecordsRequest) {
+export async function getRecords({ from, to, tags }: GetRecordsRequest) {
   const session = await getSession()
   const records: Record[] = await fetch(
-    `${
-      process.env.BACKEND_URL
-    }/records?from=${from.toISOString()}&to=${to.toISOString()}`,
+    `${process.env.BACKEND_URL}/records?${new URLSearchParams({
+      from: from.toISOString(),
+      to: to.toISOString(),
+      tags: JSON.stringify(tags),
+    })}`,
     {
       headers: { Authorization: `Bearer ${session?.accessToken}` },
     },

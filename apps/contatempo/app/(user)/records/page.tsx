@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import RecordsList from "@/components/RecordsList"
 import { RecordsRange } from "@/components/RecordsRange"
 import type { Metadata } from "next"
+import { TagFilter } from "@/components/TagFilter"
 
 export const metadata: Metadata = {
   title: "Records | Contatempo",
@@ -13,27 +14,54 @@ export const metadata: Metadata = {
 export default async function RecordsPage({
   searchParams,
 }: {
-  searchParams?: { from: string; to: string }
+  searchParams?: { from: string; to: string; tags: string[] }
 }) {
   const fromParam = searchParams?.from ?? "2020-01-01"
   const toParam = searchParams?.to ?? "2025-12-31"
+  const tags = searchParams?.tags ?? []
+  const tagsParam = typeof tags === "string" ? [tags] : tags
   return (
     <div className="space-y-2">
-      <div className="flex items-center">
-        <RecordsRange />
+      <div>
+        <div>
+          <RecordsRange />
+        </div>
+        <div>
+          <Tags />
+        </div>
       </div>
-      <Suspense key={`${fromParam}-${toParam}`} fallback="carregando">
-        <Records from={fromParam} to={toParam} />
+      <Suspense
+        key={`${fromParam}-${toParam}-${tagsParam}`}
+        fallback="carregando"
+      >
+        <Records from={fromParam} to={toParam} tags={tagsParam} />
       </Suspense>
     </div>
   )
 }
 
-async function Records({ from, to }) {
+async function Tags() {
+  const tags = await getTags()
+  return <TagFilter tags={tags} />
+}
+
+interface RecordsProps {
+  from: string
+  to: string
+  tags: string[]
+}
+async function Records({ from, to, tags }: RecordsProps) {
+  const allTags = await getTags()
   const records = await getRecords({
     from: zonedTimeToUtc(`${from} 00:00:00`, "America/Sao_Paulo"),
     to: zonedTimeToUtc(`${to} 23:59:59`, "America/Sao_Paulo"),
+    tags: tags
+      .map((tag) => {
+        const foundTag = allTags.find((t) => t.value === tag)
+        if (!foundTag) return ""
+        return foundTag.id
+      })
+      .filter((t) => t),
   })
-  const tags = await getTags()
-  return <RecordsList records={records} tags={tags} />
+  return <RecordsList records={records} tags={allTags} />
 }

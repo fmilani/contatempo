@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useOptimistic, useState, useTransition } from "react"
+import React, { useOptimistic, useState } from "react"
 import { formatInTimeZone } from "date-fns-tz"
-import { X, Plus } from "lucide-react"
+import { X } from "lucide-react"
 import { Record, Tag } from "@/lib/api"
 import locale from "date-fns/locale/en-US"
 import Duration from "@/components/Duration"
@@ -15,7 +15,6 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   Command,
-  CommandEmpty,
   CommandList,
   CommandInput,
   CommandItem,
@@ -223,11 +222,6 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
               {record.end && <Time date={record.end} />}
             </div>
             <div className="space-y-1">
-              <AddTag
-                tags={tags}
-                record={record}
-                setOptimisticRecords={setOptimisticRecords}
-              />
               <div className="flex flex-wrap gap-1">
                 <RecordTags
                   record={record}
@@ -235,6 +229,11 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
                   setOptimisticRecords={setOptimisticRecords}
                 />
               </div>
+              <AddTag
+                tags={tags}
+                record={record}
+                setOptimisticRecords={setOptimisticRecords}
+              />
             </div>
           </div>
           <DrawerFooter>
@@ -396,7 +395,7 @@ function AddTag({
               }}
             >
               <CommandInput />
-              <CommandList>
+              <CommandList className="max-h-[160px]">
                 {tags
                   .filter(
                     (tag) =>

@@ -40,13 +40,15 @@ export function TagFilter({ tags }: { tags: Tag[] }) {
           variant="secondary"
           className={cn(
             "font-normal",
-            selected.length === 0 && "text-muted-foreground",
+            filteredTags.length === 0 && "text-muted-foreground",
           )}
         >
           <TagIcon className="mr-2 h-4 w-4" />
-          {filteredTags
-            .filter((s) => tags.find((t) => t.value === s))
-            .join(", ")}
+          {filteredTags.length === 0
+            ? "Pick tags"
+            : filteredTags
+                .filter((s) => tags.find((t) => t.value === s))
+                .join(", ")}
         </Badge>
       </PopoverTrigger>
       <PopoverContent className="p-0">

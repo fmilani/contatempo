@@ -35,17 +35,10 @@ export function TagFilter({ tags }: { tags: Tag[] }) {
       }}
     >
       <PopoverTrigger>
-        <Badge
-          id="date"
-          variant="secondary"
-          className={cn(
-            "font-normal",
-            filteredTags.length === 0 && "text-muted-foreground",
-          )}
-        >
+        <Badge id="date" variant="secondary" className="font-normal">
           <TagIcon className="mr-2 h-4 w-4" />
           {filteredTags.length === 0
-            ? "Pick tags"
+            ? "Filter by tags"
             : filteredTags
                 .filter((s) => tags.find((t) => t.value === s))
                 .join(", ")}

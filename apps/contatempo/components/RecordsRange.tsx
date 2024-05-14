@@ -19,9 +19,11 @@ export function RecordsRange() {
       }}
       onSelect={(range: DateRange) => {
         if (range?.from && range?.to) {
-          router.push(
-            `/records?from=${format(range.from, "yyyy-MM-dd")}&to=${format(range.to, "yyyy-MM-dd")}`,
-          )
+          const params = new URLSearchParams(searchParams?.toString())
+          params.set("from", format(range.from, "yyyy-MM-dd"))
+          params.set("to", format(range.to, "yyyy-MM-dd"))
+
+          router.push(`/records?${params}`)
         }
       }}
     />

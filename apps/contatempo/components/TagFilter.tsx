@@ -47,6 +47,7 @@ export function TagFilter({
             const tagSelected = optimisticTags.includes(tag.value)
             return (
               <button
+                key={tag.id}
                 className="flex min-w-fit"
                 onClick={() => {
                   const newFilteredTags = tagSelected

@@ -1,113 +1,79 @@
 "use client"
 
-import React, { useState } from "react"
-import { Tag as TagIcon } from "lucide-react"
-import {
-  Command,
-  CommandList,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import React, { useOptimistic, useState, useTransition } from "react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Tag } from "@/lib/api"
-import { Checkbox } from "./ui/checkbox"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@radix-ui/react-collapsible"
+import { Button } from "./ui/button"
+import {
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
+  Tag as TagIcon,
+} from "lucide-react"
 
-export function TagFilter({ tags }: { tags: Tag[] }) {
+export function TagFilter({
+  tags,
+  tagsParam,
+}: {
+  tags: Tag[]
+  tagsParam: string[]
+}) {
   const searchParams = useSearchParams()
-  const filteredTags = searchParams?.getAll("tags") || []
-  const [selected, setSelected] = useState<string[]>(filteredTags)
-  const [open, setOpen] = useState(false)
+  const [optimisticTags, setOptimisticTags] = useOptimistic(tagsParam)
+  const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
   return (
-    <Popover
-      open={open}
-      onOpenChange={(open) => {
-        setSelected(filteredTags)
-        setOpen(open)
-      }}
-    >
-      <PopoverTrigger>
-        <Badge id="date" variant="secondary" className="font-normal">
-          <TagIcon className="mr-2 h-4 w-4" />
-          {filteredTags.length === 0
-            ? "Filter by tags"
-            : filteredTags
-                .filter((s) => tags.find((t) => t.value === s))
-                .join(", ")}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-1">
+      <CollapsibleTrigger>
+        <Badge variant="secondary" className="font-normal space-x-2">
+          <TagIcon className="h-4 w-4" />
+          <span>Tags ({optimisticTags.length})</span>
+          {(isOpen && <ChevronUp className="h-4 w-4" />) || (
+            <ChevronDown className="h-4 w-4" />
+          )}
         </Badge>
-      </PopoverTrigger>
-      <PopoverContent className="p-0">
-        <Command
-          label="Tags"
-          filter={(value, search) => {
-            const tag = tags.find((t) => t.id === value)
-            if (tag?.value.toLowerCase().includes(search.toLowerCase())) {
-              return 1
-            } else if (
-              value === "new-tag" &&
-              !tags.find(
-                (t) => t.value.toLowerCase() === search.toLowerCase().trim(),
-              )
-            ) {
-              return 1
-            }
-            return 0
-          }}
-        >
-          <CommandInput />
-          <CommandList>
-            {tags.map((tag) => (
-              <CommandItem
-                key={tag.id}
-                value={tag.id}
-                onSelect={() => {
-                  const index = selected.indexOf(tag.value)
-                  if (index === -1) {
-                    setSelected([...selected, tag.value])
-                  } else {
-                    setSelected(selected.toSpliced(index, 1))
-                  }
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="flex flex-row gap-1 flex-wrap">
+          {tags.map((tag) => {
+            const tagSelected = optimisticTags.includes(tag.value)
+            return (
+              <button
+                className="flex min-w-fit"
+                onClick={() => {
+                  const newFilteredTags = tagSelected
+                    ? optimisticTags.filter((t) => t !== tag.value)
+                    : [...optimisticTags, tag.value]
+                  const params = new URLSearchParams(searchParams?.toString())
+                  params.delete("tags")
+                  newFilteredTags.forEach((tag) => {
+                    params.append("tags", tag)
+                  })
+                  startTransition(() => {
+                    setOptimisticTags(newFilteredTags)
+                    router.push(`/records?${params}`)
+                  })
                 }}
-                className="gap-2"
               >
-                <Checkbox checked={selected.indexOf(tag.value) !== -1} />
-                {tag.value}
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
-        <div className="flex justify-center pb-3 gap-4">
-          <Button
-            onClick={() => {
-              setOpen(false)
-            }}
-            variant="outline"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              const params = new URLSearchParams(searchParams?.toString())
-              params.delete("tags")
-              selected.forEach((tag) => {
-                params.append("tags", tag)
-              })
-              router.push(`/records?${params}`)
-              setOpen(false)
-            }}
-          >
-            Filter
-          </Button>
+                <Badge
+                  variant={tagSelected ? "default" : "secondary"}
+                  className="font-normal"
+                >
+                  {tag.value}
+                </Badge>
+              </button>
+            )
+          })}
         </div>
-      </PopoverContent>
-    </Popover>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

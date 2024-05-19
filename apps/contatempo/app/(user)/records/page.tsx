@@ -22,27 +22,16 @@ export default async function RecordsPage({
   const tagsParam = typeof tags === "string" ? [tags] : tags
   return (
     <div className="space-y-2">
-      <div>
-        <div>
-          <RecordsRange />
-        </div>
-        <div>
-          <Tags />
-        </div>
-      </div>
-      <Suspense
-        key={`${fromParam}-${toParam}-${tagsParam}`}
-        fallback="carregando"
-      >
-        <Records from={fromParam} to={toParam} tags={tagsParam} />
-      </Suspense>
+      <RecordsRange />
+      <Tags tagsParam={tagsParam} />
+      <Records from={fromParam} to={toParam} tags={tagsParam} />
     </div>
   )
 }
 
-async function Tags() {
+async function Tags({ tagsParam }: { tagsParam: string[] }) {
   const tags = await getTags()
-  return <TagFilter tags={tags} />
+  return <TagFilter tags={tags} tagsParam={tagsParam} />
 }
 
 interface RecordsProps {

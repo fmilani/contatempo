@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useOptimistic, useState, useTransition } from "react"
-import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Tag } from "@/lib/api"
@@ -10,13 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@radix-ui/react-collapsible"
-import { Button } from "./ui/button"
-import {
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
-  Tag as TagIcon,
-} from "lucide-react"
+import { ChevronDown, ChevronUp, Tag as TagIcon } from "lucide-react"
 
 export function TagFilter({
   tags,

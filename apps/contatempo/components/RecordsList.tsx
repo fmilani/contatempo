@@ -38,6 +38,10 @@ import { addTagToRecord, deleteRecord, removeTagFromRecord } from "../actions"
 import { useForm } from "react-hook-form"
 import { Form } from "./ui/form"
 import { useCommandState } from "cmdk"
+import isWithinInterval from "date-fns/isWithinInterval"
+import { useSearchParams } from "next/navigation"
+import parse from "date-fns/parse"
+import endOfDay from "date-fns/endOfDay"
 
 export default function RecordsList({ records, tags }) {
   const [now, setNow] = useState<Date>(new Date())
@@ -88,13 +92,22 @@ export default function RecordsList({ records, tags }) {
       }
     },
   )
+  const searchParams = useSearchParams()
+  const todayInRange = isWithinInterval(now, {
+    start: parse(searchParams?.get("from") ?? "", "yyyy-MM-dd", new Date()),
+    end: endOfDay(
+      parse(searchParams?.get("to") ?? "", "yyyy-MM-dd", new Date()),
+    ),
+  })
   return (
     <div className="space-y-2">
-      <CurrentRecord
-        record={optmisticRecords.find((record: Record) => !record.end)}
-        now={now}
-        setOptimisticRecords={setOptimisticRecords}
-      />
+      {todayInRange && (
+        <CurrentRecord
+          record={optmisticRecords.find((record: Record) => !record.end)}
+          now={now}
+          setOptimisticRecords={setOptimisticRecords}
+        />
+      )}
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between">

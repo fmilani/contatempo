@@ -15,7 +15,7 @@ import { Card, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { startStopRecord } from "../actions"
 import { useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface CurrentRecordProps {
   record?: Record
@@ -56,6 +56,18 @@ export default function CurrentRecord({
     setIsOpen(false)
     router.refresh()
   }
+  const formRef = useRef<HTMLFormElement>(null)
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === "s") {
+        formRef.current?.requestSubmit()
+      }
+    }
+    window.addEventListener("keydown", handleKeyPress)
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress)
+    }
+  }, [])
   return (
     <div className="flex justify-between gap-4">
       <Card
@@ -67,6 +79,7 @@ export default function CurrentRecord({
       >
         <CardHeader className="p-2">
           <form
+            ref={formRef}
             action={async () => {
               const time = new Date()
               setOptimisticRecords({ action: "edit", newRecord: record, time })

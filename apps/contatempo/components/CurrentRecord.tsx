@@ -95,15 +95,17 @@ export default function CurrentRecord({
               await startStopRecord(record, time)
             }}
           >
-            <div className={cn("flex items-center gap-2")}>
+            <div className={cn("flex items-center justify-between")}>
               <Button type="submit" variant="ghost" size="icon">
                 {record ? <StopCircle /> : <PlayCircle />}
               </Button>
               {record && now && (
-                <Duration
-                  records={[{ begin: record.begin, end: now }]}
-                  now={now}
-                />
+                <span className="pr-4 text-lg font-bold">
+                  <Duration
+                    records={[{ begin: record.begin, end: now }]}
+                    now={now}
+                  />
+                </span>
               )}
             </div>
           </form>

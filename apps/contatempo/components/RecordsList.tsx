@@ -100,14 +100,7 @@ export default function RecordsList({ records, tags }) {
     ),
   })
   return (
-    <div className="space-y-2">
-      {todayInRange && (
-        <CurrentRecord
-          record={optmisticRecords.find((record: Record) => !record.end)}
-          now={now}
-          setOptimisticRecords={setOptimisticRecords}
-        />
-      )}
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between">
@@ -117,66 +110,75 @@ export default function RecordsList({ records, tags }) {
         </CardHeader>
       </Card>
       <div className="space-y-2">
-        {Object.entries(groupRecords(optmisticRecords)).map(
-          ([day, recordsOfDay]) => (
-            <Card key={day}>
-              <CardHeader>
-                <CardTitle className="text-base flex justify-between">
-                  <span>
-                    {differenceInCalendarDays(
-                      new Date(),
-                      new Date(recordsOfDay[0].begin),
-                    ) > 1
-                      ? capitalize(
-                          formatInTimeZone(
+        {todayInRange && (
+          <CurrentRecord
+            record={optmisticRecords.find((record: Record) => !record.end)}
+            now={now}
+            setOptimisticRecords={setOptimisticRecords}
+          />
+        )}
+        <div className="space-y-2">
+          {Object.entries(groupRecords(optmisticRecords)).map(
+            ([day, recordsOfDay]) => (
+              <Card key={day}>
+                <CardHeader>
+                  <CardTitle className="text-base flex justify-between">
+                    <span>
+                      {differenceInCalendarDays(
+                        new Date(),
+                        new Date(recordsOfDay[0].begin),
+                      ) > 1
+                        ? capitalize(
+                            formatInTimeZone(
+                              new Date(recordsOfDay[0].begin),
+                              "America/Sao_Paulo",
+                              "eeee, MMM dd",
+                              { locale },
+                            ),
+                          )
+                        : `${capitalize(
+                            formatRelative(
+                              new Date(recordsOfDay[0].begin),
+                              new Date(),
+                              {
+                                locale,
+                              },
+                            ).split(" ")[0],
+                          )}, ${formatInTimeZone(
                             new Date(recordsOfDay[0].begin),
                             "America/Sao_Paulo",
-                            "eeee, MMM dd",
+                            "MMM dd",
                             { locale },
-                          ),
-                        )
-                      : `${capitalize(
-                          formatRelative(
-                            new Date(recordsOfDay[0].begin),
-                            new Date(),
-                            {
-                              locale,
-                            },
-                          ).split(" ")[0],
-                        )}, ${formatInTimeZone(
-                          new Date(recordsOfDay[0].begin),
-                          "America/Sao_Paulo",
-                          "MMM dd",
-                          { locale },
-                        )}`}
-                  </span>
-                  <span>
-                    <Duration records={recordsOfDay} now={now} />
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pb-4">
-                <ul className="space-y-2">
-                  {recordsOfDay.reverse().map((record) => (
-                    <li
-                      key={record.id}
-                      className={cn(
-                        (record as any).isSaving && "animate-pulse",
-                      )}
-                    >
-                      <RecordDetails
-                        record={record}
-                        now={now}
-                        setOptimisticRecords={setOptimisticRecords}
-                        tags={tags}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ),
-        )}
+                          )}`}
+                    </span>
+                    <span>
+                      <Duration records={recordsOfDay} now={now} />
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 pb-4">
+                  <ul className="space-y-2">
+                    {recordsOfDay.reverse().map((record) => (
+                      <li
+                        key={record.id}
+                        className={cn(
+                          (record as any).isSaving && "animate-pulse",
+                        )}
+                      >
+                        <RecordDetails
+                          record={record}
+                          now={now}
+                          setOptimisticRecords={setOptimisticRecords}
+                          tags={tags}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ),
+          )}
+        </div>
       </div>
     </div>
   )

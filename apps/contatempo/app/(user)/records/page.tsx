@@ -1,6 +1,5 @@
 import { getRecords, getTags } from "@/lib/api"
 import { zonedTimeToUtc } from "date-fns-tz"
-import { Suspense } from "react"
 import RecordsList from "@/components/RecordsList"
 import { RecordsRange } from "@/components/RecordsRange"
 import type { Metadata } from "next"

@@ -59,6 +59,15 @@ export default function CurrentRecord({
   const formRef = useRef<HTMLFormElement>(null)
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement
+      const tagName = target.tagName.toLowerCase()
+      if (
+        tagName === "input" ||
+        tagName === "textarea" ||
+        target.isContentEditable
+      ) {
+        return
+      }
       if (event.key === "s") {
         formRef.current?.requestSubmit()
       }

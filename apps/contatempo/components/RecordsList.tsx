@@ -412,6 +412,13 @@ function AddTag({
               <CommandInput />
               <CommandList className="max-h-[160px]">
                 {tags
+                  .sort((a, b) => {
+                    const aValue = a.value.toLowerCase()
+                    const bValue = b.value.toLowerCase()
+                    if (aValue > bValue) return 1
+                    if (bValue > aValue) return -1
+                    return 0
+                  })
                   .filter(
                     (tag) =>
                       record.tags.findIndex((t) => t.id === tag.id) === -1,

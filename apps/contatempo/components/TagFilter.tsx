@@ -36,36 +36,44 @@ export function TagFilter({
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="flex flex-row gap-1 flex-wrap">
-          {tags.map((tag) => {
-            const tagSelected = optimisticTags.includes(tag.value)
-            return (
-              <button
-                key={tag.id}
-                className="flex min-w-fit"
-                onClick={() => {
-                  const newFilteredTags = tagSelected
-                    ? optimisticTags.filter((t) => t !== tag.value)
-                    : [...optimisticTags, tag.value]
-                  const params = new URLSearchParams(searchParams?.toString())
-                  params.delete("tags")
-                  newFilteredTags.forEach((tag) => {
-                    params.append("tags", tag)
-                  })
-                  startTransition(() => {
-                    setOptimisticTags(newFilteredTags)
-                    router.push(`/records?${params}`)
-                  })
-                }}
-              >
-                <Badge
-                  variant={tagSelected ? "default" : "secondary"}
-                  className="font-normal"
+          {tags
+            .sort((a, b) => {
+              const aValue = a.value.toLowerCase()
+              const bValue = b.value.toLowerCase()
+              if (aValue > bValue) return 1
+              if (bValue > aValue) return -1
+              return 0
+            })
+            .map((tag) => {
+              const tagSelected = optimisticTags.includes(tag.value)
+              return (
+                <button
+                  key={tag.id}
+                  className="flex min-w-fit"
+                  onClick={() => {
+                    const newFilteredTags = tagSelected
+                      ? optimisticTags.filter((t) => t !== tag.value)
+                      : [...optimisticTags, tag.value]
+                    const params = new URLSearchParams(searchParams?.toString())
+                    params.delete("tags")
+                    newFilteredTags.forEach((tag) => {
+                      params.append("tags", tag)
+                    })
+                    startTransition(() => {
+                      setOptimisticTags(newFilteredTags)
+                      router.push(`/records?${params}`)
+                    })
+                  }}
                 >
-                  {tag.value}
-                </Badge>
-              </button>
-            )
-          })}
+                  <Badge
+                    variant={tagSelected ? "default" : "secondary"}
+                    className="font-normal"
+                  >
+                    {tag.value}
+                  </Badge>
+                </button>
+              )
+            })}
         </div>
       </CollapsibleContent>
     </Collapsible>

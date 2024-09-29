@@ -29,7 +29,7 @@ export default function Duration({ records, now }) {
   return (
     <span>
       {zeroPad(duration.hours)}:{zeroPad(duration.minutes)}
-      <span className="text-sm text-gray-400">
+      <span className="text-[0.8em] text-gray-500">
         :{zeroPad(duration.seconds)}
       </span>
     </span>

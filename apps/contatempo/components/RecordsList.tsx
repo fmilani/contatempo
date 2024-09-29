@@ -327,7 +327,7 @@ function Time({ date }) {
       <span>
         {formatInTimeZone(new Date(date), "America/Sao_Paulo", "HH:mm")}
       </span>
-      <span className="text-gray-400">
+      <span className="text-[0.8em] text-gray-500">
         {formatInTimeZone(new Date(date), "America/Sao_Paulo", ":ss")}
       </span>
     </span>

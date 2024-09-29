@@ -20,9 +20,11 @@ export default async function RecordsPage({
   const tags = searchParams?.tags ?? []
   const tagsParam = typeof tags === "string" ? [tags] : tags
   return (
-    <div className="space-y-2">
-      <RecordsRange />
-      <Tags tagsParam={tagsParam} />
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <RecordsRange />
+        <Tags tagsParam={tagsParam} />
+      </div>
       <Records from={fromParam} to={toParam} tags={tagsParam} />
     </div>
   )

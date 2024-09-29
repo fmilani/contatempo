@@ -284,11 +284,7 @@ function RecordTags({
   setOptimisticRecords = ({}) => {},
 }) {
   if (record.tags.length === 0) {
-    return (
-      <Badge variant="outline" className="border-transparent text-transparent">
-        No tags
-      </Badge>
-    )
+    return <Badge variant="outline">No tags</Badge>
   }
   return (
     <>

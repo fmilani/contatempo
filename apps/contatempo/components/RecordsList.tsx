@@ -43,7 +43,13 @@ import { useSearchParams } from "next/navigation"
 import parse from "date-fns/parse"
 import endOfDay from "date-fns/endOfDay"
 
-export default function RecordsList({ records, tags }) {
+export default function RecordsList({
+  records,
+  tags,
+}: {
+  records: Record[]
+  tags: Tag[]
+}) {
   const [now, setNow] = useState<Date>(new Date())
   useInterval(() => setNow(new Date()), 500)
   const [optmisticRecords, setOptimisticRecords] = useOptimistic(
@@ -92,13 +98,17 @@ export default function RecordsList({ records, tags }) {
       }
     },
   )
+  const ongoingRecord = optmisticRecords.find((record: Record) => !record.end)
   const searchParams = useSearchParams()
-  const todayInRange = isWithinInterval(now, {
-    start: parse(searchParams?.get("from") ?? "", "yyyy-MM-dd", new Date()),
-    end: endOfDay(
-      parse(searchParams?.get("to") ?? "", "yyyy-MM-dd", new Date()),
-    ),
-  })
+  const ongoingRecordInRange = isWithinInterval(
+    new Date(ongoingRecord?.begin || now),
+    {
+      start: parse(searchParams?.get("from") ?? "", "yyyy-MM-dd", new Date()),
+      end: endOfDay(
+        parse(searchParams?.get("to") ?? "", "yyyy-MM-dd", new Date()),
+      ),
+    },
+  )
   return (
     <div className="space-y-6">
       <Card>
@@ -110,9 +120,9 @@ export default function RecordsList({ records, tags }) {
         </CardHeader>
       </Card>
       <div className="space-y-2">
-        {todayInRange && (
+        {ongoingRecordInRange && (
           <CurrentRecord
-            record={optmisticRecords.find((record: Record) => !record.end)}
+            record={ongoingRecord}
             now={now}
             setOptimisticRecords={setOptimisticRecords}
           />

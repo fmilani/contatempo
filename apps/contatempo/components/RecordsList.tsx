@@ -215,7 +215,7 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
             </div>
           </Button>
         </DrawerTrigger>
-        <DrawerContent className="h-[90vh] mx-auto w-full max-w-sm">
+        <DrawerContent className="h-[90vh] mx-auto w-full max-w-2xl">
           <DrawerHeader>
             <DrawerTitle>
               On{" "}

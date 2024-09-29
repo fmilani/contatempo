@@ -158,7 +158,7 @@ export default function RecordsList({ records, tags }) {
                 </CardHeader>
                 <CardContent className="p-0 pb-4">
                   <ul className="space-y-2">
-                    {recordsOfDay.reverse().map((record) => (
+                    {recordsOfDay.map((record) => (
                       <li
                         key={record.id}
                         className={cn(

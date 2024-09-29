@@ -102,8 +102,8 @@ export default function RecordsList({ records, tags }) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex justify-between">
+        <CardHeader className="p-4">
+          <CardTitle className="text-3xl flex justify-between">
             Total
             <Duration records={optmisticRecords} now={now} />
           </CardTitle>
@@ -120,9 +120,9 @@ export default function RecordsList({ records, tags }) {
         <div className="space-y-2">
           {Object.entries(groupRecords(optmisticRecords)).map(
             ([day, recordsOfDay]) => (
-              <Card key={day}>
-                <CardHeader>
-                  <CardTitle className="text-base flex justify-between">
+              <Card key={day} className="shadow-none border-none">
+                <CardHeader className="py-4 px-2">
+                  <CardTitle className="text-xl flex justify-between">
                     <span>
                       {differenceInCalendarDays(
                         new Date(),
@@ -157,12 +157,13 @@ export default function RecordsList({ records, tags }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 pb-4">
-                  <ul className="space-y-2">
+                  <ul>
                     {recordsOfDay.map((record) => (
                       <li
                         key={record.id}
                         className={cn(
                           (record as any).isSaving && "animate-pulse",
+                          "last:mb-0 mb-1",
                         )}
                       >
                         <RecordDetails
@@ -189,9 +190,9 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
     <>
       <Drawer shouldScaleBackground={false}>
         <DrawerTrigger asChild>
-          <Button variant="ghost" className="w-full px-6 rounded-none">
+          <Button variant="ghost" className="w-full h-full rounded-none px-2">
             <div className="flex flex-col gap-1 w-full">
-              <div className="w-full flex justify-between">
+              <div className="w-full flex justify-between items-end">
                 <div>
                   <Time date={record.begin} /> -{" "}
                   {record.end && <Time date={record.end} />}
@@ -282,6 +283,13 @@ function RecordTags({
   deletable = false,
   setOptimisticRecords = ({}) => {},
 }) {
+  if (record.tags.length === 0) {
+    return (
+      <Badge variant="outline" className="border-transparent text-transparent">
+        No tags
+      </Badge>
+    )
+  }
   return (
     <>
       {record.tags.map((tag: { id: string; value: string }) => (

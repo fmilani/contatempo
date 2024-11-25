@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
+    "email": "email dev",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write \"app/**/*.tsx\" \"components/**/*.tsx\" \"lib/**/*.ts\" ",
@@ -20,6 +21,7 @@
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
+    "@react-email/components": "0.0.25",
     "@types/node": "^17.0.12",
     "@types/react": "18.2.57",
     "@types/react-dom": "18.2.19",
@@ -39,6 +41,7 @@
     "react-day-picker": "^8.10.0",
     "react-dom": "18.3.0-canary-5bcade5fc-20231208",
     "react-hook-form": "^7.51.4",
+    "resend": "^4.0.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.3.3",
@@ -50,6 +53,7 @@
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.19",
     "prettier": "^3.2.5",
+    "react-email": "3.0.1",
     "tailwindcss": "^3.2.4"
   },
   "prettier": {

@@ -1,8 +1,8 @@
 import { zeroPad } from "@/lib/helpers"
 import intervalToDuration from "date-fns/intervalToDuration"
 
-export default function Duration({ records, now }) {
-  const duration = records.reduce(
+export function calculateDuration(records, now) {
+  return records.reduce(
     (acc, record) => {
       const duration = intervalToDuration({
         start: new Date(record.begin),
@@ -26,6 +26,9 @@ export default function Duration({ records, now }) {
     },
     { hours: 0, minutes: 0, seconds: 0 },
   )
+}
+export default function Duration({ records, now }) {
+  const duration = calculateDuration(records, now)
   return (
     <span>
       {zeroPad(duration.hours)}:{zeroPad(duration.minutes)}

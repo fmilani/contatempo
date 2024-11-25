@@ -4,6 +4,35 @@ import { getServerSession } from "next-auth/next"
 import { revalidatePath } from "next/cache"
 import { authOptions } from "pages/api/auth/[...nextauth]"
 import { Tag } from "./lib/api"
+import { getCurrentUser } from "./lib/session"
+import { Resend } from "resend"
+import RecordsReportEmail from "./emails/RecordsReport"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+export const sendRecordsReportEmail = async (period, records) => {
+  const user = await getCurrentUser()
+  if (!user || !user.email) return
+  try {
+    const { data, error } = await resend.emails.send({
+      from: "contatempo <no-reply@contatempo.app>",
+      to: [user.email],
+      subject: "Records report",
+      react: RecordsReportEmail({
+        username: user.name ?? user.email,
+        period,
+        records,
+      }),
+    })
+
+    if (error) {
+      return Response.json({ error }, { status: 500 })
+    }
+
+    return Response.json(data)
+  } catch (error) {
+    return Response.json({ error }, { status: 500 })
+  }
+}
 
 export const startStopRecord = async (currentRecord: any, time: Date) => {
   const session = await getServerSession(authOptions)

@@ -4,6 +4,8 @@ import RecordsList from "@/components/RecordsList"
 import { RecordsRange } from "@/components/RecordsRange"
 import type { Metadata } from "next"
 import { TagFilter } from "@/components/TagFilter"
+import { sendRecordsReportEmail } from "actions"
+import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
   title: "Records | Contatempo",
@@ -53,5 +55,19 @@ async function Records({ from, to, tags }: RecordsProps) {
       })
       .filter((t) => t),
   })
-  return <RecordsList records={records} tags={allTags} />
+  return (
+    <>
+      <form
+        action={async () => {
+          "use server"
+          await sendRecordsReportEmail({ from, to }, records)
+        }}
+      >
+        <div className="flex flex-row-reverse">
+          <Button variant="outline">Send records report</Button>
+        </div>
+      </form>
+      <RecordsList records={records} tags={allTags} />
+    </>
+  )
 }

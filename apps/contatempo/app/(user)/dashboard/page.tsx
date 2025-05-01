@@ -11,7 +11,7 @@ import {
 } from "date-fns"
 import sub from "date-fns/sub"
 import Link from "next/link"
-import { buildRangeQueryParams } from "@/lib/utils"
+import { buildRangeQueryParams } from "@/components/lib/utils"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import TimeFormat from "@/components/TimeFormat"
 import { Suspense } from "react"

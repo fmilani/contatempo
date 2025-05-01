@@ -12,7 +12,7 @@ import {
 import Duration from "./Duration"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { cn } from "@/components/lib/utils"
 import { startStopRecord } from "../actions"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"

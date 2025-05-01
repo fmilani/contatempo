@@ -10,7 +10,7 @@ import { differenceInCalendarDays, formatRelative } from "date-fns"
 import CurrentRecord from "@/components/CurrentRecord"
 import useInterval from "@/lib/hooks/useInterval"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { cn } from "@/components/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {

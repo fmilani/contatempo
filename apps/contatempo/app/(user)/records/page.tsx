@@ -12,11 +12,12 @@ export const metadata: Metadata = {
   description: "Track your time",
 }
 
-export default async function RecordsPage({
-  searchParams,
-}: {
-  searchParams?: { from: string; to: string; tags: string[] }
-}) {
+export default async function RecordsPage(
+  props: {
+    searchParams?: Promise<{ from: string; to: string; tags: string[] }>
+  }
+) {
+  const searchParams = await props.searchParams;
   const fromParam = searchParams?.from ?? "2020-01-01"
   const toParam = searchParams?.to ?? "2025-12-31"
   const tags = searchParams?.tags ?? []

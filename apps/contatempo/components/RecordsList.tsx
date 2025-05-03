@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useOptimistic, useState } from "react"
+import React, { startTransition, useOptimistic, useState } from "react"
 import { formatInTimeZone } from "date-fns-tz"
 import { X } from "lucide-react"
 import { Record, Tag } from "@/lib/api"
@@ -369,10 +369,12 @@ function AddTag({
     if (!tag.value) {
       throw new Error("Tag has to have a value. wat")
     }
-    setOptimisticRecords({
-      action: "add_tag",
-      newRecord: record,
-      tag,
+    startTransition(() => {
+      setOptimisticRecords({
+        action: "add_tag",
+        newRecord: record,
+        tag,
+      })
     })
     await addTagToRecord(tag, record.id)
   })

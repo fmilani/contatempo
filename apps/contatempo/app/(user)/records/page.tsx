@@ -12,12 +12,10 @@ export const metadata: Metadata = {
   description: "Track your time",
 }
 
-export default async function RecordsPage(
-  props: {
-    searchParams?: Promise<{ from: string; to: string; tags: string[] }>
-  }
-) {
-  const searchParams = await props.searchParams;
+export default async function RecordsPage(props: {
+  searchParams?: Promise<{ from: string; to: string; tags: string[] }>
+}) {
+  const searchParams = await props.searchParams
   const fromParam = searchParams?.from ?? "2020-01-01"
   const toParam = searchParams?.to ?? "2025-12-31"
   const tags = searchParams?.tags ?? []
@@ -45,9 +43,11 @@ interface RecordsProps {
 }
 async function Records({ from, to, tags }: RecordsProps) {
   const allTags = await getTags()
+  const fromDate = zonedTimeToUtc(`${from} 00:00:00`, "America/Sao_Paulo")
+  const toDate = zonedTimeToUtc(`${to} 23:59:59`, "America/Sao_Paulo")
   const records = await getRecords({
-    from: zonedTimeToUtc(`${from} 00:00:00`, "America/Sao_Paulo"),
-    to: zonedTimeToUtc(`${to} 23:59:59`, "America/Sao_Paulo"),
+    from: fromDate,
+    to: toDate,
     tags: tags
       .map((tag) => {
         const foundTag = allTags.find((t) => t.value === tag)
@@ -68,7 +68,12 @@ async function Records({ from, to, tags }: RecordsProps) {
           <Button variant="outline">Send records report</Button>
         </div>
       </form>
-      <RecordsList records={records} tags={allTags} />
+      <RecordsList
+        records={records}
+        tags={allTags}
+        from={fromDate}
+        to={toDate}
+      />
     </>
   )
 }

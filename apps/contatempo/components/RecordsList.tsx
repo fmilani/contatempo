@@ -304,6 +304,50 @@ function RecordDetails({ record, now, setOptimisticRecords, tags }) {
     </>
   )
 }
+export function getTagColor(tag: Tag) {
+  let color = ""
+  switch (tag.color) {
+    case "red":
+      color = "bg-red-600 hover:bg-red-600"
+      break
+    case "cyan":
+      color = "bg-cyan-600 hover:bg-cyan-600"
+      break
+    case "violet":
+      color = "bg-violet-600 hover:bg-violet-600"
+      break
+    case "orange":
+      color = "bg-orange-600 hover:bg-orange-600"
+      break
+    case "stone":
+      color = "bg-stone-600 hover:bg-stone-600"
+      break
+    case "emerald":
+      color = "bg-emerald-600 hover:bg-emerald-600"
+      break
+    case "amber":
+      color = "bg-amber-600 hover:bg-amber-600"
+      break
+    case "sky":
+      color = "bg-sky-600 hover:bg-sky-600"
+      break
+    case "rose":
+      color = "bg-rose-600 hover:bg-rose-600"
+      break
+    case "lime":
+      color = "bg-lime-600 hover:bg-lime-600"
+      break
+    case "indigo":
+      color = "bg-indigo-600 hover:bg-indigo-600"
+      break
+    case "fuchsia":
+      color = "bg-fuchsia-600 hover:bg-fuchsia-600"
+      break
+    default:
+      color = "bg-black hover:bg-black"
+  }
+  return color
+}
 
 function RecordTags({
   record,
@@ -315,11 +359,12 @@ function RecordTags({
   }
   return (
     <>
-      {record.tags.map((tag: { id: string; value: string }) => (
+      {record.tags.map((tag: Tag) => (
         <Badge
           key={tag.id}
           className={cn(
             "gap-1",
+            getTagColor(tag),
             deletable && "pr-1",
             record.isSaving && "animate-pulse",
           )}
@@ -381,6 +426,7 @@ function AddTag({
       tag = {
         id: "new-tag",
         value: tagValue,
+        color: "black",
       }
     }
     if (!tag.value) {

@@ -6,7 +6,7 @@ export type Record = {
   end?: string
   tags: Tag[]
 }
-export type Tag = { id: string; value: string }
+export type Tag = { id: string; value: string; color: string }
 
 interface GetRecordsRequest {
   from: Date

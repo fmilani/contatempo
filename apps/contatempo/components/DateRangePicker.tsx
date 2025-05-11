@@ -47,7 +47,7 @@ export function DateRangePicker({
       <PopoverTrigger>
         <Badge
           id="date"
-          variant="secondary"
+          variant="outline"
           className={cn("font-normal", !date && "text-muted-foreground")}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />

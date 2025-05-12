@@ -39,6 +39,7 @@ export function TagFilter({
               <div className="flex items-center gap-1.5">
                 {filteringTags.slice(0, 3).map((tag) => (
                   <div
+                    key={tag.id}
                     className={cn("w-3 h-3 rounded-full", getTagColor(tag))}
                   />
                 ))}

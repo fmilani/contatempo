@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@vercel/speed-insights": "^1.2.0",
     "next": "16.0.0-beta.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"

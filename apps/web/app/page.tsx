@@ -1,9 +1,14 @@
+import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
+
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        Contatempo v4 is coming
-      </main>
+    <div className="flex flex-col min-h-screen items-center justify-center bg-background font-sans dark:bg-black">
+      <p className="text-4xl font-bold ">Contatempo</p>
+      <span className="font-light">A simple time tracker.</span>
+      <Button variant="ghost" size="icon-lg">
+        <Play />
+      </Button>
     </div>
   );
 }

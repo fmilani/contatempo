@@ -132,4 +132,5 @@ export enum ActivityType {
   SIGN_UP = "SIGN_UP",
   SIGN_IN = "SIGN_IN",
   CREATE_TEAM = "CREATE_TEAM",
+  SIGN_OUT = "SIGN_OUT",
 }

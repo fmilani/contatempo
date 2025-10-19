@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SWRConfig } from "swr";
+import { getUser } from "@/lib/db/queries";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +36,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <SWRConfig
+          value={{
+            fallback: {
+              "/api/user": getUser(),
+            },
+          }}
+        >
+          {children}
+        </SWRConfig>
       </body>
     </html>
   );

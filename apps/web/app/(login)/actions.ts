@@ -14,9 +14,12 @@ import {
   NewTeamMember,
   NewUser,
   NewTeam,
+  User,
 } from "@/lib/db/schema";
 import { redirect } from "next/navigation";
 import { comparePasswords, hashPassword, setSession } from "@/lib/auth/session";
+import { getUser, getUserWithTeam } from "@/lib/db/queries";
+import { cookies } from "next/headers";
 
 async function logActivity(
   teamId: number | null | undefined,
@@ -162,3 +165,10 @@ export const signIn = validatedAction(signInSchema, async (data) => {
 
   redirect("/now");
 });
+
+export async function signOut() {
+  const user = (await getUser()) as User;
+  const userWithTeam = await getUserWithTeam(user.id);
+  await logActivity(userWithTeam?.teamId, user.id, ActivityType.SIGN_OUT);
+  (await cookies()).delete("session");
+}

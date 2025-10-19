@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { signIn } from "./actions";
+import { signIn, signUp } from "./actions";
 import { Label } from "@/components/ui/label";
 import { ActionState } from "@/lib/auth/middleware";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export function Login({ mode }: { mode: "sign-in" | "sign-out" }) {
+export function Login({ mode }: { mode: "sign-in" | "sign-up" }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
-    mode === "sign-in" ? signIn : signIn,
+    mode === "sign-in" ? signIn : signUp,
     { error: "" },
   );
   return (

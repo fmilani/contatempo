@@ -1,14 +1,19 @@
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { NewUser } from "@/lib/db/schema";
 import { cookies } from "next/headers";
 
+const SALT_ROUNDS = 10;
 const key = new TextEncoder().encode(process.env.AUTH_SECRET);
 
 type SessionData = {
   user: { id: number };
   expires: string;
 };
+
+export async function hashPassword(password: string) {
+  return hash(password, SALT_ROUNDS);
+}
 
 export async function comparePasswords(
   plainTextPassword: string,

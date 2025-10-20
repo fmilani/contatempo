@@ -5,7 +5,7 @@ import { UserMenu } from "./user-menu";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <section>
+    <section className="flex flex-col min-h-screen overflow-hidden">
       <header className="px-4 sm:px-6 lg:px-8 min-h-[64px] flex justify-between items-center border-b border-gray-200">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-3xl">⏱️</span>
@@ -17,7 +17,19 @@ export default function Layout({ children }: { children: ReactNode }) {
           </Suspense>
         </div>
       </header>
-      {children}
+      <div className="absolute top-[64px] flex h-[calc(100dvh-64px)] w-full flex-col items-center justify-between overflow-y-auto">
+        <main className="w-full min-h-full shrink-0">{children}</main>
+        <footer className="w-full min-h-[64px] flex justify-center items-center border-t border-gray-200">
+          Made with ❤️ by&nbsp;
+          <a
+            href="https://www.fmilani.dev"
+            target="_blank"
+            className="underline"
+          >
+            fmilani
+          </a>
+        </footer>
+      </div>
     </section>
   );
 }

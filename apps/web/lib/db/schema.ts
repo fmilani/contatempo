@@ -112,6 +112,16 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
+export const records = pgTable("records", {
+  id: serial("id").primaryKey(),
+  start: timestamp("start").notNull(),
+  end: timestamp("end"),
+  description: varchar("description", { length: 500 }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Team = typeof teams.$inferSelect;
@@ -127,6 +137,8 @@ export type TeamDataWithMembers = Team & {
     user: Pick<User, "id" | "name" | "email">;
   })[];
 };
+export type Record = typeof records.$inferSelect;
+export type NewRecord = typeof records.$inferInsert;
 
 export enum ActivityType {
   SIGN_UP = "SIGN_UP",

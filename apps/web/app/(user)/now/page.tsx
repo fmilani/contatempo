@@ -4,11 +4,9 @@ import { Records } from "./records";
 
 export default function Page() {
   return (
-    <div>
-      <Suspense fallback="loading recent records...">
-        <RecentRecords />
-      </Suspense>
-    </div>
+    <Suspense fallback="loading recent records...">
+      <RecentRecords />
+    </Suspense>
   );
 }
 

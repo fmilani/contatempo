@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useOptimistic } from "react";
-import { Play, StopCircle } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startRecording, stopRecording } from "@/app/(user)/actions";
 import { ActionState } from "@/lib/auth/middleware";
@@ -38,18 +38,7 @@ export function Records({ records }: { records: Record[] }) {
   >(records, reducer);
   const ongoingRecord = optimisticRecords.find((record: Record) => !record.end);
   return (
-    <div>
-      <ul>
-        {optimisticRecords
-          .filter((record) => record.end)
-          .map((record) => (
-            <li key={record.id}>
-              {record.start.toLocaleTimeString()} -{" "}
-              {record.end?.toLocaleTimeString()}
-            </li>
-          ))
-          .slice(0, N_RECENT_RECORDS)}
-      </ul>
+    <div className="flex flex-col gap-2 items-center">
       {ongoingRecord ? (
         <StopRecording
           record={ongoingRecord}
@@ -68,6 +57,17 @@ export function Records({ records }: { records: Record[] }) {
           }}
         />
       )}
+      <ul>
+        {optimisticRecords
+          .filter((record) => record.end)
+          .map((record) => (
+            <li key={record.id}>
+              {record.start.toLocaleTimeString()} -{" "}
+              {record.end?.toLocaleTimeString()}
+            </li>
+          ))
+          .slice(0, N_RECENT_RECORDS)}
+      </ul>
     </div>
   );
 }
@@ -87,7 +87,7 @@ function StartRecording({ onStart }: { onStart: (date: Date) => void }) {
         startRecordingAction(formData);
       }}
     >
-      <Button size="icon-lg">
+      <Button variant="ghost" size="icon-lg" className="rounded-full">
         <Play />
       </Button>
     </form>
@@ -116,8 +116,13 @@ function StopRecording({
         stopRecordingAction(formData);
       }}
     >
-      <Button size="icon-lg" disabled={!record.id}>
-        <StopCircle />
+      <Button
+        variant="ghost"
+        size="icon-lg"
+        className="rounded-full"
+        disabled={!record.id}
+      >
+        <Square />
       </Button>
     </form>
   );

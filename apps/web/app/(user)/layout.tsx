@@ -18,7 +18,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
       <div className="absolute top-[64px] flex h-[calc(100dvh-64px)] w-full flex-col items-center justify-between overflow-y-auto">
-        <main className="w-full min-h-full shrink-0">{children}</main>
+        <main className="w-full min-h-full shrink-0 p-4">{children}</main>
         <footer className="w-full min-h-[64px] flex justify-center items-center border-t border-gray-200">
           Made with ❤️ by&nbsp;
           <a

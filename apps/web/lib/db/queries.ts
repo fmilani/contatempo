@@ -3,6 +3,7 @@ import { db } from "./drizzle";
 import { teamMembers, users } from "./schema";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth/session";
+import { N_RECENT_RECORDS } from "../constants";
 
 export async function getUser() {
   const sessionCookie = (await cookies()).get("session");
@@ -57,7 +58,7 @@ export async function getRecentRecords() {
   }
   const recordsResult = await db.query.records.findMany({
     orderBy: (records, { desc }) => [desc(records.start)],
-    limit: 5,
+    limit: N_RECENT_RECORDS + 1,
   });
   return recordsResult;
 }

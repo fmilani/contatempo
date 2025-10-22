@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { startRecording, stopRecording } from "@/app/(user)/actions";
 import { ActionState } from "@/lib/auth/middleware";
 import { Record } from "@/lib/db/schema";
+import { N_RECENT_RECORDS } from "@/lib/constants";
 
 type ActionType = "record";
 type Action = { type: ActionType; date?: Date; record?: Record };
@@ -26,7 +27,7 @@ function reducer(state: Record[], action: Action) {
           userId: 0,
         },
         ...state,
-      ].slice(0, -1);
+      ];
     }
   }
 }
@@ -39,12 +40,15 @@ export function Records({ records }: { records: Record[] }) {
   return (
     <div>
       <ul>
-        {optimisticRecords.map((record) => (
-          <li>
-            {record.start.toLocaleTimeString()} -{" "}
-            {record.end?.toLocaleTimeString()}
-          </li>
-        ))}
+        {optimisticRecords
+          .filter((record) => record.end)
+          .map((record) => (
+            <li key={record.id}>
+              {record.start.toLocaleTimeString()} -{" "}
+              {record.end?.toLocaleTimeString()}
+            </li>
+          ))
+          .slice(0, N_RECENT_RECORDS)}
       </ul>
       {ongoingRecord ? (
         <StopRecording

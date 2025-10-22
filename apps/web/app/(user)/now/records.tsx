@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useOptimistic } from "react";
+import { useActionState, useOptimistic, useState } from "react";
 import { Play, Square } from "lucide-react";
+import { intervalToDuration } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { startRecording, stopRecording } from "@/app/(user)/actions";
 import { ActionState } from "@/lib/auth/middleware";
 import { Record } from "@/lib/db/schema";
 import { N_RECENT_RECORDS } from "@/lib/constants";
+import { useInterval } from "@/lib/hooks";
 
 type ActionType = "record";
 type Action = { type: ActionType; date?: Date; record?: Record };
@@ -39,24 +41,27 @@ export function Records({ records }: { records: Record[] }) {
   const ongoingRecord = optimisticRecords.find((record: Record) => !record.end);
   return (
     <div className="flex flex-col gap-2 items-center">
-      {ongoingRecord ? (
-        <StopRecording
-          record={ongoingRecord}
-          onStop={(date) => {
-            updateOptimisticRecords({
-              type: "record",
-              record: ongoingRecord,
-              date,
-            });
-          }}
-        />
-      ) : (
-        <StartRecording
-          onStart={(date) => {
-            updateOptimisticRecords({ type: "record", date });
-          }}
-        />
-      )}
+      <div className="p-2 border rounded-full flex gap-1 items-center">
+        {ongoingRecord ? (
+          <StopRecording
+            record={ongoingRecord}
+            onStop={(date) => {
+              updateOptimisticRecords({
+                type: "record",
+                record: ongoingRecord,
+                date,
+              });
+            }}
+          />
+        ) : (
+          <StartRecording
+            onStart={(date) => {
+              updateOptimisticRecords({ type: "record", date });
+            }}
+          />
+        )}
+        {ongoingRecord && <OngoingDuration ongoingRecord={ongoingRecord} />}
+      </div>
       <ul>
         {optimisticRecords
           .filter((record) => record.end)
@@ -125,5 +130,23 @@ function StopRecording({
         <Square />
       </Button>
     </form>
+  );
+}
+
+function OngoingDuration({ ongoingRecord }: { ongoingRecord: Record }) {
+  const [now, setNow] = useState(new Date());
+  useInterval(() => setNow(new Date()), 500);
+  const duration = intervalToDuration({ start: ongoingRecord.start, end: now });
+  if (duration.hours) {
+    duration.hours += (duration.days ?? 0) * 24;
+  }
+  return (
+    <span className="font-mono">
+      {duration.hours?.toString().padStart(2, "0") ?? "00"}:
+      {duration.minutes?.toString().padStart(2, "0") ?? "00"}
+      <span className="text-[0.8em] text-gray-500">
+        :{duration.seconds?.toString().padStart(2, "0") ?? "00"}
+      </span>
+    </span>
   );
 }

@@ -4,7 +4,7 @@ import { signToken, verifyToken } from "@/lib/auth/session";
 
 const protectedRoutes = ["/now"];
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get("session");
   const isProtectedRoute = protectedRoutes.includes(pathname);

@@ -50,3 +50,14 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
     return action(result.data, formData, user);
   };
 }
+
+type ActionWithUserFunction<T, U> = (data: T, user: User) => Promise<U>;
+export function actionWithUser<T, U>(action: ActionWithUserFunction<T, U>) {
+  return async (data: T) => {
+    const user = await getUser();
+    if (!user) {
+      throw new Error("User is not authenticated");
+    }
+    return action(data, user);
+  };
+}

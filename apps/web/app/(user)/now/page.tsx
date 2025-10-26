@@ -1,16 +1,13 @@
 import { Suspense } from "react";
-import { getRecentRecords } from "@/lib/db/queries";
 import { Records } from "./records";
+import { RecentRecordsProvider } from "@/app/(user)/recent-records-provider";
 
 export default function Page() {
   return (
     <Suspense fallback="loading recent records...">
-      <RecentRecords />
+      <RecentRecordsProvider>
+        <Records />
+      </RecentRecordsProvider>
     </Suspense>
   );
-}
-
-async function RecentRecords() {
-  const recentRecords = await getRecentRecords();
-  return <Records records={recentRecords} />;
 }

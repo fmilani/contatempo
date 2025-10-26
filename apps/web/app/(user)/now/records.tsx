@@ -1,69 +1,21 @@
 "use client";
 
-import { useActionState, useOptimistic, useState } from "react";
+import { useState } from "react";
 import { Play, Square } from "lucide-react";
 import { intervalToDuration } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { startRecording, stopRecording } from "@/app/(user)/actions";
-import { ActionState } from "@/lib/auth/middleware";
 import { Record } from "@/lib/db/schema";
 import { N_RECENT_RECORDS } from "@/lib/constants";
 import { useInterval } from "@/lib/hooks";
+import { useRecentRecords } from "../recent-records-provider";
+import { cn } from "@/lib/utils";
 
-type ActionType = "record";
-type Action = { type: ActionType; date?: Date; record?: Record };
-function reducer(state: Record[], action: Action) {
-  switch (action.type) {
-    case "record": {
-      if (action.record) {
-        return state.map((r) =>
-          r.id === action.record?.id ? { ...r, end: action.date ?? null } : r,
-        );
-      }
-      return [
-        {
-          start: action.date ?? new Date(),
-          end: null,
-          description: null,
-          id: 0,
-          userId: 0,
-        },
-        ...state,
-      ];
-    }
-  }
-}
-export function Records({ records }: { records: Record[] }) {
-  const [optimisticRecords, updateOptimisticRecords] = useOptimistic<
-    Record[],
-    Action
-  >(records, reducer);
-  const ongoingRecord = optimisticRecords.find((record: Record) => !record.end);
+export function Records() {
+  const { recentRecords } = useRecentRecords();
   return (
     <div className="flex flex-col gap-2 items-center">
-      <div className="p-2 border rounded-full flex gap-1 items-center">
-        {ongoingRecord ? (
-          <StopRecording
-            record={ongoingRecord}
-            onStop={(date) => {
-              updateOptimisticRecords({
-                type: "record",
-                record: ongoingRecord,
-                date,
-              });
-            }}
-          />
-        ) : (
-          <StartRecording
-            onStart={(date) => {
-              updateOptimisticRecords({ type: "record", date });
-            }}
-          />
-        )}
-        {ongoingRecord && <OngoingDuration ongoingRecord={ongoingRecord} />}
-      </div>
       <ul>
-        {optimisticRecords
+        {recentRecords
           .filter((record) => record.end)
           .map((record) => (
             <li key={record.id}>
@@ -77,19 +29,43 @@ export function Records({ records }: { records: Record[] }) {
   );
 }
 
-function StartRecording({ onStart }: { onStart: (date: Date) => void }) {
-  const [_, startRecordingAction, __] = useActionState<ActionState, FormData>(
-    startRecording,
-    {},
+export function Recording() {
+  const { recentRecords, update } = useRecentRecords();
+  const ongoingRecord = recentRecords.find((record: Record) => !record.end);
+  return (
+    <div
+      className={cn(
+        "border rounded-full flex gap-1 items-center",
+        ongoingRecord && "pr-3",
+      )}
+    >
+      {ongoingRecord ? (
+        <StopRecording
+          record={ongoingRecord}
+          onStop={(date) => {
+            update({
+              type: "stop-recording",
+              recordId: ongoingRecord.id,
+              date,
+            });
+          }}
+        />
+      ) : (
+        <StartRecording
+          onStart={(date) => {
+            update({ type: "start-recording", date });
+          }}
+        />
+      )}
+      {ongoingRecord && <OngoingDuration ongoingRecord={ongoingRecord} />}
+    </div>
   );
+}
+function StartRecording({ onStart }: { onStart: (date: Date) => void }) {
   return (
     <form
       action={async () => {
-        const date = new Date();
-        const formData = new FormData();
-        formData.set("start", date.toISOString());
-        onStart(date);
-        startRecordingAction(formData);
+        onStart(new Date());
       }}
     >
       <Button variant="ghost" size="icon-lg" className="rounded-full">
@@ -106,19 +82,10 @@ function StopRecording({
   record: Record;
   onStop: (date: Date) => void;
 }) {
-  const [_, stopRecordingAction, __] = useActionState<ActionState, FormData>(
-    stopRecording,
-    {},
-  );
   return (
     <form
       action={async () => {
-        const date = new Date();
-        const formData = new FormData();
-        formData.set("end", date.toISOString());
-        formData.set("recordId", record.id.toString());
-        onStop(date);
-        stopRecordingAction(formData);
+        onStop(new Date());
       }}
     >
       <Button

@@ -62,6 +62,9 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
       switch (action.type) {
         case "start-recording": {
           const result = await startRecording({ start: action.date });
+          if (!result.record) {
+            return;
+          }
           const updatedRecordsAfterAction = updatedRecords.map((record) => {
             if (record.id === 0) {
               return result.record;
@@ -76,12 +79,14 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
             end: action.date,
             recordId: action.recordId,
           });
-          const updatedRecordsAfterAction = updatedRecords.map((record) => {
-            if (record.id === action.recordId) {
-              return result.record;
-            }
-            return record;
-          });
+          const updatedRecordsAfterAction = updatedRecords
+            .map((record) => {
+              if (record.id === action.recordId) {
+                return result.record;
+              }
+              return record;
+            })
+            .filter(Boolean);
           mutate(updatedRecordsAfterAction, false);
           return;
         }

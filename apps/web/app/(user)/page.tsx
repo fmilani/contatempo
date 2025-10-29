@@ -8,8 +8,13 @@ export default function Home() {
       <div className="mb-48 flex flex-col items-center justify-center bg-background font-sans dark:bg-black">
         <p className="text-4xl font-bold ">contatempo</p>
         <span className="font-light">A simple time tracker.</span>
-        <Button asChild variant="ghost" size="icon-lg">
-          <Link href="/now">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-lg"
+          className="border rounded-full"
+        >
+          <Link href="/now?autostart=1">
             <Play />
           </Link>
         </Button>

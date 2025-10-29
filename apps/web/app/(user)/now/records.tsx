@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { Play, Square } from "lucide-react";
 import { intervalToDuration } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,22 @@ import { N_RECENT_RECORDS } from "@/lib/constants";
 import { useInterval } from "@/lib/hooks";
 import { useRecentRecords } from "../recent-records-provider";
 import { cn } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function Records() {
-  const { recentRecords } = useRecentRecords();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { recentRecords, update } = useRecentRecords();
+  const ongoingRecord = recentRecords.find((record: Record) => !record.end);
+  const autostart = searchParams.get("autostart") === "1";
+  useEffect(() => {
+    if (autostart && !ongoingRecord) {
+      startTransition(() => {
+        router.replace("?autostart=0");
+        update({ type: "start-recording", date: new Date() });
+      });
+    }
+  }, []);
   return (
     <div className="flex flex-col gap-2 items-center">
       <ul>

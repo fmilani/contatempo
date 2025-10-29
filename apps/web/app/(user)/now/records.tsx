@@ -1,15 +1,18 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, Suspense, useEffect, useState } from "react";
 import { Play, Square } from "lucide-react";
 import { intervalToDuration } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Record } from "@/lib/db/schema";
 import { N_RECENT_RECORDS } from "@/lib/constants";
 import { useInterval } from "@/lib/hooks";
-import { useRecentRecords } from "../recent-records-provider";
+import {
+  RecentRecordsProvider,
+  useRecentRecords,
+} from "../recent-records-provider";
 import { cn } from "@/lib/utils";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function Records() {
   const searchParams = useSearchParams();
@@ -41,8 +44,18 @@ export function Records() {
     </div>
   );
 }
-
-export function Recording() {
+export function RecordingContainer() {
+  const pathname = usePathname();
+  if (pathname === "/") return null;
+  return (
+    <Suspense fallback="waaat">
+      <RecentRecordsProvider>
+        <Recording />
+      </RecentRecordsProvider>
+    </Suspense>
+  );
+}
+function Recording() {
   const { recentRecords, update } = useRecentRecords();
   const ongoingRecord = recentRecords.find((record: Record) => !record.end);
   return (

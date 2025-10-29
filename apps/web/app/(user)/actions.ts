@@ -9,12 +9,17 @@ export const startRecording = actionWithUser<
   { start: Date },
   { record: Record }
 >(async (data, user) => {
+  const startWithNoMillis = new Date(data.start);
+  startWithNoMillis.setMilliseconds(0);
   const newRecord: NewRecord = {
     userId: user.id,
-    start: data.start,
+    start: startWithNoMillis,
   };
-  const newRecordSaved = await db.insert(records).values(newRecord).returning();
-  // revalidatePath("/now");
+  const newRecordSaved = await db
+    .insert(records)
+    .values(newRecord)
+    .onConflictDoNothing()
+    .returning();
   return { record: newRecordSaved[0] };
 });
 
@@ -29,11 +34,12 @@ export const stopRecording = actionWithUser<
     throw new Error("Record not found");
   }
 
+  const endWithNoMillis = new Date(data.end);
+  endWithNoMillis.setMilliseconds(0);
   const newRecordSaved = await db
     .update(records)
-    .set({ end: data.end })
+    .set({ end: endWithNoMillis })
     .where(eq(records.id, userRecord.id))
     .returning();
-  // revalidatePath("/now");
   return { record: newRecordSaved[0] };
 });

@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
   integer,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -112,15 +113,19 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
-export const records = pgTable("records", {
-  id: serial("id").primaryKey(),
-  start: timestamp("start").notNull(),
-  end: timestamp("end"),
-  description: varchar("description", { length: 500 }),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-});
+export const records = pgTable(
+  "records",
+  {
+    id: serial("id").primaryKey(),
+    start: timestamp("start").notNull(),
+    end: timestamp("end"),
+    description: varchar("description", { length: 500 }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (t) => [uniqueIndex("start_unique").on(t.userId, t.start)],
+);
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

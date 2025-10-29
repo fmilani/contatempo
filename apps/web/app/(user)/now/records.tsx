@@ -46,7 +46,8 @@ export function Records() {
 }
 export function RecordingContainer() {
   const pathname = usePathname();
-  if (pathname === "/") return null;
+  if (pathname === "/" || pathname === "/sign-in" || pathname === "/sign-up")
+    return null;
   return (
     <Suspense fallback="waaat">
       <RecentRecordsProvider>

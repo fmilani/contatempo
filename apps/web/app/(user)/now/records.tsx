@@ -1,12 +1,12 @@
 "use client";
 
-import { startTransition, Suspense, useEffect, useState } from "react";
+import { startTransition, Suspense, useEffect, useRef, useState } from "react";
 import { Play, Square } from "lucide-react";
 import { intervalToDuration } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Record } from "@/lib/db/schema";
 import { N_RECENT_RECORDS } from "@/lib/constants";
-import { useInterval } from "@/lib/hooks";
+import { useInterval, useKeyPressEvent } from "@/lib/hooks";
 import {
   RecentRecordsProvider,
   useRecentRecords,
@@ -89,8 +89,14 @@ function Recording() {
   );
 }
 function StartRecording({ onStart }: { onStart: (date: Date) => void }) {
+  const form = useRef<HTMLFormElement>(null);
+  useKeyPressEvent("s", (event) => {
+    event.preventDefault();
+    form.current?.requestSubmit();
+  });
   return (
     <form
+      ref={form}
       action={async () => {
         onStart(new Date());
       }}
@@ -109,8 +115,14 @@ function StopRecording({
   record: Record;
   onStop: (date: Date) => void;
 }) {
+  const form = useRef<HTMLFormElement>(null);
+  useKeyPressEvent("s", (event) => {
+    event.preventDefault();
+    form.current?.requestSubmit();
+  });
   return (
     <form
+      ref={form}
       action={async () => {
         onStop(new Date());
       }}

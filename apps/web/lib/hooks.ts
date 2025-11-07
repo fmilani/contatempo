@@ -15,3 +15,29 @@ export function useInterval(callback: () => void, delay: number) {
     return () => clearInterval(id);
   }, [delay]);
 }
+
+export function useKeyPressEvent(
+  key: string,
+  action: (event: KeyboardEvent) => void,
+) {
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      const tagName = target.tagName.toLowerCase();
+      if (
+        tagName === "input" ||
+        tagName === "textarea" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      if (event.key === key) {
+        action(event);
+      }
+    };
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [key, action]);
+}

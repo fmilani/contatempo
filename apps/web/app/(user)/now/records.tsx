@@ -27,7 +27,7 @@ export function Records() {
         update({ type: "start-recording", date: new Date() });
       });
     }
-  }, []);
+  }, [autostart, ongoingRecord, router, update]);
   return (
     <div className="flex flex-col gap-2 items-center">
       <ul>

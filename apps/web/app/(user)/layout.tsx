@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { UserMenu } from "./user-menu";
-import { RecentRecordsProvider } from "./recent-records-provider";
 import { RecordingContainer } from "@/app/(user)/now/records";
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -27,6 +26,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <a
             href="https://www.fmilani.dev"
             target="_blank"
+            rel="noreferrer"
             className="underline"
           >
             fmilani

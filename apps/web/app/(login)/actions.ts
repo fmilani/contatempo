@@ -79,8 +79,6 @@ export const signUp = validatedAction(signUpSchema, async (data) => {
     };
   }
 
-  let teamId: number;
-  let userRole: string;
   let createdTeam: typeof teams.$inferSelect | null = null;
   const newTeam: NewTeam = {
     name: `${email}'s Team`,
@@ -96,8 +94,8 @@ export const signUp = validatedAction(signUpSchema, async (data) => {
     };
   }
 
-  teamId = createdTeam.id;
-  userRole = "owner";
+  const teamId = createdTeam.id;
+  const userRole = "owner";
 
   await logActivity(teamId, createdUser.id, ActivityType.CREATE_TEAM);
 

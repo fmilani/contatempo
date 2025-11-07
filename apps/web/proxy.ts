@@ -13,7 +13,7 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
-  let res = NextResponse.next();
+  const res = NextResponse.next();
 
   if (sessionCookie && request.method === "GET") {
     try {

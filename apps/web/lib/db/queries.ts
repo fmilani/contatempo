@@ -54,7 +54,7 @@ export async function getUserWithTeam(userId: number) {
 export async function getRecentRecords() {
   const user = await getUser();
   if (!user) {
-    throw new Error("User not authenticated");
+    return [];
   }
   const recordsResult = await db.query.records.findMany({
     orderBy: (records, { desc }) => [desc(records.start)],

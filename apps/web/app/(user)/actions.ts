@@ -43,3 +43,21 @@ export const stopRecording = actionWithUser<
     .returning();
   return { record: newRecordSaved[0] };
 });
+export const updateRecordDescription = actionWithUser<
+  { description: string; recordId: number },
+  { record: Record }
+>(async (data, user) => {
+  const userRecord = await db.query.records.findFirst({
+    where: (records, { eq }) => eq(records.id, data.recordId),
+  });
+  if (!userRecord || userRecord.userId !== user.id) {
+    throw new Error("Record not found");
+  }
+
+  const newRecordSaved = await db
+    .update(records)
+    .set({ description: data.description })
+    .where(eq(records.id, userRecord.id))
+    .returning();
+  return { record: newRecordSaved[0] };
+});

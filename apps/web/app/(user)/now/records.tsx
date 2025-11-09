@@ -13,6 +13,7 @@ import {
 } from "../recent-records-provider";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Input } from "@/components/ui/input";
 
 export function Records() {
   const searchParams = useSearchParams();
@@ -36,7 +37,7 @@ export function Records() {
           .map((record) => (
             <li key={record.id}>
               {record.start.toLocaleTimeString()} -{" "}
-              {record.end?.toLocaleTimeString()}
+              {record.end?.toLocaleTimeString()}: {record.description}
             </li>
           ))
           .slice(0, N_RECENT_RECORDS)}
@@ -62,8 +63,8 @@ function Recording() {
   return (
     <div
       className={cn(
-        "border rounded-full flex gap-1 items-center",
-        ongoingRecord && "pr-3",
+        "border rounded-full flex gap-4 items-center",
+        ongoingRecord && "pr-3 flex-1",
       )}
     >
       {ongoingRecord ? (
@@ -85,9 +86,43 @@ function Recording() {
         />
       )}
       {ongoingRecord && <OngoingDuration ongoingRecord={ongoingRecord} />}
+      {ongoingRecord && <DescriptionForm ongoingRecord={ongoingRecord} />}
     </div>
   );
 }
+
+function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { update } = useRecentRecords();
+  return (
+    <form
+      className="flex-1"
+      action={(formData) => {
+        if (!ongoingRecord.id) {
+          alert("pera");
+          return;
+        }
+        update({
+          type: "update-description",
+          recordId: ongoingRecord.id,
+          description: formData.get("description")?.toString() ?? "",
+        });
+        console.log("desc form");
+        inputRef.current?.blur();
+      }}
+    >
+      <Input
+        className="border-none"
+        placeholder="what are working on?"
+        ref={inputRef}
+        autoFocus
+        name="description"
+        defaultValue={ongoingRecord.description ?? ""}
+      />
+    </form>
+  );
+}
+
 function StartRecording({ onStart }: { onStart: (date: Date) => void }) {
   const form = useRef<HTMLFormElement>(null);
   useKeyPressEvent("s", (event) => {

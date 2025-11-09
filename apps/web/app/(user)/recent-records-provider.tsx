@@ -3,7 +3,11 @@
 import { createContext, ReactNode, startTransition, useContext } from "react";
 import { Record } from "@/lib/db/schema";
 import useSWR from "swr";
-import { startRecording, stopRecording } from "./actions";
+import {
+  startRecording,
+  stopRecording,
+  updateRecordDescription,
+} from "./actions";
 
 type StartRecordingAction = { type: "start-recording"; date: Date };
 type StopRecordingAction = {
@@ -11,7 +15,15 @@ type StopRecordingAction = {
   date: Date;
   recordId: number;
 };
-type Action = StartRecordingAction | StopRecordingAction;
+type UpdateDescriptionAction = {
+  type: "update-description";
+  recordId: number;
+  description: string;
+};
+type Action =
+  | StartRecordingAction
+  | StopRecordingAction
+  | UpdateDescriptionAction;
 type RecentRecordsContextType = {
   recentRecords: Record[];
   update: (action: Action) => void;
@@ -37,6 +49,13 @@ function reducer(state: Record[], action: Action) {
       return state.map((record) =>
         record.id === action.recordId
           ? { ...record, end: action.date ?? null }
+          : record,
+      );
+    }
+    case "update-description": {
+      return state.map((record) =>
+        record.id === action.recordId
+          ? { ...record, description: action.description }
           : record,
       );
     }
@@ -75,19 +94,17 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
           return;
         }
         case "stop-recording": {
-          const result = await stopRecording({
+          await stopRecording({
             end: action.date,
             recordId: action.recordId,
           });
-          const updatedRecordsAfterAction = updatedRecords
-            .map((record) => {
-              if (record.id === action.recordId) {
-                return result.record;
-              }
-              return record;
-            })
-            .filter(Boolean);
-          mutate(updatedRecordsAfterAction, false);
+          return;
+        }
+        case "update-description": {
+          await updateRecordDescription({
+            recordId: action.recordId,
+            description: action.description,
+          });
           return;
         }
       }

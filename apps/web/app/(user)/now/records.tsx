@@ -115,7 +115,7 @@ function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
         className="border-none"
         placeholder="what are working on?"
         ref={inputRef}
-        autoFocus
+        autoFocus={!ongoingRecord.description}
         name="description"
         defaultValue={ongoingRecord.description ?? ""}
       />

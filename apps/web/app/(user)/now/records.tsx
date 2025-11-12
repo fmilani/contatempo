@@ -13,11 +13,9 @@ import {
 } from "../recent-records-provider";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
 
@@ -64,7 +62,7 @@ export function RecordingContainer() {
   );
 }
 function Recording() {
-  const { recentRecords, update } = useRecentRecords();
+  const { recentRecords } = useRecentRecords();
   const ongoingRecord = recentRecords.find((record: Record) => !record.end);
   return (
     <div
@@ -74,22 +72,9 @@ function Recording() {
       )}
     >
       {ongoingRecord ? (
-        <StopRecording
-          record={ongoingRecord}
-          onStop={(date) => {
-            update({
-              type: "stop-recording",
-              recordId: ongoingRecord.id,
-              date,
-            });
-          }}
-        />
+        <StopRecording record={ongoingRecord} />
       ) : (
-        <StartRecording
-          onStart={(date) => {
-            update({ type: "start-recording", date });
-          }}
-        />
+        <StartRecording />
       )}
       {ongoingRecord && <OngoingDuration ongoingRecord={ongoingRecord} />}
       {ongoingRecord && <DescriptionForm ongoingRecord={ongoingRecord} />}
@@ -135,17 +120,18 @@ function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
   );
 }
 
-function StartRecording({ onStart }: { onStart: (date: Date) => void }) {
+function StartRecording() {
   const form = useRef<HTMLFormElement>(null);
   useKeyPressEvent("s", (event) => {
     event.preventDefault();
     form.current?.requestSubmit();
   });
+  const { update } = useRecentRecords();
   return (
     <form
       ref={form}
       action={async () => {
-        onStart(new Date());
+        update({ type: "start-recording", date: new Date() });
       }}
     >
       <Button variant="ghost" size="icon-lg" className="rounded-full">
@@ -155,23 +141,22 @@ function StartRecording({ onStart }: { onStart: (date: Date) => void }) {
   );
 }
 
-function StopRecording({
-  record,
-  onStop,
-}: {
-  record: Record;
-  onStop: (date: Date) => void;
-}) {
+function StopRecording({ record }: { record: Record }) {
   const form = useRef<HTMLFormElement>(null);
   useKeyPressEvent("s", (event) => {
     event.preventDefault();
     form.current?.requestSubmit();
   });
+  const { update } = useRecentRecords();
   return (
     <form
       ref={form}
       action={async () => {
-        onStop(new Date());
+        update({
+          type: "stop-recording",
+          recordId: record.id,
+          date: new Date(),
+        });
       }}
     >
       <Button

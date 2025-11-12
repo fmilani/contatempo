@@ -99,7 +99,7 @@ function Recording() {
 
 function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { update, updateIsPending } = useRecentRecords();
+  const { update, updateDescriptionIsPending } = useRecentRecords();
   return (
     <form
       className="flex-1"
@@ -125,7 +125,7 @@ function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
           name="description"
           defaultValue={ongoingRecord.description ?? ""}
         />
-        {updateIsPending && (
+        {updateDescriptionIsPending && (
           <InputGroupAddon align="inline-end">
             <Loader2 className="animate-spin" />
           </InputGroupAddon>

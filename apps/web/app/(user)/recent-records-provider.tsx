@@ -27,7 +27,9 @@ type Action =
 type RecentRecordsContextType = {
   recentRecords: Record[];
   update: (action: Action) => void;
-  updateIsPending: boolean;
+  startRecordingIsPending: boolean;
+  stopRecordingIsPending: boolean;
+  updateDescriptionIsPending: boolean;
 };
 const RecentRecordsContext = createContext<RecentRecordsContextType | null>(
   null,
@@ -73,15 +75,20 @@ const fetcher = async (url: string) => {
 };
 export function RecentRecordsProvider({ children }: { children: ReactNode }) {
   const { data, mutate } = useSWR<Record[]>("/api/recent-records", fetcher);
-  const [isPending, startTransition] = useTransition();
+  const [startRecordingIsPending, startStartRecordingTransition] =
+    useTransition();
+  const [stopRecordingIsPending, startStopRecordingTransition] =
+    useTransition();
+  const [updateDescriptionIsPending, startUpdateDescriptionTransition] =
+    useTransition();
   const records = data!;
   function update(action: Action) {
-    startTransition(async () => {
-      const updatedRecords = reducer(records, action);
-      mutate(updatedRecords, { revalidate: false });
+    const updatedRecords = reducer(records, action);
+    mutate(updatedRecords, { revalidate: false });
 
-      switch (action.type) {
-        case "start-recording": {
+    switch (action.type) {
+      case "start-recording": {
+        startStartRecordingTransition(async () => {
           const result = await startRecording({ start: action.date });
           if (!result.record) {
             return;
@@ -93,28 +100,38 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
             return record;
           });
           mutate(updatedRecordsAfterAction, false);
-          return;
-        }
-        case "stop-recording": {
+        });
+        return;
+      }
+      case "stop-recording": {
+        startStopRecordingTransition(async () => {
           await stopRecording({
             end: action.date,
             recordId: action.recordId,
           });
-          return;
-        }
-        case "update-description": {
+        });
+        return;
+      }
+      case "update-description": {
+        startUpdateDescriptionTransition(async () => {
           await updateRecordDescription({
             recordId: action.recordId,
             description: action.description,
           });
-          return;
-        }
+        });
+        return;
       }
-    });
+    }
   }
   return (
     <RecentRecordsContext.Provider
-      value={{ recentRecords: records, update, updateIsPending: isPending }}
+      value={{
+        recentRecords: records,
+        update,
+        startRecordingIsPending,
+        stopRecordingIsPending,
+        updateDescriptionIsPending,
+      }}
     >
       {children}
     </RecentRecordsContext.Provider>

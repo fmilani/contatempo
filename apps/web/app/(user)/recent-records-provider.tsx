@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, startTransition, useContext } from "react";
+import { createContext, ReactNode, useContext, useTransition } from "react";
 import { Record } from "@/lib/db/schema";
 import useSWR from "swr";
 import {
@@ -27,6 +27,7 @@ type Action =
 type RecentRecordsContextType = {
   recentRecords: Record[];
   update: (action: Action) => void;
+  updateIsPending: boolean;
 };
 const RecentRecordsContext = createContext<RecentRecordsContextType | null>(
   null,
@@ -72,6 +73,7 @@ const fetcher = async (url: string) => {
 };
 export function RecentRecordsProvider({ children }: { children: ReactNode }) {
   const { data, mutate } = useSWR<Record[]>("/api/recent-records", fetcher);
+  const [isPending, startTransition] = useTransition();
   const records = data!;
   function update(action: Action) {
     startTransition(async () => {
@@ -111,7 +113,9 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
     });
   }
   return (
-    <RecentRecordsContext.Provider value={{ recentRecords: records, update }}>
+    <RecentRecordsContext.Provider
+      value={{ recentRecords: records, update, updateIsPending: isPending }}
+    >
       {children}
     </RecentRecordsContext.Provider>
   );

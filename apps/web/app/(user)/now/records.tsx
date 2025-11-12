@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, Suspense, useEffect, useRef, useState } from "react";
-import { Play, Square } from "lucide-react";
+import { Loader, Loader2, Play, Square } from "lucide-react";
 import { intervalToDuration } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Record } from "@/lib/db/schema";
@@ -14,6 +14,12 @@ import {
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 export function Records() {
   const searchParams = useSearchParams();
@@ -93,7 +99,7 @@ function Recording() {
 
 function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { update } = useRecentRecords();
+  const { update, updateIsPending } = useRecentRecords();
   return (
     <form
       className="flex-1"
@@ -111,14 +117,20 @@ function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
         inputRef.current?.blur();
       }}
     >
-      <Input
-        className="border-none"
-        placeholder="what are working on?"
-        ref={inputRef}
-        autoFocus={!ongoingRecord.description}
-        name="description"
-        defaultValue={ongoingRecord.description ?? ""}
-      />
+      <InputGroup className="border-none">
+        <InputGroupInput
+          placeholder="what are you working on?"
+          ref={inputRef}
+          autoFocus={!ongoingRecord.description}
+          name="description"
+          defaultValue={ongoingRecord.description ?? ""}
+        />
+        {updateIsPending && (
+          <InputGroupAddon align="inline-end">
+            <Loader2 className="animate-spin" />
+          </InputGroupAddon>
+        )}
+      </InputGroup>
     </form>
   );
 }

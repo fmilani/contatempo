@@ -85,6 +85,12 @@ function Recording() {
 function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { update, updateDescriptionIsPending } = useRecentRecords();
+  useKeyPressEvent("Escape", () => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+    inputRef.current?.blur();
+  });
   return (
     <form
       className="flex-1"
@@ -98,13 +104,12 @@ function DescriptionForm({ ongoingRecord }: { ongoingRecord: Record }) {
           recordId: ongoingRecord.id,
           description: formData.get("description")?.toString() ?? "",
         });
-        console.log("desc form");
         inputRef.current?.blur();
       }}
     >
       <InputGroup className="border-none">
         <InputGroupInput
-          placeholder="what are you working on?"
+          placeholder="what are you doing?"
           ref={inputRef}
           autoFocus={!ongoingRecord.description}
           name="description"

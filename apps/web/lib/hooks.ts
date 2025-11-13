@@ -25,9 +25,10 @@ export function useKeyPressEvent(
       const target = event.target as HTMLElement;
       const tagName = target.tagName.toLowerCase();
       if (
-        tagName === "input" ||
-        tagName === "textarea" ||
-        target.isContentEditable
+        !["Escape"].includes(event.key) &&
+        (tagName === "input" ||
+          tagName === "textarea" ||
+          target.isContentEditable)
       ) {
         return;
       }

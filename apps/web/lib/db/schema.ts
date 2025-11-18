@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   uniqueIndex,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -126,6 +127,64 @@ export const records = pgTable(
   },
   (t) => [uniqueIndex("start_unique").on(t.userId, t.start)],
 );
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 20 }).notNull(),
+  color: varchar("color", {
+    enum: [
+      "blue",
+      "green",
+      "purple",
+      "orange",
+      "pink",
+      "yellow",
+      "red",
+      "indigo",
+      "cyan",
+      "slate",
+      "emerald",
+      "violet",
+      "rose",
+      "teal",
+      "amber",
+      "lime",
+      "sky",
+    ],
+  }).notNull(),
+});
+
+export const tagsToRecords = pgTable(
+  "tags_to_records",
+  {
+    tagId: integer("tag_id")
+      .notNull()
+      .references(() => tags.id),
+    recordId: integer("record_id")
+      .notNull()
+      .references(() => records.id),
+  },
+  (t) => [primaryKey({ columns: [t.tagId, t.recordId] })],
+);
+
+export const recordsRelations = relations(records, ({ many }) => ({
+  tagsToRecords: many(tagsToRecords),
+}));
+export const tagsRelations = relations(tags, ({ many }) => ({
+  tagsToRecords: many(tagsToRecords),
+}));
+export const tagsToRecordsRelations = relations(tagsToRecords, ({ one }) => ({
+  record: one(records, {
+    fields: [tagsToRecords.recordId],
+    references: [records.id],
+  }),
+  tag: one(tags, {
+    fields: [tagsToRecords.tagId],
+    references: [tags.id],
+  }),
+}));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -144,6 +203,10 @@ export type TeamDataWithMembers = Team & {
 };
 export type Record = typeof records.$inferSelect;
 export type NewRecord = typeof records.$inferInsert;
+export type RecordWithTags = Record & {
+  tags: Tag[];
+};
+export type Tag = typeof tags.$inferSelect;
 
 export enum ActivityType {
   SIGN_UP = "SIGN_UP",

@@ -59,6 +59,27 @@ export async function getRecentRecords() {
   const recordsResult = await db.query.records.findMany({
     orderBy: (records, { desc }) => [desc(records.start)],
     limit: N_RECENT_RECORDS + 1,
+    with: {
+      tagsToRecords: {
+        with: {
+          tag: true,
+        },
+      },
+    },
   });
-  return recordsResult;
+  return recordsResult.map(({ tagsToRecords, ...rest }) => ({
+    ...rest,
+    tags: tagsToRecords.map(({ tag }) => tag),
+  }));
+}
+
+export async function getUserTags() {
+  const user = await getUser();
+  if (!user) {
+    return [];
+  }
+  const tagsResult = await db.query.tags.findMany({
+    where: (tags, { eq }) => eq(tags.userId, user.id),
+  });
+  return tagsResult;
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRConfig } from "swr";
-import { getRecentRecords, getUser } from "@/lib/db/queries";
+import { getRecentRecords, getUser, getUserTags } from "@/lib/db/queries";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +41,7 @@ export default function RootLayout({
             fallback: {
               "/api/user": getUser(),
               "/api/recent-records": getRecentRecords(),
+              "/api/user-tags": getUserTags(),
             },
           }}
         >

@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { UserMenu } from "./user-menu";
-import { RecordingContainer } from "@/app/(user)/now/records";
+import { RecordingContainer } from "@/app/(user)/now/recording";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (

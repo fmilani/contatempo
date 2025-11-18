@@ -1,12 +1,13 @@
 "use client";
 
 import { createContext, ReactNode, useContext, useTransition } from "react";
-import { Record } from "@/lib/db/schema";
+import { RecordWithTags, Tag } from "@/lib/db/schema";
 import useSWR from "swr";
 import {
   startRecording,
   stopRecording,
   updateRecordDescription,
+  updateRecordTags,
 } from "./actions";
 
 type StartRecordingAction = { type: "start-recording"; date: Date };
@@ -20,21 +21,28 @@ type UpdateDescriptionAction = {
   recordId: number;
   description: string;
 };
+type UpdateTagsAction = {
+  type: "update-tags";
+  recordId: number;
+  tags: Tag[];
+};
 type Action =
   | StartRecordingAction
   | StopRecordingAction
-  | UpdateDescriptionAction;
+  | UpdateDescriptionAction
+  | UpdateTagsAction;
 type RecentRecordsContextType = {
-  recentRecords: Record[];
+  recentRecords: RecordWithTags[];
   update: (action: Action) => void;
   startRecordingIsPending: boolean;
   stopRecordingIsPending: boolean;
   updateDescriptionIsPending: boolean;
+  updateTagsIsPending: boolean;
 };
 const RecentRecordsContext = createContext<RecentRecordsContextType | null>(
   null,
 );
-function reducer(state: Record[], action: Action) {
+function reducer(state: RecordWithTags[], action: Action) {
   switch (action.type) {
     case "start-recording": {
       return [
@@ -42,6 +50,7 @@ function reducer(state: Record[], action: Action) {
           start: action.date,
           end: null,
           description: null,
+          tags: [],
           id: 0,
           userId: 0,
         },
@@ -62,11 +71,18 @@ function reducer(state: Record[], action: Action) {
           : record,
       );
     }
+    case "update-tags": {
+      return state.map((record) =>
+        record.id === action.recordId
+          ? { ...record, tags: action.tags }
+          : record,
+      );
+    }
   }
 }
 const fetcher = async (url: string) => {
   const r = await fetch(url);
-  const records: Record[] = await r.json();
+  const records: RecordWithTags[] = await r.json();
   return records.map((record) => ({
     ...record,
     start: new Date(record.start),
@@ -74,13 +90,17 @@ const fetcher = async (url: string) => {
   }));
 };
 export function RecentRecordsProvider({ children }: { children: ReactNode }) {
-  const { data, mutate } = useSWR<Record[]>("/api/recent-records", fetcher);
+  const { data, mutate } = useSWR<RecordWithTags[]>(
+    "/api/recent-records",
+    fetcher,
+  );
   const [startRecordingIsPending, startStartRecordingTransition] =
     useTransition();
   const [stopRecordingIsPending, startStopRecordingTransition] =
     useTransition();
   const [updateDescriptionIsPending, startUpdateDescriptionTransition] =
     useTransition();
+  const [updateTagsIsPending, startUpdateTagsTransition] = useTransition();
   const records = data!;
   function update(action: Action) {
     const updatedRecords = reducer(records, action);
@@ -121,6 +141,15 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
         });
         return;
       }
+      case "update-tags": {
+        startUpdateTagsTransition(async () => {
+          await updateRecordTags({
+            recordId: action.recordId,
+            tags: action.tags.map((tag) => tag.id),
+          });
+        });
+        return;
+      }
     }
   }
   return (
@@ -131,6 +160,7 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
         startRecordingIsPending,
         stopRecordingIsPending,
         updateDescriptionIsPending,
+        updateTagsIsPending,
       }}
     >
       {children}

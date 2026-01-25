@@ -152,15 +152,16 @@ function OngoingDuration({ ongoingRecord }: { ongoingRecord: Record }) {
 function DescriptionForm({ record }: { record: Record }) {
   const { update, updateDescriptionIsPending } = useRecentRecords();
   const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   useKeyPressEvent("Escape", () => {
     inputRef.current?.blur();
   });
   return (
     <form
+      ref={formRef}
       className="flex-1"
       action={(formData) => {
         if (!record.id) {
-          alert("pera");
           return;
         }
         update({
@@ -175,6 +176,14 @@ function DescriptionForm({ record }: { record: Record }) {
         <InputGroupInput
           placeholder="what are you doing?"
           ref={inputRef}
+          onBlur={() => {
+            if (
+              inputRef.current?.value &&
+              inputRef.current?.value !== record.description
+            ) {
+              formRef.current?.requestSubmit();
+            }
+          }}
           autoFocus={!record.description}
           defaultValue={record.description ?? ""}
           name="description"

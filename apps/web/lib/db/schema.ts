@@ -207,6 +207,7 @@ export type RecordWithTags = Record & {
   tags: Tag[];
 };
 export type Tag = typeof tags.$inferSelect;
+export type NewTag = typeof tags.$inferInsert;
 
 export enum ActivityType {
   SIGN_UP = "SIGN_UP",

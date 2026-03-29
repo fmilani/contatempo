@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  startTransition,
-  Suspense,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import { Loader2, Play, Square, TagsIcon } from "lucide-react";
 import { intervalToDuration } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -19,11 +11,10 @@ import {
   useRecentRecords,
 } from "@/app/(user)/recent-records-provider";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
 import {
@@ -33,14 +24,14 @@ import {
 } from "@/components/ui/popover";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { Checkbox } from "@/components/ui/checkbox";
+import { createTag } from "../actions";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export function RecordingContainer() {
@@ -199,22 +190,67 @@ function DescriptionForm({ record }: { record: Record }) {
 }
 export function TagsForm({ record }: { record: RecordWithTags }) {
   const { data: tags } = useSWR<Tag[]>("/api/user-tags", fetcher);
+  const { mutate } = useSWRConfig();
   const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const { update, updateTagsIsPending } = useRecentRecords();
+  const { update } = useRecentRecords();
   useKeyPressEvent("#", (event) => {
     event.preventDefault();
     setOpen(true);
   });
+  const filteredTags = useMemo(() => {
+    const v = searchInput.trim().toLowerCase();
+    if (!v) return tags ?? [];
+
+    return tags?.filter((tag) => tag.name.toLowerCase().includes(v)) ?? [];
+  }, [tags, searchInput]);
+  const exactMatchTag = useMemo(() => {
+    const v = searchInput.trim().toLowerCase();
+    if (!v) return null;
+
+    return (tags ?? []).find((tag) => tag.name.toLowerCase() === v) ?? null;
+  }, [tags, searchInput]);
+  const canCreateTag = searchInput.trim().length > 0 && !exactMatchTag;
+
+  async function handleCreate() {
+    const name = searchInput.trim();
+    if (!name) return;
+    const createdTag = await createTag({ name });
+
+    await mutate<Tag[]>(
+      "/api/user-tags",
+      (currentTags) => {
+        const nextTags = currentTags ?? [];
+        if (nextTags.some((tag) => tag.id === createdTag.id)) {
+          return nextTags;
+        }
+
+        return [...nextTags, createdTag];
+      },
+      { revalidate: false },
+    );
+
+    const updatedTags = record.tags.some((tag) => tag.id === createdTag.id)
+      ? record.tags
+      : [...record.tags, createdTag];
+
+    update({
+      type: "update-tags",
+      tags: updatedTags,
+      recordId: record.id,
+    });
+
+    setSearchInput("");
+  }
 
   return (
     <Popover
       open={open}
       onOpenChange={(open) => {
-        setOpen(open);
         if (!open) {
           setSearchInput("");
         }
+        setOpen(open);
       }}
     >
       <PopoverTrigger asChild>
@@ -228,16 +264,15 @@ export function TagsForm({ record }: { record: RecordWithTags }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" align="end">
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Start typing to search"
+            placeholder="Search or create a tag"
             value={searchInput}
             onValueChange={setSearchInput}
           />
           <CommandList>
-            <CommandEmpty>No tags found.</CommandEmpty>
             <CommandGroup heading="Tags">
-              {tags?.map((tag) => {
+              {filteredTags.map((tag) => {
                 const tagIsSelected = record.tags
                   .map((tag) => tag.id)
                   .includes(tag.id);
@@ -264,6 +299,13 @@ export function TagsForm({ record }: { record: RecordWithTags }) {
                 );
               })}
             </CommandGroup>
+            {canCreateTag && (
+              <CommandGroup>
+                <CommandItem onSelect={handleCreate} className="text-primary">
+                  Create “{searchInput}”
+                </CommandItem>
+              </CommandGroup>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

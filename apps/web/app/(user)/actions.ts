@@ -8,6 +8,9 @@ import {
   records,
   RecordWithTags,
   tagsToRecords,
+  NewTag,
+  tags,
+  Tag,
 } from "@/lib/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 
@@ -114,3 +117,30 @@ export const updateRecordTags = actionWithUser<
     }
   });
 });
+export const createTag = actionWithUser<{ name: string }, Tag>(
+  async (data, user) => {
+    const name = data.name.trim();
+    if (!name) {
+      throw new Error("Tag name is required");
+    }
+
+    const userTags = await db.query.tags.findMany({
+      where: (tags, { eq }) => eq(tags.userId, user.id),
+    });
+    const matchingTag = userTags.find(
+      (tag) => tag.name.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (matchingTag) {
+      return matchingTag;
+    }
+
+    const newTag: NewTag = {
+      userId: user.id,
+      name,
+      color: "slate",
+    };
+    const [createdTag] = await db.insert(tags).values(newTag).returning();
+    return createdTag;
+  },
+);

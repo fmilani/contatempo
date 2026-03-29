@@ -215,32 +215,71 @@ export function TagsForm({ record }: { record: RecordWithTags }) {
   async function handleCreate() {
     const name = searchInput.trim();
     if (!name) return;
-    const createdTag = await createTag({ name });
+    setSearchInput("");
+
+    const optimisticTag: Tag = {
+      id: -Date.now(),
+      userId: record.userId,
+      name,
+      color: "slate",
+    };
+    const optimisticTags = record.tags.some(
+      (tag) => tag.name.toLowerCase() === name.toLowerCase(),
+    )
+      ? record.tags
+      : [...record.tags, optimisticTag];
 
     await mutate<Tag[]>(
       "/api/user-tags",
-      (currentTags) => {
-        const nextTags = currentTags ?? [];
-        if (nextTags.some((tag) => tag.id === createdTag.id)) {
-          return nextTags;
-        }
-
-        return [...nextTags, createdTag];
-      },
+      (currentTags) => [...(currentTags ?? []), optimisticTag],
       { revalidate: false },
     );
 
-    const updatedTags = record.tags.some((tag) => tag.id === createdTag.id)
-      ? record.tags
-      : [...record.tags, createdTag];
-
     update({
       type: "update-tags",
-      tags: updatedTags,
+      tags: optimisticTags,
       recordId: record.id,
     });
 
-    setSearchInput("");
+    try {
+      const createdTag = await createTag({ name });
+
+      await mutate<Tag[]>(
+        "/api/user-tags",
+        (currentTags) => {
+          const nextTags = (currentTags ?? []).filter(
+            (tag) => tag.id !== optimisticTag.id,
+          );
+          if (nextTags.some((tag) => tag.id === createdTag.id)) {
+            return nextTags;
+          }
+
+          return [...nextTags, createdTag];
+        },
+        { revalidate: false },
+      );
+
+      update({
+        type: "update-tags",
+        tags: optimisticTags.map((tag) =>
+          tag.id === optimisticTag.id ? createdTag : tag,
+        ),
+        recordId: record.id,
+      });
+    } catch {
+      await mutate<Tag[]>(
+        "/api/user-tags",
+        (currentTags) =>
+          (currentTags ?? []).filter((tag) => tag.id !== optimisticTag.id),
+        { revalidate: false },
+      );
+
+      update({
+        type: "update-tags",
+        tags: record.tags,
+        recordId: record.id,
+      });
+    }
   }
 
   return (

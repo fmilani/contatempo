@@ -101,10 +101,11 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
   const [updateDescriptionIsPending, startUpdateDescriptionTransition] =
     useTransition();
   const [updateTagsIsPending, startUpdateTagsTransition] = useTransition();
-  const records = data!;
+  const records = data ?? [];
   function update(action: Action) {
-    const updatedRecords = reducer(records, action);
-    mutate(updatedRecords, { revalidate: false });
+    mutate((currentRecords) => reducer(currentRecords ?? [], action), {
+      revalidate: false,
+    });
 
     switch (action.type) {
       case "start-recording": {
@@ -113,13 +114,16 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
           if (!result.record) {
             return;
           }
-          const updatedRecordsAfterAction = updatedRecords.map((record) => {
-            if (record.id === 0) {
-              return result.record;
-            }
-            return record;
-          });
-          mutate(updatedRecordsAfterAction, false);
+          mutate(
+            (currentRecords) =>
+              (currentRecords ?? []).map((record) => {
+                if (record.id === 0) {
+                  return result.record;
+                }
+                return record;
+              }),
+            false,
+          );
         });
         return;
       }
@@ -145,7 +149,7 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
         startUpdateTagsTransition(async () => {
           await updateRecordTags({
             recordId: action.recordId,
-            tags: action.tags.map((tag) => tag.id),
+            tags: action.tags.map((tag) => tag.id).filter((tagId) => tagId > 0),
           });
         });
         return;

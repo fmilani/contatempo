@@ -31,9 +31,50 @@ import {
 } from "@/components/ui/command";
 import useSWR, { useSWRConfig } from "swr";
 import { Checkbox } from "@/components/ui/checkbox";
-import { createTag } from "../actions";
+import { createTag, updateRecordTags } from "../actions";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+function appendTag(tags: Tag[], tagToAppend: Tag) {
+  if (
+    tags.some(
+      (tag) =>
+        tag.id === tagToAppend.id ||
+        tag.name.toLowerCase() === tagToAppend.name.toLowerCase(),
+    )
+  ) {
+    return tags;
+  }
+
+  return [...tags, tagToAppend];
+}
+
+function replaceOptimisticTag(
+  tags: Tag[],
+  optimisticTagId: number,
+  nextTag: Tag,
+) {
+  let didReplace = false;
+  const updatedTags = tags.flatMap((tag) => {
+    if (tag.id === optimisticTagId) {
+      didReplace = true;
+      return [nextTag];
+    }
+
+    if (tag.id === nextTag.id) {
+      return [];
+    }
+
+    return [tag];
+  });
+
+  return didReplace ? updatedTags : tags;
+}
+
+function removeTag(tags: Tag[], tagId: number) {
+  return tags.filter((tag) => tag.id !== tagId);
+}
+
 export function RecordingContainer() {
   const pathname = usePathname();
   if (pathname === "/" || pathname === "/sign-in" || pathname === "/sign-up")
@@ -223,23 +264,27 @@ export function TagsForm({ record }: { record: RecordWithTags }) {
       name,
       color: "slate",
     };
-    const optimisticTags = record.tags.some(
-      (tag) => tag.name.toLowerCase() === name.toLowerCase(),
-    )
-      ? record.tags
-      : [...record.tags, optimisticTag];
-
     await mutate<Tag[]>(
       "/api/user-tags",
-      (currentTags) => [...(currentTags ?? []), optimisticTag],
+      (currentTags) => appendTag(currentTags ?? [], optimisticTag),
       { revalidate: false },
     );
 
-    update({
-      type: "update-tags",
-      tags: optimisticTags,
-      recordId: record.id,
-    });
+    await mutate<RecordWithTags[]>(
+      "/api/recent-records",
+      (currentRecords) =>
+        (currentRecords ?? []).map((currentRecord) => {
+          if (currentRecord.id !== record.id) {
+            return currentRecord;
+          }
+
+          return {
+            ...currentRecord,
+            tags: appendTag(currentRecord.tags, optimisticTag),
+          };
+        }),
+      { revalidate: false },
+    );
 
     try {
       const createdTag = await createTag({ name });
@@ -247,38 +292,72 @@ export function TagsForm({ record }: { record: RecordWithTags }) {
       await mutate<Tag[]>(
         "/api/user-tags",
         (currentTags) => {
-          const nextTags = (currentTags ?? []).filter(
-            (tag) => tag.id !== optimisticTag.id,
+          const tagsWithoutOptimistic = removeTag(
+            currentTags ?? [],
+            optimisticTag.id,
           );
-          if (nextTags.some((tag) => tag.id === createdTag.id)) {
-            return nextTags;
-          }
-
-          return [...nextTags, createdTag];
+          return appendTag(tagsWithoutOptimistic, createdTag);
         },
         { revalidate: false },
       );
 
-      update({
-        type: "update-tags",
-        tags: optimisticTags.map((tag) =>
-          tag.id === optimisticTag.id ? createdTag : tag,
-        ),
-        recordId: record.id,
-      });
-    } catch {
-      await mutate<Tag[]>(
-        "/api/user-tags",
-        (currentTags) =>
-          (currentTags ?? []).filter((tag) => tag.id !== optimisticTag.id),
+      let persistedTagIds: number[] = [];
+      let shouldPersistTags = false;
+      await mutate<RecordWithTags[]>(
+        "/api/recent-records",
+        (currentRecords) =>
+          (currentRecords ?? []).map((currentRecord) => {
+            if (currentRecord.id !== record.id) {
+              return currentRecord;
+            }
+
+            const nextTags = replaceOptimisticTag(
+              currentRecord.tags,
+              optimisticTag.id,
+              createdTag,
+            );
+
+            if (nextTags !== currentRecord.tags) {
+              shouldPersistTags = true;
+              persistedTagIds = nextTags
+                .map((tag) => tag.id)
+                .filter((tagId) => tagId > 0);
+              return { ...currentRecord, tags: nextTags };
+            }
+
+            return currentRecord;
+          }),
         { revalidate: false },
       );
 
-      update({
-        type: "update-tags",
-        tags: record.tags,
-        recordId: record.id,
-      });
+      if (shouldPersistTags) {
+        await updateRecordTags({
+          recordId: record.id,
+          tags: persistedTagIds,
+        });
+      }
+    } catch {
+      await mutate<Tag[]>(
+        "/api/user-tags",
+        (currentTags) => removeTag(currentTags ?? [], optimisticTag.id),
+        { revalidate: false },
+      );
+
+      await mutate<RecordWithTags[]>(
+        "/api/recent-records",
+        (currentRecords) =>
+          (currentRecords ?? []).map((currentRecord) => {
+            if (currentRecord.id !== record.id) {
+              return currentRecord;
+            }
+
+            return {
+              ...currentRecord,
+              tags: removeTag(currentRecord.tags, optimisticTag.id),
+            };
+          }),
+        { revalidate: false },
+      );
     }
   }
 

@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useTransition } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useRef,
+  useTransition,
+} from "react";
 import { RecordWithTags, Tag } from "@/lib/db/schema";
 import useSWR from "swr";
 import {
@@ -42,7 +48,14 @@ type RecentRecordsContextType = {
 const RecentRecordsContext = createContext<RecentRecordsContextType | null>(
   null,
 );
-function reducer(state: RecordWithTags[], action: Action) {
+
+type TransitionStarter = (callback: () => void) => void;
+
+function reducer(
+  state: RecordWithTags[],
+  action: Action,
+  temporaryRecordId = 0,
+) {
   switch (action.type) {
     case "start-recording": {
       return [
@@ -51,7 +64,7 @@ function reducer(state: RecordWithTags[], action: Action) {
           end: null,
           description: null,
           tags: [],
-          id: 0,
+          id: temporaryRecordId,
           userId: 0,
         },
         ...state,
@@ -60,7 +73,7 @@ function reducer(state: RecordWithTags[], action: Action) {
     case "stop-recording": {
       return state.map((record) =>
         record.id === action.recordId
-          ? { ...record, end: action.date ?? null }
+          ? { ...record, end: action.date }
           : record,
       );
     }
@@ -80,6 +93,38 @@ function reducer(state: RecordWithTags[], action: Action) {
     }
   }
 }
+
+function patchRecord(
+  state: RecordWithTags[],
+  recordId: number,
+  patch: Partial<RecordWithTags>,
+) {
+  return state.map((record) =>
+    record.id === recordId ? { ...record, ...patch } : record,
+  );
+}
+
+function rollbackRecordField<K extends keyof RecordWithTags>(
+  state: RecordWithTags[],
+  previousState: RecordWithTags[],
+  recordId: number,
+  field: K,
+) {
+  const previousRecord = previousState.find((record) => record.id === recordId);
+  if (!previousRecord) {
+    return state;
+  }
+
+  return patchRecord(state, recordId, { [field]: previousRecord[field] });
+}
+
+function removeTemporaryRecord(
+  state: RecordWithTags[],
+  temporaryRecordId: number,
+) {
+  return state.filter((record) => record.id !== temporaryRecordId);
+}
+
 const fetcher = async (url: string) => {
   const r = await fetch(url);
   const records: RecordWithTags[] = await r.json();
@@ -94,6 +139,7 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
     "/api/recent-records",
     fetcher,
   );
+  const nextTemporaryRecordId = useRef(-1);
   const [startRecordingIsPending, startStartRecordingTransition] =
     useTransition();
   const [stopRecordingIsPending, startStopRecordingTransition] =
@@ -102,55 +148,121 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
     useTransition();
   const [updateTagsIsPending, startUpdateTagsTransition] = useTransition();
   const records = data ?? [];
-  function update(action: Action) {
-    mutate((currentRecords) => reducer(currentRecords ?? [], action), {
+
+  function runOptimisticMutation({
+    apply,
+    rollback,
+    run,
+    startTransition,
+    errorMessage,
+  }: {
+    apply: (state: RecordWithTags[]) => RecordWithTags[];
+    rollback: (
+      state: RecordWithTags[],
+      previousState: RecordWithTags[],
+    ) => RecordWithTags[];
+    run: () => Promise<void>;
+    startTransition: TransitionStarter;
+    errorMessage: string;
+  }) {
+    const previousRecords = records;
+
+    void mutate((currentRecords) => apply(currentRecords ?? []), {
       revalidate: false,
     });
 
+    startTransition(async () => {
+      try {
+        await run();
+      } catch (error) {
+        console.error(errorMessage, error);
+        void mutate(
+          (currentRecords) => rollback(currentRecords ?? [], previousRecords),
+          false,
+        );
+      }
+    });
+  }
+
+  function update(action: Action) {
     switch (action.type) {
       case "start-recording": {
-        startStartRecordingTransition(async () => {
-          const result = await startRecording({ start: action.date });
-          if (!result.record) {
-            return;
-          }
-          mutate(
-            (currentRecords) =>
-              (currentRecords ?? []).map((record) => {
-                if (record.id === 0) {
-                  return result.record;
-                }
-                return record;
-              }),
-            false,
-          );
+        const temporaryRecordId = nextTemporaryRecordId.current;
+        nextTemporaryRecordId.current -= 1;
+
+        runOptimisticMutation({
+          apply: (state) => reducer(state, action, temporaryRecordId),
+          rollback: (state) => removeTemporaryRecord(state, temporaryRecordId),
+          run: async () => {
+            const result = await startRecording({ start: action.date });
+            if (!result.record) {
+              throw new Error("Missing record from startRecording");
+            }
+
+            await mutate(
+              (currentRecords) =>
+                patchRecord(
+                  currentRecords ?? [],
+                  temporaryRecordId,
+                  result.record,
+                ),
+              false,
+            );
+          },
+          startTransition: startStartRecordingTransition,
+          errorMessage: "Failed to start recording",
         });
         return;
       }
       case "stop-recording": {
-        startStopRecordingTransition(async () => {
-          await stopRecording({
-            end: action.date,
-            recordId: action.recordId,
-          });
+        runOptimisticMutation({
+          apply: (state) => reducer(state, action),
+          rollback: (state, previousState) =>
+            rollbackRecordField(state, previousState, action.recordId, "end"),
+          run: () =>
+            stopRecording({
+              end: action.date,
+              recordId: action.recordId,
+            }).then(() => undefined),
+          startTransition: startStopRecordingTransition,
+          errorMessage: "Failed to stop recording",
         });
         return;
       }
       case "update-description": {
-        startUpdateDescriptionTransition(async () => {
-          await updateRecordDescription({
-            recordId: action.recordId,
-            description: action.description,
-          });
+        runOptimisticMutation({
+          apply: (state) => reducer(state, action),
+          rollback: (state, previousState) =>
+            rollbackRecordField(
+              state,
+              previousState,
+              action.recordId,
+              "description",
+            ),
+          run: () =>
+            updateRecordDescription({
+              recordId: action.recordId,
+              description: action.description,
+            }).then(() => undefined),
+          startTransition: startUpdateDescriptionTransition,
+          errorMessage: "Failed to update description",
         });
         return;
       }
       case "update-tags": {
-        startUpdateTagsTransition(async () => {
-          await updateRecordTags({
-            recordId: action.recordId,
-            tags: action.tags.map((tag) => tag.id).filter((tagId) => tagId > 0),
-          });
+        runOptimisticMutation({
+          apply: (state) => reducer(state, action),
+          rollback: (state, previousState) =>
+            rollbackRecordField(state, previousState, action.recordId, "tags"),
+          run: () =>
+            updateRecordTags({
+              recordId: action.recordId,
+              tags: action.tags
+                .map((tag) => tag.id)
+                .filter((tagId) => tagId > 0),
+            }),
+          startTransition: startUpdateTagsTransition,
+          errorMessage: "Failed to update tags",
         });
         return;
       }

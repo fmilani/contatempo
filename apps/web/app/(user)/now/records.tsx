@@ -56,10 +56,10 @@ export function Records() {
             <details open key={key} className="relative">
               <summary className="sticky top-0 z-20 backdrop-blur-sm mb-2 leading-7 list-none cursor-pointer">
                 <div className="relative">
-                  <div className="absolute -left-[1.5rem] top-[2px] w-6 h-6 bg-background border-2 border-primary rounded-full flex items-center justify-center z-10 border-none">
+                  <div className="absolute left-[-1.5rem] top-0.5 w-6 h-6 bg-background rounded-full flex items-center justify-center z-10">
                     <Calendar className="text-primary w-5 h-5" />
                   </div>
-                  <div className="flex items-baseline justify-between ml-2">
+                  <div className="flex min-h-6 items-start justify-between ml-2 pt-0.5">
                     <span className="font-semibold font-mono">
                       {formatDate(records[0].start)}
                     </span>
@@ -71,12 +71,12 @@ export function Records() {
               <div className="space-y-4">
                 {records.map((record) => (
                   <div key={record.id} className="relative">
-                    <div className="absolute -top-[2px] -left-[1.5rem] w-6 h-6 rounded-full flex items-center justify-center z-10">
+                    <div className="absolute left-[-1.5rem] top-0.5 w-6 h-6 rounded-full flex items-center justify-center z-10">
                       <Clock className="text-primary h-4 w-4 bg-gray-50" />
                     </div>
 
                     <div className="ml-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-h-6 items-baseline gap-2">
                         <RecordTime time={record.start} /> –
                         {record.end && <RecordTime time={record.end} />}
                         <p className="flex-1 text-muted-foreground text-sm text-ellipsis overflow-hidden whitespace-nowrap">
@@ -110,11 +110,11 @@ export function Records() {
 
 function RecordTime({ time }: { time: Date }) {
   return (
-    <span className="font-mono text-sm whitespace-nowrap">
+    <span className="inline-flex items-baseline font-mono text-sm whitespace-nowrap leading-none">
       {format(time, "HH:mm")}
       <span className="font-normal text-xs text-muted-foreground">
         {format(time, ":ss")}
-      </span>{" "}
+      </span>
     </span>
   );
 }

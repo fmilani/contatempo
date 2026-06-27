@@ -79,23 +79,23 @@ export function Records() {
                       <div className="flex min-h-6 items-baseline gap-2">
                         <RecordTime time={record.start} /> –
                         {record.end && <RecordTime time={record.end} />}
-                        <p className="flex-1 text-muted-foreground text-sm text-ellipsis overflow-hidden whitespace-nowrap">
-                          {record.description || <i>(no description)</i>}
-                        </p>
-                        <RecordDuration record={record} />
-                      </div>
-
+                        <div className="flex-1 flex flex-wrap gap-2">
                       {record.tags.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {record.tags.map((tag) => (
+                          record.tags.map((tag) => (
                             <TagBadge key={tag.id} tag={tag}>
                               {tag.name}
                             </TagBadge>
-                          ))}
-                        </div>
+                          ))
                       ) : (
                         <TagBadge>+ tag</TagBadge>
                       )}
+                        </div>
+                        <RecordDuration record={record} />
+                      </div>
+
+                        <p className="flex-1 text-muted-foreground text-sm text-ellipsis overflow-hidden whitespace-nowrap">
+                          {record.description || <i>(no description)</i>}
+                        </p>
                     </div>
                   </div>
                 ))}

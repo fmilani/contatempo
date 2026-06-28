@@ -76,31 +76,35 @@ export function Records() {
                       <Clock className="text-primary h-4 w-4 bg-gray-50" />
                     </div>
 
-                    <div className="ml-2">
+                    <div className="ml-2 flex flex-col gap-1">
                       <div className="flex min-h-6 items-baseline gap-2">
-                        <RecordTime
-                          recordId={record.id}
-                          field="start"
-                          time={record.start}
-                        />{" "}
-                        –
-                        {record.end && (
-                          <RecordTime
-                            recordId={record.id}
-                            field="end"
-                            time={record.end}
-                          />
-                        )}
-                        <div className="flex-1 flex flex-wrap gap-2">
-                          {record.tags.length > 0 ? (
-                            record.tags.map((tag) => (
-                              <TagBadge key={tag.id} tag={tag}>
-                                {tag.name}
-                              </TagBadge>
-                            ))
-                          ) : (
-                            <TagBadge>+ tag</TagBadge>
-                          )}
+                       <div className="flex-1 flex flex-col sm:flex-row sm:gap-1">
+                         <div>
+                            <RecordTime
+                              recordId={record.id}
+                              field="start"
+                              time={record.start}
+                            />{" "}
+                            –
+                            {record.end && (
+                              <RecordTime
+                                recordId={record.id}
+                                field="end"
+                                time={record.end}
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1 flex flex-wrap gap-1">
+                            {record.tags.length > 0 ? (
+                              record.tags.map((tag) => (
+                                <TagBadge key={tag.id} tag={tag}>
+                                  {tag.name}
+                                </TagBadge>
+                              ))
+                            ) : (
+                              <TagBadge>+ tag</TagBadge>
+                            )}
+                          </div>
                         </div>
                         <RecordDuration record={record} />
                       </div>

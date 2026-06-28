@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { Record, RecordWithTags } from "@/lib/db/schema";
 import { N_RECENT_RECORDS } from "@/lib/constants";
 import { useRecentRecords } from "../recent-records-provider";
@@ -14,6 +14,7 @@ import {
 import { Calendar, Clock } from "lucide-react";
 import { TagBadge } from "./tag-badge";
 import { useKeyPressEvent } from "@/lib/hooks";
+import { Input } from "@/components/ui/input";
 
 export function Records() {
   const searchParams = useSearchParams();
@@ -77,25 +78,36 @@ export function Records() {
 
                     <div className="ml-2">
                       <div className="flex min-h-6 items-baseline gap-2">
-                        <RecordTime time={record.start} /> –
-                        {record.end && <RecordTime time={record.end} />}
+                        <RecordTime
+                          recordId={record.id}
+                          field="start"
+                          time={record.start}
+                        />{" "}
+                        –
+                        {record.end && (
+                          <RecordTime
+                            recordId={record.id}
+                            field="end"
+                            time={record.end}
+                          />
+                        )}
                         <div className="flex-1 flex flex-wrap gap-2">
-                      {record.tags.length > 0 ? (
-                          record.tags.map((tag) => (
-                            <TagBadge key={tag.id} tag={tag}>
-                              {tag.name}
-                            </TagBadge>
-                          ))
-                      ) : (
-                        <TagBadge>+ tag</TagBadge>
-                      )}
+                          {record.tags.length > 0 ? (
+                            record.tags.map((tag) => (
+                              <TagBadge key={tag.id} tag={tag}>
+                                {tag.name}
+                              </TagBadge>
+                            ))
+                          ) : (
+                            <TagBadge>+ tag</TagBadge>
+                          )}
                         </div>
                         <RecordDuration record={record} />
                       </div>
 
-                        <p className="flex-1 text-muted-foreground text-sm text-ellipsis overflow-hidden whitespace-nowrap">
-                          {record.description || <i>(no description)</i>}
-                        </p>
+                      <p className="flex-1 text-muted-foreground text-sm text-ellipsis overflow-hidden whitespace-nowrap">
+                        {record.description || <i>(no description)</i>}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -108,15 +120,120 @@ export function Records() {
   );
 }
 
-function RecordTime({ time }: { time: Date }) {
+function RecordTime({
+  recordId,
+  field,
+  time,
+}: {
+  recordId: number;
+  field: "start" | "end";
+  time: Date;
+}) {
+  const { update } = useRecentRecords();
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(format(time, "HH:mm:ss"));
+  const inputRef = useRef<HTMLInputElement>(null);
+  const skipNextCommitRef = useRef(false);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setValue(format(time, "HH:mm:ss"));
+    }
+  }, [isEditing, time]);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [isEditing]);
+
+  function commit() {
+    if (skipNextCommitRef.current) {
+      skipNextCommitRef.current = false;
+      return;
+    }
+
+    const nextTime = parseTimeValue(value, time);
+    setIsEditing(false);
+
+    if (!nextTime) {
+      setValue(format(time, "HH:mm:ss"));
+      return;
+    }
+
+    if (nextTime.getTime() !== time.getTime()) {
+      update({ type: "update-time", recordId, field, time: nextTime });
+    }
+  }
+
+  function cancel() {
+    skipNextCommitRef.current = true;
+    setValue(format(time, "HH:mm:ss"));
+    setIsEditing(false);
+    setTimeout(() => {
+      skipNextCommitRef.current = false;
+    }, 0);
+  }
+
+  if (isEditing) {
+    return (
+      <Input
+        ref={inputRef}
+        type="time"
+        step="1"
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.currentTarget.blur();
+          }
+
+          if (event.key === "Escape") {
+            event.preventDefault();
+            cancel();
+          }
+        }}
+        className="h-6 w-[6.75rem] px-1 py-0 font-mono appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+        aria-label={`Edit ${field} time`}
+      />
+    );
+  }
+
   return (
-    <span className="inline-flex items-baseline font-mono text-sm whitespace-nowrap leading-none">
+    <button
+      type="button"
+      onClick={() => setIsEditing(true)}
+      className="inline-flex items-baseline rounded-sm font-mono text-sm whitespace-nowrap leading-none hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-label={`Edit ${field} time ${format(time, "HH:mm:ss")}`}
+    >
       {format(time, "HH:mm")}
       <span className="font-normal text-xs text-muted-foreground">
         {format(time, ":ss")}
       </span>
-    </span>
+    </button>
   );
+}
+
+function parseTimeValue(value: string, baseDate: Date) {
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value);
+  if (!match) {
+    return null;
+  }
+
+  const [, hoursValue, minutesValue, secondsValue = "0"] = match;
+  const hours = Number(hoursValue);
+  const minutes = Number(minutesValue);
+  const seconds = Number(secondsValue);
+  if (hours > 23 || minutes > 59 || seconds > 59) {
+    return null;
+  }
+
+  const nextTime = new Date(baseDate);
+  nextTime.setHours(hours, minutes, seconds, 0);
+  return nextTime;
 }
 
 function RecordDuration({ record }: { record: RecordWithTags }) {

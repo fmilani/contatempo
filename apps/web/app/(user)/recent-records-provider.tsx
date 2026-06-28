@@ -14,6 +14,7 @@ import {
   stopRecording,
   updateRecordDescription,
   updateRecordTags,
+  updateRecordTime,
 } from "./actions";
 
 type StartRecordingAction = { type: "start-recording"; date: Date };
@@ -32,11 +33,18 @@ type UpdateTagsAction = {
   recordId: number;
   tags: Tag[];
 };
+type UpdateTimeAction = {
+  type: "update-time";
+  recordId: number;
+  field: "start" | "end";
+  time: Date;
+};
 type Action =
   | StartRecordingAction
   | StopRecordingAction
   | UpdateDescriptionAction
-  | UpdateTagsAction;
+  | UpdateTagsAction
+  | UpdateTimeAction;
 type RecentRecordsContextType = {
   recentRecords: RecordWithTags[];
   update: (action: Action) => void;
@@ -44,6 +52,7 @@ type RecentRecordsContextType = {
   stopRecordingIsPending: boolean;
   updateDescriptionIsPending: boolean;
   updateTagsIsPending: boolean;
+  updateTimeIsPending: boolean;
 };
 const RecentRecordsContext = createContext<RecentRecordsContextType | null>(
   null,
@@ -88,6 +97,13 @@ function reducer(
       return state.map((record) =>
         record.id === action.recordId
           ? { ...record, tags: action.tags }
+          : record,
+      );
+    }
+    case "update-time": {
+      return state.map((record) =>
+        record.id === action.recordId
+          ? { ...record, [action.field]: action.time }
           : record,
       );
     }
@@ -147,6 +163,7 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
   const [updateDescriptionIsPending, startUpdateDescriptionTransition] =
     useTransition();
   const [updateTagsIsPending, startUpdateTagsTransition] = useTransition();
+  const [updateTimeIsPending, startUpdateTimeTransition] = useTransition();
   const records = data ?? [];
 
   function runOptimisticMutation({
@@ -266,6 +283,27 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
         });
         return;
       }
+      case "update-time": {
+        runOptimisticMutation({
+          apply: (state) => reducer(state, action),
+          rollback: (state, previousState) =>
+            rollbackRecordField(
+              state,
+              previousState,
+              action.recordId,
+              action.field,
+            ),
+          run: () =>
+            updateRecordTime({
+              recordId: action.recordId,
+              field: action.field,
+              time: action.time,
+            }).then(() => undefined),
+          startTransition: startUpdateTimeTransition,
+          errorMessage: "Failed to update record time",
+        });
+        return;
+      }
     }
   }
   return (
@@ -277,6 +315,7 @@ export function RecentRecordsProvider({ children }: { children: ReactNode }) {
         stopRecordingIsPending,
         updateDescriptionIsPending,
         updateTagsIsPending,
+        updateTimeIsPending,
       }}
     >
       {children}

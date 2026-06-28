@@ -70,6 +70,31 @@ export const updateRecordDescription = actionWithUser<
     .returning();
   return { record: newRecordSaved[0] };
 });
+export const updateRecordTime = actionWithUser<
+  { field: "start" | "end"; recordId: number; time: Date },
+  { record: Record }
+>(async (data, user) => {
+  const userRecord = await db.query.records.findFirst({
+    where: (records, { eq }) => eq(records.id, data.recordId),
+  });
+  if (!userRecord || userRecord.userId !== user.id) {
+    throw new Error("Record not found");
+  }
+
+  const timeWithNoMillis = new Date(data.time);
+  timeWithNoMillis.setMilliseconds(0);
+  const nextRecord = { ...userRecord, [data.field]: timeWithNoMillis };
+  if (nextRecord.end && nextRecord.end < nextRecord.start) {
+    throw new Error("Record end time cannot be before start time");
+  }
+
+  const newRecordSaved = await db
+    .update(records)
+    .set({ [data.field]: timeWithNoMillis })
+    .where(eq(records.id, userRecord.id))
+    .returning();
+  return { record: newRecordSaved[0] };
+});
 export const updateRecordTags = actionWithUser<
   { tags: number[]; recordId: number },
   void

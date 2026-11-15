@@ -1,0 +1,92 @@
+@layer ui-sdk;
+@import "tailwindcss";
+@import "@ui-sdk/core/web.css" layer(components);
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --ui-radius: 0.5rem;
+  --ui-font-size: 0.875rem;
+  --ui-font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --ui-font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--ui-background);
+  color: var(--ui-foreground);
+  font-family: var(--ui-font-sans);
+}
+
+.card {
+  padding: 1rem;
+  border: 1px solid var(--ui-border);
+  border-radius: calc(var(--ui-radius) * 1.5);
+}
+
+.label-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: calc(var(--ui-spacing) * 8);
+  padding: 0.1875rem 0.375rem;
+  border: 1px solid var(--ui-input);
+  border-radius: var(--ui-radius);
+  background: var(--ui-background);
+  font-size: var(--ui-font-size);
+
+  &:focus-within {
+    border-color: var(--ui-ring-border);
+    outline: 3px solid var(--ui-ring);
+  }
+
+  & [data-slot="combobox-input"] {
+    flex: 1;
+    min-width: 6rem;
+    height: 1.5rem;
+    padding: 0 0.25rem;
+    border: 0;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.5rem;
+  padding-inline: 0.5rem 0.125rem;
+  border-radius: calc(var(--ui-radius) * 0.75);
+  background: var(--ui-muted);
+}
+
+.label-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: calc(var(--ui-radius) / 2);
+  color: var(--ui-muted-foreground);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ui-foreground);
+  }
+
+  & svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+.label-create {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

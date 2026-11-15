@@ -1,0 +1,12 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
+  supabase: true
+
+permissions:
+  '@ui-sdk/core':
+    skills: true

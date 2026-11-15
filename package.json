@@ -1,0 +1,18 @@
+{
+  "name": "contatempo",
+  "private": true,
+  "packageManager": "pnpm@12.21.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "supabase": "^3.1.0",
+    "turbo": "^2.11.11"
+  },
+  "engines": {
+    "node": ">=26"
+  }
+}

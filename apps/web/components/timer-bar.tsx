@@ -6,7 +6,7 @@ import { useEffect, useState, type FormEvent } from "react"
 import type { Entry, Label } from "@/lib/api"
 import { durationOf, formatClock } from "@/lib/time"
 import { PencilIcon } from "./icons"
-import { LabelDot, LabelPicker } from "./label-picker"
+import { LabelDot, LabelPicker, usePendingCreate } from "./label-picker"
 
 type TimerBarProps = {
   running: Entry | null
@@ -34,6 +34,7 @@ function TimerBar({ running, labels, onStart, onStop, onEdit, onCreateLabel }: T
   const [description, setDescription] = useState("")
   const [labelIds, setLabelIds] = useState<string[]>([])
   const [starting, setStarting] = useState(false)
+  const [createLabel, creatingLabel] = usePendingCreate(onCreateLabel)
 
   if (running) {
     const runningLabels = labels.filter((label) => running.labelIds.includes(label.id))
@@ -67,6 +68,7 @@ function TimerBar({ running, labels, onStart, onStop, onEdit, onCreateLabel }: T
 
   async function start(event: FormEvent) {
     event.preventDefault()
+    if (creatingLabel) return
     setStarting(true)
     try {
       await onStart(description.trim(), labelIds)
@@ -94,9 +96,14 @@ function TimerBar({ running, labels, onStart, onStop, onEdit, onCreateLabel }: T
           labels={labels}
           value={labelIds}
           onValueChange={setLabelIds}
-          onCreate={onCreateLabel}
+          onCreate={createLabel}
         />
-        <Button type="submit" data-variant="solid" disabled={starting} focusableWhenDisabled>
+        <Button
+          type="submit"
+          data-variant="solid"
+          disabled={starting || creatingLabel}
+          focusableWhenDisabled
+        >
           Start timer
         </Button>
       </form>

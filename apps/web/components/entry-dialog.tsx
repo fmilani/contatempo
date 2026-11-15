@@ -14,7 +14,7 @@ import { Input } from "@ui-sdk/react/input"
 import { useState, type FormEvent } from "react"
 import type { EntryInput, Label } from "@/lib/api"
 import { fromLocalInput, toLocalInput } from "@/lib/time"
-import { LabelPicker } from "./label-picker"
+import { LabelPicker, usePendingCreate } from "./label-picker"
 
 type EntryDialogProps = {
   entry: EntryInput | null
@@ -38,6 +38,7 @@ function EntryForm({
   const [end, setEnd] = useState<string | null>(entry.endedAt ? toLocalInput(entry.endedAt) : null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [createLabel, creatingLabel] = usePendingCreate(onCreateLabel)
 
   // The inputs hold whole minutes, so a time that wasn't edited keeps its seconds.
   const instant = (local: string, original: string | null) =>
@@ -45,6 +46,7 @@ function EntryForm({
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (creatingLabel) return
     const startedAt = start ? instant(start, entry.startedAt) : null
     const endedAt = running || !end ? null : instant(end, entry.endedAt)
     const problem = !startedAt
@@ -88,7 +90,7 @@ function EntryForm({
         labels={labels}
         value={labelIds}
         onValueChange={setLabelIds}
-        onCreate={onCreateLabel}
+        onCreate={createLabel}
       />
       <div className="flex flex-wrap gap-4">
         <Field>
@@ -121,7 +123,12 @@ function EntryForm({
       </Field>
       <div className="flex justify-end gap-2">
         <DialogClose>Cancel</DialogClose>
-        <Button type="submit" data-variant="solid" disabled={saving} focusableWhenDisabled>
+        <Button
+          type="submit"
+          data-variant="solid"
+          disabled={saving || creatingLabel}
+          focusableWhenDisabled
+        >
           Save entry
         </Button>
       </div>

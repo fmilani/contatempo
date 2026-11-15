@@ -84,6 +84,33 @@ test("creates a label while typing and starts the timer with it", async () => {
   expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Research")).toBeTruthy()
 })
 
+test("the timer can't start while a label is still being created", async () => {
+  const fake = createFakeApi({ labels: [work], entries: [] })
+  const createLabel = fake.api.createLabel
+  let finish = () => {}
+  fake.api.createLabel = async (name, color) => {
+    await new Promise<void>((resolve) => (finish = resolve))
+    return createLabel(name, color)
+  }
+  const user = userEvent.setup()
+  render(<Tracker api={fake.api} />)
+  await screen.findByRole("region", { name: "Summary" })
+
+  await user.type(screen.getByRole("combobox", { name: "Timer labels" }), "Research")
+  await user.click(await screen.findByRole("option", { name: /Create “Research”/ }))
+  const start = screen.getByRole("button", { name: "Start timer" })
+  await waitFor(() => expect(start.getAttribute("aria-disabled")).toBe("true"))
+  await user.click(start)
+  expect(fake.entries()).toEqual([])
+
+  finish()
+  await screen.findByRole("button", { name: "Remove Research" })
+  expect(start.getAttribute("aria-disabled")).toBeNull()
+  await user.click(start)
+  await screen.findByRole("timer")
+  expect(fake.entries()[0].labelIds).toHaveLength(1)
+})
+
 test("filters by label, matching entries with any selected label", async () => {
   const { user } = await setup()
 

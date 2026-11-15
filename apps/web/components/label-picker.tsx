@@ -124,18 +124,22 @@ function LabelPicker({
 }
 
 // Wraps a label-creating function and reports whether a creation is still running,
-// so a form can wait for the label before it submits.
+// so a form can wait for the label before it submits. The ref answers within the
+// same event, before the state has rendered.
 function usePendingCreate(create: (name: string) => Promise<Label>) {
-  const [pending, setPending] = useState(0)
+  const running = useRef(0)
+  const [pending, setPending] = useState(false)
   async function tracked(name: string) {
-    setPending((count) => count + 1)
+    running.current += 1
+    setPending(true)
     try {
       return await create(name)
     } finally {
-      setPending((count) => count - 1)
+      running.current -= 1
+      setPending(running.current > 0)
     }
   }
-  return [tracked, pending > 0] as const
+  return { create: tracked, pending, isPending: () => running.current > 0 }
 }
 
 export { LabelDot, LabelPicker, usePendingCreate }

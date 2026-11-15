@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { createAgent } from "@ui-sdk/react/agent"
 import { expect, test } from "vitest"
@@ -97,8 +97,14 @@ test("the timer can't start while a label is still being created", async () => {
   await screen.findByRole("region", { name: "Summary" })
 
   await user.type(screen.getByRole("combobox", { name: "Timer labels" }), "Research")
-  await user.click(await screen.findByRole("option", { name: /Create “Research”/ }))
   const start = screen.getByRole("button", { name: "Start timer" })
+  const create = await screen.findByRole("option", { name: /Create “Research”/ })
+  // Both presses land in one task, before the button has rendered as disabled.
+  act(() => {
+    create.click()
+    start.click()
+  })
+  expect(fake.entries()).toEqual([])
   await waitFor(() => expect(start.getAttribute("aria-disabled")).toBe("true"))
   await user.click(start)
   expect(fake.entries()).toEqual([])

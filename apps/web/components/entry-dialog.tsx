@@ -38,7 +38,7 @@ function EntryForm({
   const [end, setEnd] = useState<string | null>(entry.endedAt ? toLocalInput(entry.endedAt) : null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
-  const [createLabel, creatingLabel] = usePendingCreate(onCreateLabel)
+  const labelCreation = usePendingCreate(onCreateLabel)
 
   // The inputs hold whole minutes, so a time that wasn't edited keeps its seconds.
   const instant = (local: string, original: string | null) =>
@@ -46,7 +46,7 @@ function EntryForm({
 
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (creatingLabel) return
+    if (labelCreation.isPending()) return
     const startedAt = start ? instant(start, entry.startedAt) : null
     const endedAt = running || !end ? null : instant(end, entry.endedAt)
     const problem = !startedAt
@@ -90,7 +90,7 @@ function EntryForm({
         labels={labels}
         value={labelIds}
         onValueChange={setLabelIds}
-        onCreate={createLabel}
+        onCreate={labelCreation.create}
       />
       <div className="flex flex-wrap gap-4">
         <Field>
@@ -126,7 +126,7 @@ function EntryForm({
         <Button
           type="submit"
           data-variant="solid"
-          disabled={saving || creatingLabel}
+          disabled={saving || labelCreation.pending}
           focusableWhenDisabled
         >
           Save entry

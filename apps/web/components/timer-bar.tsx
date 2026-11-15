@@ -34,7 +34,7 @@ function TimerBar({ running, labels, onStart, onStop, onEdit, onCreateLabel }: T
   const [description, setDescription] = useState("")
   const [labelIds, setLabelIds] = useState<string[]>([])
   const [starting, setStarting] = useState(false)
-  const [createLabel, creatingLabel] = usePendingCreate(onCreateLabel)
+  const labelCreation = usePendingCreate(onCreateLabel)
 
   if (running) {
     const runningLabels = labels.filter((label) => running.labelIds.includes(label.id))
@@ -68,7 +68,7 @@ function TimerBar({ running, labels, onStart, onStop, onEdit, onCreateLabel }: T
 
   async function start(event: FormEvent) {
     event.preventDefault()
-    if (creatingLabel) return
+    if (labelCreation.isPending()) return
     setStarting(true)
     try {
       await onStart(description.trim(), labelIds)
@@ -96,12 +96,12 @@ function TimerBar({ running, labels, onStart, onStop, onEdit, onCreateLabel }: T
           labels={labels}
           value={labelIds}
           onValueChange={setLabelIds}
-          onCreate={createLabel}
+          onCreate={labelCreation.create}
         />
         <Button
           type="submit"
           data-variant="solid"
-          disabled={starting || creatingLabel}
+          disabled={starting || labelCreation.pending}
           focusableWhenDisabled
         >
           Start timer

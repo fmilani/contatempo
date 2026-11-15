@@ -12,7 +12,7 @@ import {
   DatePickerPreset,
   DatePickerTrigger,
 } from "@ui-sdk/react/date-picker"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import type { Label } from "@/lib/api"
 import { rangePresets, type DayRange } from "@/lib/time"
 import { LabelPicker } from "./label-picker"
@@ -34,33 +34,36 @@ function Filters({ labels, range, labelIds, onRangeChange, onLabelIdsChange }: F
         <span id="filter-dates" className="text-[length:var(--ui-font-size)] font-medium">
           Dates
         </span>
-        <DatePicker
-          mode="range"
-          value={range}
-          onValueChange={(value) => onRangeChange(value as DayRange | null)}
-          onOpenChange={(open) => open && setPresets(rangePresets(new Date()))}
-        >
-          <div role="group" aria-labelledby="filter-dates" className="flex items-center gap-1">
-            <DatePickerInput aria-label="From date" placeholder="From" />
-            <span aria-hidden="true">–</span>
-            <DatePickerInput end aria-label="To date" placeholder="To" />
-            <DatePickerClear aria-label="Clear dates" />
-            <DatePickerTrigger />
-          </div>
-          <DatePickerContent>
-            <CalendarPrevious />
-            <CalendarHeading />
-            <CalendarNext />
-            <CalendarGrid />
-            <div className="flex flex-wrap gap-1.5">
-              {presets.map((preset) => (
-                <DatePickerPreset key={preset.label} value={preset.value}>
-                  {preset.label}
-                </DatePickerPreset>
-              ))}
+        {/* The date picker reads today's date as it renders, which can't be prerendered. */}
+        <Suspense fallback={<div className="h-8 w-56" />}>
+          <DatePicker
+            mode="range"
+            value={range}
+            onValueChange={(value) => onRangeChange(value as DayRange | null)}
+            onOpenChange={(open) => open && setPresets(rangePresets(new Date()))}
+          >
+            <div role="group" aria-labelledby="filter-dates" className="flex items-center gap-1">
+              <DatePickerInput aria-label="From date" placeholder="From" />
+              <span aria-hidden="true">–</span>
+              <DatePickerInput end aria-label="To date" placeholder="To" />
+              <DatePickerClear aria-label="Clear dates" />
+              <DatePickerTrigger />
             </div>
-          </DatePickerContent>
-        </DatePicker>
+            <DatePickerContent>
+              <CalendarPrevious />
+              <CalendarHeading />
+              <CalendarNext />
+              <CalendarGrid />
+              <div className="flex flex-wrap gap-1.5">
+                {presets.map((preset) => (
+                  <DatePickerPreset key={preset.label} value={preset.value}>
+                    {preset.label}
+                  </DatePickerPreset>
+                ))}
+              </div>
+            </DatePickerContent>
+          </DatePicker>
+        </Suspense>
       </div>
       <LabelPicker
         name="Filter labels"

@@ -19,6 +19,18 @@ globalThis.ResizeObserver ??= class {
   unobserve() {}
   disconnect() {}
 }
+// jsdom has no matchMedia; popups with presentation="auto" read it to choose a sheet.
+window.matchMedia = (query: string) =>
+  ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+    dispatchEvent: () => false,
+  }) as MediaQueryList
 document.head.append(
   Object.assign(document.createElement("style"), {
     textContent: "[popover] { display: block !important }",

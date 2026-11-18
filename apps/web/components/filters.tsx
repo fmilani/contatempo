@@ -15,6 +15,7 @@ import {
 import { Suspense, useState } from "react"
 import type { Label } from "@/lib/api"
 import { rangePresets, type DayRange } from "@/lib/time"
+import { ChevronLeftIcon, ChevronRightIcon } from "./icons"
 import { LabelPicker } from "./label-picker"
 
 type FiltersProps = {
@@ -35,24 +36,34 @@ function Filters({ labels, range, labelIds, onRangeChange, onLabelIdsChange }: F
           Dates
         </span>
         {/* The date picker reads today's date as it renders, which can't be prerendered. */}
-        <Suspense fallback={<div className="h-8 w-56" />}>
+        <Suspense fallback={<div className="h-8 w-full sm:w-80" />}>
           <DatePicker
             mode="range"
+            presentation="auto"
+            className="w-full sm:w-80"
             value={range}
             onValueChange={(value) => onRangeChange(value as DayRange | null)}
             onOpenChange={(open) => open && setPresets(rangePresets(new Date()))}
           >
-            <div role="group" aria-labelledby="filter-dates" className="flex items-center gap-1">
-              <DatePickerInput aria-label="From date" placeholder="From" />
+            <div role="group" aria-labelledby="filter-dates" className="flex items-center gap-1 max-sm:gap-0.5">
+              <DatePickerInput aria-label="From date" placeholder="From" className="min-w-0 flex-[1_1_0]" />
               <span aria-hidden="true">–</span>
-              <DatePickerInput end aria-label="To date" placeholder="To" />
-              <DatePickerClear aria-label="Clear dates" />
-              <DatePickerTrigger />
+              {/* web.css tucks Clear and the trigger into the input right before them, and pads
+                  every input beside them to make room, so only the end input shares their wrapper. */}
+              <div className="flex min-w-0 flex-[1_1_3.75rem] items-center">
+                <DatePickerInput end aria-label="To date" placeholder="To" />
+                <DatePickerClear aria-label="Clear dates" />
+                <DatePickerTrigger />
+              </div>
             </div>
             <DatePickerContent>
-              <CalendarPrevious />
+              <CalendarPrevious>
+                <ChevronLeftIcon />
+              </CalendarPrevious>
               <CalendarHeading />
-              <CalendarNext />
+              <CalendarNext>
+                <ChevronRightIcon />
+              </CalendarNext>
               <CalendarGrid />
               <div className="flex flex-wrap gap-1.5">
                 {presets.map((preset) => (

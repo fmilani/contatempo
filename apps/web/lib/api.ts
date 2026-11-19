@@ -11,19 +11,30 @@ export type Entry = {
   labelIds: string[]
 }
 
-export type EntryInput = Omit<Entry, "id"> & { id?: string }
-
 // `from` is inclusive and `to` exclusive, as instants. An entry matches when it has any of `labelIds`.
 export type EntryFilter = { from?: string; to?: string; labelIds: string[] }
 
+// The same rule the server applies in listEntries, so a change can be placed in the list before it answers.
+export function matchesFilter(entry: Entry, { from, to, labelIds }: EntryFilter) {
+  const started = Date.parse(entry.startedAt)
+  return (
+    entry.endedAt !== null &&
+    (!from || started >= Date.parse(from)) &&
+    (!to || started < Date.parse(to)) &&
+    (labelIds.length === 0 || entry.labelIds.some((id) => labelIds.includes(id)))
+  )
+}
+
+// The app picks the ids of what it creates, so it can show new things before the server answers.
 export type Api = {
   listLabels(): Promise<Label[]>
-  createLabel(name: string, color: string): Promise<Label>
+  createLabel(label: Label): Promise<void>
   getRunning(): Promise<Entry | null>
   listEntries(filter: EntryFilter): Promise<Entry[]>
-  startTimer(description: string, labelIds: string[]): Promise<void>
+  startTimer(id: string): Promise<void>
   stopTimer(): Promise<void>
-  saveEntry(entry: EntryInput): Promise<void>
+  setEntryDetails(id: string, description: string, labelIds: string[]): Promise<void>
+  saveEntry(entry: Entry, create: boolean): Promise<void>
   deleteEntry(id: string): Promise<void>
 }
 
@@ -58,7 +69,11 @@ const toEntry = (row: Row): Entry => ({
   labelIds: row.labels.map((label) => label.label_id),
 })
 
-function check<T>({ data, error }: { data: T; error: { message: string } | null }) {
+export class OfflineError extends Error {}
+
+// supabase-js reports a request that never reached the server with an empty code.
+function check<T>({ data, error }: { data: T; error: { message: string; code?: string } | null }) {
+  if (error && !error.code) throw new OfflineError(error.message)
   if (error) throw new Error(error.message)
   return data
 }
@@ -69,12 +84,8 @@ export function createApi(supabase: SupabaseClient<Database>): Api {
       return check(await supabase.from("labels").select("id, name, color").order("name")) ?? []
     },
 
-    async createLabel(name, color) {
-      const label = check(
-        await supabase.from("labels").insert({ name, color }).select("id, name, color").single()
-      )
-      if (!label) throw new Error("The label wasn't created")
-      return label
+    async createLabel(label) {
+      check(await supabase.from("labels").insert(label))
     },
 
     async getRunning() {
@@ -106,18 +117,29 @@ export function createApi(supabase: SupabaseClient<Database>): Api {
       }
     },
 
-    async startTimer(description, labelIds) {
-      check(await supabase.rpc("start_timer", { p_description: description, p_label_ids: labelIds }))
+    async startTimer(id) {
+      check(await supabase.rpc("start_timer", { p_id: id, p_description: "", p_label_ids: [] }))
     },
 
     async stopTimer() {
       check(await supabase.rpc("stop_timer"))
     },
 
-    async saveEntry(entry) {
+    async setEntryDetails(id, description, labelIds) {
+      check(
+        await supabase.rpc("set_entry_details", {
+          p_id: id,
+          p_description: description,
+          p_label_ids: labelIds,
+        })
+      )
+    },
+
+    async saveEntry(entry, create) {
       check(
         await supabase.rpc("save_entry", {
           p_id: entry.id,
+          p_create: create,
           p_description: entry.description,
           p_started_at: entry.startedAt,
           p_ended_at: entry.endedAt ?? undefined,

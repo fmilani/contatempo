@@ -15,7 +15,7 @@ import {
   ComboboxList,
   ComboboxValue,
 } from "@ui-sdk/react/combobox"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import type { Label } from "@/lib/api"
 import { PlusIcon, XIcon } from "./icons"
 
@@ -26,7 +26,7 @@ type LabelPickerProps = {
   labels: Label[]
   value: string[]
   onValueChange: (value: string[]) => void
-  onCreate?: (name: string) => Promise<Label>
+  onCreate?: (name: string) => Label
 }
 
 function LabelDot({ color }: { color: string }) {
@@ -97,8 +97,8 @@ function LabelPicker({
             <ComboboxCreate
               minLength={1}
               className="label-create"
-              onCreate={async (query) => {
-                const label = await onCreate(query.trim())
+              onCreate={(query) => {
+                const label = onCreate(query.trim())
                 onValueChange([...new Set([...latestValue.current, label.id])])
               }}
             >
@@ -123,23 +123,4 @@ function LabelPicker({
   )
 }
 
-// Wraps a label-creating function and reports whether a creation is still running,
-// so a form can wait for the label before it submits. The ref answers within the
-// same event, before the state has rendered.
-function usePendingCreate(create: (name: string) => Promise<Label>) {
-  const running = useRef(0)
-  const [pending, setPending] = useState(false)
-  async function tracked(name: string) {
-    running.current += 1
-    setPending(true)
-    try {
-      return await create(name)
-    } finally {
-      running.current -= 1
-      setPending(running.current > 0)
-    }
-  }
-  return { create: tracked, pending, isPending: () => running.current > 0 }
-}
-
-export { LabelDot, LabelPicker, usePendingCreate }
+export { LabelDot, LabelPicker }

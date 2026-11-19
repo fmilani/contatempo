@@ -10,24 +10,19 @@ import {
 } from "@ui-sdk/react/alert-dialog"
 import { Button } from "@ui-sdk/react/button"
 import { OverlayHost } from "@ui-sdk/react/overlays"
-import { toast } from "@ui-sdk/react/toast"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { LABEL_COLORS, type Api, type Entry, type EntryInput, type Label } from "@/lib/api"
-import { rangeToInstants, type DayRange } from "@/lib/time"
-import { EntryDialog } from "./entry-dialog"
+import { useState } from "react"
+import type { Api, Entry } from "@/lib/api"
+import type { DayRange } from "@/lib/time"
+import { EntryDialog, type EntryInput } from "./entry-dialog"
 import { EntryList, entryName } from "./entry-list"
 import { Filters } from "./filters"
 import { Summary } from "./summary"
 import { TimerBar } from "./timer-bar"
+import { useTracker } from "./use-tracker"
 
 type TrackerProps = { api: Api; onSignOut?: () => Promise<void> }
 
-const messageOf = (cause: unknown) => (cause instanceof Error ? cause.message : "Something went wrong")
-
 function Tracker({ api, onSignOut }: TrackerProps) {
-  const [labels, setLabels] = useState<Label[]>([])
-  const [running, setRunning] = useState<Entry | null>(null)
-  const [entries, setEntries] = useState<Entry[] | null>(null)
   const [range, setRange] = useState<DayRange | null>(null)
   const [labelIds, setLabelIds] = useState<string[]>([])
   const [editing, setEditing] = useState<EntryInput | null>(null)
@@ -35,50 +30,8 @@ function Tracker({ api, onSignOut }: TrackerProps) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   // Bumped when the entry dialog saves the running timer, so the card picks up its new values.
   const [runningVersion, setRunningVersion] = useState(0)
-  const latest = useRef(0)
-
-  const load = useCallback(async () => {
-    const request = ++latest.current
-    try {
-      const instants = range ? rangeToInstants(range) : {}
-      const [nextLabels, nextRunning, nextEntries] = await Promise.all([
-        api.listLabels(),
-        api.getRunning(),
-        api.listEntries({ ...instants, labelIds }),
-      ])
-      if (request !== latest.current) return
-      setLabels(nextLabels)
-      setRunning(nextRunning)
-      setEntries(nextEntries)
-    } catch (cause) {
-      if (request === latest.current) toast.error(messageOf(cause))
-    }
-  }, [api, range, labelIds])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- load() only sets state after its requests resolve.
-    void load()
-    const onVisible = () => document.visibilityState === "visible" && void load()
-    document.addEventListener("visibilitychange", onVisible)
-    return () => document.removeEventListener("visibilitychange", onVisible)
-  }, [load])
-
-  async function run(action: () => Promise<void>) {
-    try {
-      await action()
-    } catch (cause) {
-      toast.error(messageOf(cause))
-    }
-    await load()
-  }
-
-  async function createLabel(name: string) {
-    const existing = labels.find((label) => label.name.toLowerCase() === name.toLowerCase())
-    if (existing) return existing
-    const label = await api.createLabel(name, LABEL_COLORS[labels.length % LABEL_COLORS.length])
-    setLabels((list) => [...list, label].sort((a, b) => a.name.localeCompare(b.name)))
-    return label
-  }
+  const tracker = useTracker(api, range, labelIds)
+  const { labels, running, entries } = tracker
 
   function askToDelete(entry: Entry) {
     setDeleting(entry)
@@ -108,18 +61,11 @@ function Tracker({ api, onSignOut }: TrackerProps) {
         key={runningVersion}
         running={running}
         labels={labels}
-        onStart={() => run(() => api.startTimer("", []))}
-        onStop={() => run(() => api.stopTimer())}
-        onUpdate={async (entry) => {
-          try {
-            await api.saveEntry(entry)
-            setRunning((current) => (current?.id === entry.id ? entry : current))
-          } catch (cause) {
-            toast.error(messageOf(cause))
-          }
-        }}
+        onStart={tracker.start}
+        onStop={tracker.stop}
+        onUpdate={tracker.setDetails}
         onEdit={setEditing}
-        onCreateLabel={createLabel}
+        onCreateLabel={tracker.createLabel}
       />
       <Filters
         labels={labels}
@@ -154,12 +100,11 @@ function Tracker({ api, onSignOut }: TrackerProps) {
         entry={editing}
         labels={labels}
         onClose={() => setEditing(null)}
-        onSave={async (entry) => {
-          await api.saveEntry(entry)
-          await load()
-          if (entry.endedAt === null) setRunningVersion((version) => version + 1)
+        onSave={(draft) => {
+          tracker.saveEntry({ ...draft, id: draft.id ?? crypto.randomUUID() }, !draft.id)
+          if (draft.endedAt === null) setRunningVersion((version) => version + 1)
         }}
-        onCreateLabel={createLabel}
+        onCreateLabel={tracker.createLabel}
       />
       <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
         <AlertDialogBackdrop />
@@ -174,7 +119,7 @@ function Tracker({ api, onSignOut }: TrackerProps) {
               value="confirm"
               data-variant="destructive"
               data-agent-confirm={deleting ? `Deletes the entry ${entryName(deleting)}` : undefined}
-              action={() => (deleting ? run(() => api.deleteEntry(deleting.id)) : undefined)}
+              onClick={() => deleting && tracker.deleteEntry(deleting.id)}
             >
               Delete forever
             </AlertDialogClose>

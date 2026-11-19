@@ -339,3 +339,99 @@ test("an agent can find every control, start and stop a timer, and needs a perso
   expect(removed.ok, removed.error?.message).toBe(true)
   await waitFor(() => expect(stored().some((entry) => entry.id === "e2")).toBe(false))
 })
+
+test("start, typing, labels, stop and delete all show before the server answers", async () => {
+  const { user, entries: stored, hold } = await setup({ labels: [work, admin], entries: [entries[1]] })
+  const release = hold()
+
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  expect(screen.getByRole("timer", { name: "Elapsed time" })).toBeTruthy()
+  const description = screen.getByRole("textbox", { name: "What are you working on?" })
+  await user.type(description, "Offline work")
+  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
+  await user.click(await screen.findByRole("menuitemcheckbox", { name: "Work" }))
+  await user.keyboard("{Escape}")
+  await user.click(screen.getByRole("button", { name: "Stop timer" }))
+
+  expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
+  expect(screen.getByText("Offline work")).toBeTruthy()
+  expect(summary().getByText("2 entries")).toBeTruthy()
+
+  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
+  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+  await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
+  expect(summary().getByText("1 entry")).toBeTruthy()
+  expect(stored()).toEqual([entries[1]])
+
+  release()
+  await waitFor(() => expect(stored()).toHaveLength(1))
+  await waitFor(() =>
+    expect(stored()[0]).toMatchObject({ description: "Offline work", labelIds: ["work"] })
+  )
+  expect(stored()[0].endedAt).not.toBeNull()
+  expect(screen.getByText("Offline work")).toBeTruthy()
+})
+
+test("a manual entry and a new label show at once, and save in order", async () => {
+  const { user, entries: stored, labels, hold } = await setup({ labels: [], entries: [] })
+  const release = hold()
+
+  await user.click(screen.getByRole("button", { name: "Add entry" }))
+  const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
+  await user.type(dialog.getByRole("textbox", { name: "Entry description" }), "Workshop")
+  await user.type(dialog.getByRole("combobox", { name: "Entry labels" }), "Client")
+  await user.click(await screen.findByRole("option", { name: /Create “Client”/ }))
+  await user.click(dialog.getByRole("button", { name: "Save entry" }))
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+  expect(screen.getByText("Workshop")).toBeTruthy()
+  expect(within(summary().getByRole("list", { name: "Time by label" })).getByText("Client")).toBeTruthy()
+  expect(stored()).toEqual([])
+
+  release()
+  await waitFor(() => expect(stored()).toHaveLength(1))
+  expect(stored()[0].labelIds).toEqual([labels()[0].id])
+})
+
+test("a change the server refuses is undone, with a message", async () => {
+  const { user, entries: stored, failNextWrite } = await setup()
+
+  failNextWrite("Network down")
+  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
+  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+
+  expect(await screen.findByText("Network down")).toBeTruthy()
+  expect(await screen.findByText("Invoices")).toBeTruthy()
+  expect(summary().getByText("4 entries")).toBeTruthy()
+  expect(stored()).toHaveLength(4)
+})
+
+test("writes reach the server in the order they were made, even when one is slow", async () => {
+  const { user, entries: stored, labels, slowNextWrite } = await setup({ labels: [], entries: [] })
+
+  slowNextWrite()
+  await user.click(screen.getByRole("button", { name: "Add entry" }))
+  const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
+  await user.type(dialog.getByRole("combobox", { name: "Entry labels" }), "Client")
+  await user.click(await screen.findByRole("option", { name: /Create “Client”/ }))
+  await user.click(dialog.getByRole("button", { name: "Save entry" }))
+
+  await waitFor(() => expect(stored()).toHaveLength(1))
+  expect(stored()[0].labelIds).toEqual([labels()[0].id])
+  expect(screen.queryByText("Unknown label")).toBeNull()
+})
+
+test("a refresh that started before a change doesn't undo it on screen", async () => {
+  const { user, entries: stored, holdReads } = await setup()
+
+  const release = holdReads()
+  document.dispatchEvent(new Event("visibilitychange"))
+  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
+  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+  await waitFor(() => expect(stored()).toHaveLength(3))
+
+  release()
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  expect(screen.queryByText("Invoices")).toBeNull()
+  expect(summary().getByText("3 entries")).toBeTruthy()
+})

@@ -29,11 +29,11 @@ import { LabelDot } from "./label-picker"
 type TimerBarProps = {
   running: Entry | null
   labels: Label[]
-  onStart: () => Promise<void>
-  onStop: () => Promise<void>
-  onUpdate: (entry: Entry) => Promise<void>
+  onStart: () => void
+  onStop: () => void
+  onUpdate: (id: string, description: string, labelIds: string[]) => void
   onEdit: (entry: Entry) => void
-  onCreateLabel: (name: string) => Promise<Label>
+  onCreateLabel: (name: string) => Label
 }
 
 const SAVE_DELAY = 400
@@ -59,52 +59,38 @@ function NewLabelDialog({
   onCreate,
 }: {
   controller: LabelDialogController
-  onCreate: (name: string) => Promise<void>
+  onCreate: (name: string) => void
 }) {
   const [name, setName] = useState("")
-  const [error, setError] = useState("")
-  const [saving, setSaving] = useState(false)
 
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault()
-    setSaving(true)
-    try {
-      await onCreate(name.trim())
-      setName("")
-      setError("")
-      controller.close()
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Couldn't create the label.")
-    } finally {
-      setSaving(false)
-    }
+    onCreate(name.trim())
+    setName("")
+    controller.close()
   }
 
   return (
-    <Dialog controller={controller} onOpenChange={(open) => !open && setError("")}>
+    <Dialog controller={controller}>
       <DialogBackdrop />
       <DialogContent>
         <DialogTitle>New label</DialogTitle>
         <form onSubmit={submit} className="flex flex-col gap-4">
-          <Field invalid={error ? true : undefined}>
+          <Field>
             <FieldLabel>Label name</FieldLabel>
             <Input
               required
               maxLength={50}
               pattern=".*\S.*"
               value={name}
-              onValueChange={(value) => {
-                setName(value)
-                setError("")
-              }}
+              onValueChange={(value) => setName(value)}
             />
             <FieldError match="valueMissing">Enter a name for the label.</FieldError>
             <FieldError match="patternMismatch">Enter a name for the label.</FieldError>
-            {error ? <FieldError match>{error}</FieldError> : null}
           </Field>
           <div className="flex justify-end gap-2">
             <DialogClose>Cancel</DialogClose>
-            <Button type="submit" data-variant="solid" disabled={saving} focusableWhenDisabled>
+            <Button type="submit" data-variant="solid">
               Create label
             </Button>
           </div>
@@ -117,14 +103,14 @@ function NewLabelDialog({
 type DetailsProps = {
   entry: Entry
   labels: Label[]
-  onUpdate: (entry: Entry) => Promise<void>
+  onUpdate: (id: string, description: string, labelIds: string[]) => void
   onEdit: (entry: Entry) => void
-  onCreateLabel: (name: string) => Promise<Label>
-  flushRef: RefObject<(() => Promise<void>) | null>
+  onCreateLabel: (name: string) => Label
+  flushRef: RefObject<(() => void) | null>
 }
 
-// Edits save on their own: labels at once, the description once typing pauses. Saves run
-// one after another so an older one can't land last, and Stop waits for them through `flushRef`.
+// Edits save on their own: labels at once, the description once typing pauses or the field
+// loses focus. Stop sends what was just typed first, through `flushRef`.
 function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushRef }: DetailsProps) {
   const [description, setDescription] = useState(entry.description)
   const [labelIds, setLabelIds] = useState(entry.labelIds)
@@ -132,19 +118,14 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
   const initial = { description: entry.description, labelIds: entry.labelIds }
   const latest = useRef(initial)
   const saved = useRef(initial)
-  const queue = useRef(Promise.resolve())
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   function save() {
     clearTimeout(timer.current)
     const next = latest.current
-    if (next !== saved.current) {
-      saved.current = next
-      queue.current = queue.current.then(() =>
-        onUpdate({ ...entry, description: next.description.trim(), labelIds: next.labelIds })
-      )
-    }
-    return queue.current
+    if (next === saved.current) return
+    saved.current = next
+    onUpdate(entry.id, next.description.trim(), next.labelIds)
   }
 
   const saveRef = useRef(save)
@@ -154,7 +135,7 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
   useEffect(() => {
     flushRef.current = () => saveRef.current()
     return () => {
-      void saveRef.current()
+      saveRef.current()
       flushRef.current = null
     }
   }, [flushRef])
@@ -162,7 +143,7 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
   function changeLabels(next: string[]) {
     setLabelIds(next)
     latest.current = { ...latest.current, labelIds: next }
-    void save()
+    save()
   }
 
   const selected = labels.filter((label) => labelIds.includes(label.id))
@@ -180,9 +161,9 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
             setDescription(value)
             latest.current = { ...latest.current, description: value }
             clearTimeout(timer.current)
-            timer.current = setTimeout(() => void save(), SAVE_DELAY)
+            timer.current = setTimeout(save, SAVE_DELAY)
           }}
-          onBlur={() => void save()}
+          onBlur={save}
         />
         <Menu presentation="auto">
           <MenuTrigger aria-label="Choose timer labels">
@@ -235,8 +216,8 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
       ) : null}
       <NewLabelDialog
         controller={newLabel}
-        onCreate={async (name) => {
-          const label = await onCreateLabel(name)
+        onCreate={(name) => {
+          const label = onCreateLabel(name)
           if (!latest.current.labelIds.includes(label.id)) {
             changeLabels([...latest.current.labelIds, label.id])
           }
@@ -247,15 +228,15 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
 }
 
 function TimerBar({ running, labels, onStart, onStop, onUpdate, onEdit, onCreateLabel }: TimerBarProps) {
-  const flushRef = useRef<(() => Promise<void>) | null>(null)
+  const flushRef = useRef<(() => void) | null>(null)
   // The details stay on screen while the card shrinks after Stop, so the collapse can animate.
   const [shown, setShown] = useState(running)
   if (running && running !== shown) setShown(running)
 
-  async function toggle() {
+  function toggle() {
     if (!running) return onStart()
-    await flushRef.current?.()
-    return onStop()
+    flushRef.current?.()
+    onStop()
   }
 
   return (

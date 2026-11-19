@@ -12,16 +12,19 @@ import {
 import { Field, FieldError, FieldLabel } from "@ui-sdk/react/field"
 import { Input } from "@ui-sdk/react/input"
 import { useState, type FormEvent } from "react"
-import type { EntryInput, Label } from "@/lib/api"
+import type { Entry, Label } from "@/lib/api"
 import { fromLocalInput, toLocalInput } from "@/lib/time"
-import { LabelPicker, usePendingCreate } from "./label-picker"
+import { LabelPicker } from "./label-picker"
+
+// A new entry has no id until it's saved.
+export type EntryInput = Omit<Entry, "id"> & { id?: string }
 
 type EntryDialogProps = {
   entry: EntryInput | null
   labels: Label[]
   onClose: () => void
-  onSave: (entry: EntryInput) => Promise<void>
-  onCreateLabel: (name: string) => Promise<Label>
+  onSave: (entry: EntryInput) => void
+  onCreateLabel: (name: string) => Label
 }
 
 function EntryForm({
@@ -36,17 +39,14 @@ function EntryForm({
   const [labelIds, setLabelIds] = useState(entry.labelIds)
   const [start, setStart] = useState<string | null>(toLocalInput(entry.startedAt))
   const [end, setEnd] = useState<string | null>(entry.endedAt ? toLocalInput(entry.endedAt) : null)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
-  const labelCreation = usePendingCreate(onCreateLabel)
 
   // The inputs hold whole minutes, so a time that wasn't edited keeps its seconds.
   const instant = (local: string, original: string | null) =>
     original && local === toLocalInput(original) ? original : fromLocalInput(local)
 
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault()
-    if (labelCreation.isPending()) return
     const startedAt = start ? instant(start, entry.startedAt) : null
     const endedAt = running || !end ? null : instant(end, entry.endedAt)
     const problem = !startedAt
@@ -64,14 +64,8 @@ function EntryForm({
       setError(problem)
       return
     }
-    setSaving(true)
-    try {
-      await onSave({ id: entry.id, description: description.trim(), labelIds, startedAt, endedAt })
-      onClose()
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Couldn't save the entry.")
-      setSaving(false)
-    }
+    onSave({ id: entry.id, description: description.trim(), labelIds, startedAt, endedAt })
+    onClose()
   }
 
   return (
@@ -90,7 +84,7 @@ function EntryForm({
         labels={labels}
         value={labelIds}
         onValueChange={setLabelIds}
-        onCreate={labelCreation.create}
+        onCreate={onCreateLabel}
       />
       <div className="flex flex-wrap gap-4">
         <Field>
@@ -123,12 +117,7 @@ function EntryForm({
       </Field>
       <div className="flex justify-end gap-2">
         <DialogClose>Cancel</DialogClose>
-        <Button
-          type="submit"
-          data-variant="solid"
-          disabled={saving || labelCreation.pending}
-          focusableWhenDisabled
-        >
+        <Button type="submit" data-variant="solid">
           Save entry
         </Button>
       </div>

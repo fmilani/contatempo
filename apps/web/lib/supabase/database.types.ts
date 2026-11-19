@@ -128,8 +128,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      replace_entry_labels: {
+        Args: { p_entry_id: string; p_label_ids: string[] }
+        Returns: undefined
+      }
       save_entry: {
         Args: {
+          p_create?: boolean
           p_description: string
           p_ended_at?: string
           p_id?: string
@@ -138,8 +143,12 @@ export type Database = {
         }
         Returns: string
       }
+      set_entry_details: {
+        Args: { p_description: string; p_id: string; p_label_ids: string[] }
+        Returns: undefined
+      }
       start_timer: {
-        Args: { p_description: string; p_label_ids: string[] }
+        Args: { p_description: string; p_id?: string; p_label_ids: string[] }
         Returns: string
       }
       stop_timer: { Args: never; Returns: string }

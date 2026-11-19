@@ -33,6 +33,8 @@ function Tracker({ api, onSignOut }: TrackerProps) {
   const [editing, setEditing] = useState<EntryInput | null>(null)
   const [deleting, setDeleting] = useState<Entry | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  // Bumped when the entry dialog saves the running timer, so the card picks up its new values.
+  const [runningVersion, setRunningVersion] = useState(0)
   const latest = useRef(0)
 
   const load = useCallback(async () => {
@@ -103,10 +105,19 @@ function Tracker({ api, onSignOut }: TrackerProps) {
         {onSignOut ? <Button onClick={onSignOut}>Sign out</Button> : null}
       </header>
       <TimerBar
+        key={runningVersion}
         running={running}
         labels={labels}
-        onStart={(description, ids) => run(() => api.startTimer(description, ids))}
+        onStart={() => run(() => api.startTimer("", []))}
         onStop={() => run(() => api.stopTimer())}
+        onUpdate={async (entry) => {
+          try {
+            await api.saveEntry(entry)
+            setRunning((current) => (current?.id === entry.id ? entry : current))
+          } catch (cause) {
+            toast.error(messageOf(cause))
+          }
+        }}
         onEdit={setEditing}
         onCreateLabel={createLabel}
       />
@@ -146,6 +157,7 @@ function Tracker({ api, onSignOut }: TrackerProps) {
         onSave={async (entry) => {
           await api.saveEntry(entry)
           await load()
+          if (entry.endedAt === null) setRunningVersion((version) => version + 1)
         }}
         onCreateLabel={createLabel}
       />

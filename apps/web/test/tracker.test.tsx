@@ -49,72 +49,106 @@ test("shows the total, the time by label and daily subtotals", async () => {
   expect(within(days[0]).getByText("No description")).toBeTruthy()
 })
 
-test("starts a timer with a description and stops it", async () => {
+test("the idle card shows only the start button; the details appear once it runs", async () => {
   const { user, entries } = await setup({ labels: [work], entries: [] })
 
-  await user.type(screen.getByRole("textbox", { name: "What are you working on?" }), "Deep work")
+  const card = screen.getByRole("region", { name: "Timer" })
+  expect(within(card).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
+    "Start timer",
+  ])
+  expect(card.querySelector("[inert]")).not.toBeNull()
+
   await user.click(screen.getByRole("button", { name: "Start timer" }))
 
   expect(await screen.findByRole("timer", { name: "Elapsed time" })).toBeTruthy()
-  expect(screen.getByText("Deep work")).toBeTruthy()
-  expect(screen.queryByRole("button", { name: "Start timer" })).toBeNull()
-  expect(entries()).toMatchObject([{ description: "Deep work", endedAt: null }])
+  expect(entries()).toMatchObject([{ description: "", labelIds: [], endedAt: null }])
+  expect(card.querySelector("[inert]")).toBeNull()
+  expect(card.hasAttribute("data-running")).toBe(true)
+  expect(screen.getByRole("textbox", { name: "What are you working on?" })).toBeTruthy()
+  expect(screen.getByRole("button", { name: "Choose timer labels" })).toBeTruthy()
   expect(summary().getByText("0 entries")).toBeTruthy()
-
-  await user.click(screen.getByRole("button", { name: "Stop timer" }))
-
-  expect(await screen.findByRole("button", { name: "Start timer" })).toBeTruthy()
-  expect(entries()[0].endedAt).not.toBeNull()
-  expect(summary().getByText("1 entry")).toBeTruthy()
-  expect(screen.getByRole("textbox", { name: "What are you working on?" })).toHaveProperty("value", "")
 })
 
-test("creates a label while typing and starts the timer with it", async () => {
-  const { user, entries, labels } = await setup({ labels: [work], entries: [] })
-
-  await user.type(screen.getByRole("combobox", { name: "Timer labels" }), "Research")
-  await user.click(await screen.findByRole("option", { name: /Create “Research”/ }))
-  await screen.findByRole("button", { name: "Remove Research" })
+test("the description saves while the timer runs, and Stop saves what was just typed", async () => {
+  const { user, entries } = await setup({ labels: [work], entries: [] })
   await user.click(screen.getByRole("button", { name: "Start timer" }))
+  const description = await screen.findByRole("textbox", { name: "What are you working on?" })
 
+  await user.type(description, "Deep work")
+  await waitFor(() => expect(entries()[0].description).toBe("Deep work"))
+  expect(entries()[0].endedAt).toBeNull()
+
+  // No pause and no blur, as with a keyboard shortcut or an agent: Stop must save what was typed first.
+  await user.type(description, " and review")
+  const stop = screen.getByRole("button", { name: "Stop timer" })
+  act(() => stop.click())
+
+  expect(await screen.findByRole("button", { name: "Start timer" })).toBeTruthy()
+  expect(entries()[0]).toMatchObject({ description: "Deep work and review" })
+  expect(entries()[0].endedAt).not.toBeNull()
+  expect(summary().getByText("1 entry")).toBeTruthy()
+  expect(screen.getByText("Deep work and review")).toBeTruthy()
+  expect(screen.getByRole("region", { name: "Timer" }).querySelector("[inert]")).not.toBeNull()
+})
+
+test("labels are toggled from the menu, and saved on the running entry", async () => {
+  const { user, entries } = await setup({ labels: [work, admin], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
   await screen.findByRole("timer")
+
+  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
+  const items = await screen.findAllByRole("menuitemcheckbox")
+  expect(items.map((item) => item.textContent)).toEqual(["Admin", "Work"])
+  await user.click(screen.getByRole("menuitemcheckbox", { name: "Work" }))
+
+  await waitFor(() => expect(entries()[0].labelIds).toEqual(["work"]))
+  expect(screen.getByRole("menuitemcheckbox", { name: "Work" }).getAttribute("aria-checked")).toBe("true")
+  expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Work")).toBeTruthy()
+
+  await user.click(screen.getByRole("menuitemcheckbox", { name: "Work" }))
+  await waitFor(() => expect(entries()[0].labelIds).toEqual([]))
+  expect(screen.queryByRole("list", { name: "Timer labels" })).toBeNull()
+})
+
+test("a new label made from the menu is created and added to the running timer", async () => {
+  const { user, entries, labels } = await setup({ labels: [work], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await screen.findByRole("timer")
+
+  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
+  await user.click(await screen.findByRole("menuitem", { name: /New label/ }))
+  const dialog = within(await screen.findByRole("dialog", { name: "New label" }))
+  await user.click(dialog.getByRole("button", { name: "Create label" }))
+  expect(dialog.getByText("Enter a name for the label.")).toBeTruthy()
+  expect(labels()).toHaveLength(1)
+
+  await user.type(dialog.getByRole("textbox", { name: "Label name" }), "Research")
+  await user.click(dialog.getByRole("button", { name: "Create label" }))
+
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "New label" })).toBeNull())
   const created = labels().find((label) => label.name === "Research")
   expect(created?.color).toMatch(/^#[0-9a-f]{6}$/)
-  expect(entries()[0].labelIds).toEqual([created?.id])
+  await waitFor(() => expect(entries()[0].labelIds).toEqual([created?.id]))
   expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Research")).toBeTruthy()
 })
 
-test("the timer can't start while a label is still being created", async () => {
-  const fake = createFakeApi({ labels: [work], entries: [] })
-  const createLabel = fake.api.createLabel
-  let finish = () => {}
-  fake.api.createLabel = async (name, color) => {
-    await new Promise<void>((resolve) => (finish = resolve))
-    return createLabel(name, color)
-  }
-  const user = userEvent.setup()
-  render(<Tracker api={fake.api} />)
-  await screen.findByRole("region", { name: "Summary" })
-
-  await user.type(screen.getByRole("combobox", { name: "Timer labels" }), "Research")
-  const start = screen.getByRole("button", { name: "Start timer" })
-  const create = await screen.findByRole("option", { name: /Create “Research”/ })
-  // Both presses land in one task, before the button has rendered as disabled.
-  act(() => {
-    create.click()
-    start.click()
-  })
-  expect(fake.entries()).toEqual([])
-  await waitFor(() => expect(start.getAttribute("aria-disabled")).toBe("true"))
-  await user.click(start)
-  expect(fake.entries()).toEqual([])
-
-  finish()
-  await screen.findByRole("button", { name: "Remove Research" })
-  expect(start.getAttribute("aria-disabled")).toBeNull()
-  await user.click(start)
+test("editing the running timer in the dialog updates the card", async () => {
+  const { user } = await setup({ labels: [work], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
   await screen.findByRole("timer")
-  expect(fake.entries()[0].labelIds).toHaveLength(1)
+
+  await user.click(screen.getByRole("button", { name: "Edit running timer" }))
+  const dialog = within(await screen.findByRole("dialog", { name: "Edit running timer" }))
+  await user.type(dialog.getByRole("textbox", { name: "Entry description" }), "From the dialog")
+  await user.click(dialog.getByRole("button", { name: "Save entry" }))
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+  await waitFor(() =>
+    expect(screen.getByRole("textbox", { name: "What are you working on?" })).toHaveProperty(
+      "value",
+      "From the dialog"
+    )
+  )
 })
 
 test("filters by label, matching entries with any selected label", async () => {
@@ -257,30 +291,32 @@ test("an agent can find every control, start and stop a timer, and needs a perso
     expect(entry.label, `${entry.component} ${entry.ref} has no name`).toBeTruthy()
   }
   const labels = components.map((entry) => entry.label)
-  for (const label of [
-    "What are you working on?",
-    "Timer labels",
-    "Start timer",
-    "Filter labels",
-    "Add entry",
-  ]) {
+  for (const label of ["Start timer", "Filter labels", "Add entry"]) {
     expect(labels, `${label} is missing from the snapshot`).toContain(label)
   }
   expect(labels.some((label) => label?.startsWith("Edit Invoices at"))).toBe(true)
 
-  const started = await agent.act({
-    steps: [
-      { ref: "What are you working on?", action: "setValue", args: ["Agent task"] },
-      { ref: "Timer labels", action: "setValue", args: [["work"]] },
-      { ref: "Start timer", action: "press" },
-    ],
-  })
+  const started = await agent.act({ steps: [{ ref: "Start timer", action: "press" }] })
   expect(started.ok, started.error?.message).toBe(true)
   await screen.findByRole("timer")
-  expect(stored().find((entry) => entry.endedAt === null)).toMatchObject({
-    description: "Agent task",
-    labelIds: ["work"],
+  const running = agent.snapshot().filter((entry) => !entry.offPage).map((entry) => entry.label)
+  for (const label of ["Stop timer", "What are you working on?", "Choose timer labels"]) {
+    expect(running, `${label} is missing once the timer runs`).toContain(label)
+  }
+
+  const described = await agent.act({
+    steps: [
+      { ref: "What are you working on?", action: "setValue", args: ["Agent task"] },
+      { ref: "Choose timer labels", action: "press", args: ["Work"] },
+    ],
   })
+  expect(described.ok, described.error?.message).toBe(true)
+  await waitFor(() =>
+    expect(stored().find((entry) => entry.endedAt === null)).toMatchObject({
+      description: "Agent task",
+      labelIds: ["work"],
+    })
+  )
 
   const stopped = await agent.act({ steps: [{ ref: "Stop timer", action: "press" }] })
   expect(stopped.ok, stopped.error?.message).toBe(true)

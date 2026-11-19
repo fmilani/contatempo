@@ -90,3 +90,73 @@ body {
   align-items: center;
   gap: 0.5rem;
 }
+
+.timer-toggle {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.timer-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition:
+    opacity 200ms ease,
+    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  & svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+.timer-icon-stop {
+  opacity: 0;
+  transform: scale(0.4) rotate(-90deg);
+}
+
+.timer-card[data-running] {
+  & .timer-icon-start {
+    opacity: 0;
+    transform: scale(0.4) rotate(90deg);
+  }
+
+  & .timer-icon-stop {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.timer-details {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 200ms ease;
+
+  /* The negative margin keeps focus rings inside the clipped area. */
+  & > div {
+    min-height: 0;
+    overflow: hidden;
+    margin: -0.25rem;
+    padding: 0.25rem;
+  }
+
+  .timer-card[data-running] & {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timer-icon,
+  .timer-details {
+    transition: none;
+  }
+}

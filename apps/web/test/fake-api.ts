@@ -52,13 +52,12 @@ export function createFakeApi(seed: { labels?: Label[]; entries?: Entry[] } = {}
         .filter((entry) => labelIds.length === 0 || entry.labelIds.some((l) => labelIds.includes(l)))
         .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
       ),
-    startTimer: (id) =>
+    startTimer: (id, at) =>
       write(() => {
-        const now = new Date().toISOString()
-        stopRunning(now)
-        entries = [...entries, { id, description: "", labelIds: [], startedAt: now, endedAt: null }]
+        stopRunning(at)
+        entries = [...entries, { id, description: "", labelIds: [], startedAt: at, endedAt: null }]
       }),
-    stopTimer: () => write(() => stopRunning(new Date().toISOString())),
+    stopTimer: (at) => write(() => stopRunning(at)),
     setEntryDetails: (id, description, labelIds) =>
       write(() => {
         if (!entries.some((entry) => entry.id === id)) throw new Error("Entry not found")

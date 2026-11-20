@@ -435,3 +435,26 @@ test("a refresh that started before a change doesn't undo it on screen", async (
   expect(screen.queryByText("Invoices")).toBeNull()
   expect(summary().getByText("3 entries")).toBeTruthy()
 })
+
+test("start and stop send the moment the button was pressed, not when the server gets them", async () => {
+  const { user, entries: stored, hold } = await setup({ labels: [], entries: [] })
+  const release = hold()
+
+  const beforeStart = Date.now()
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  const afterStart = Date.now()
+  await new Promise((resolve) => setTimeout(resolve, 30))
+  const beforeStop = Date.now()
+  await user.click(screen.getByRole("button", { name: "Stop timer" }))
+  const afterStop = Date.now()
+  await new Promise((resolve) => setTimeout(resolve, 30))
+
+  release()
+  await waitFor(() => expect(stored()[0]?.endedAt).toBeTruthy())
+  const startedAt = Date.parse(stored()[0].startedAt)
+  const endedAt = Date.parse(stored()[0].endedAt!)
+  expect(startedAt).toBeGreaterThanOrEqual(beforeStart)
+  expect(startedAt).toBeLessThanOrEqual(afterStart)
+  expect(endedAt).toBeGreaterThanOrEqual(beforeStop)
+  expect(endedAt).toBeLessThanOrEqual(afterStop)
+})

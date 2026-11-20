@@ -31,8 +31,8 @@ export type Api = {
   createLabel(label: Label): Promise<void>
   getRunning(): Promise<Entry | null>
   listEntries(filter: EntryFilter): Promise<Entry[]>
-  startTimer(id: string): Promise<void>
-  stopTimer(): Promise<void>
+  startTimer(id: string, at: string): Promise<void>
+  stopTimer(at: string): Promise<void>
   setEntryDetails(id: string, description: string, labelIds: string[]): Promise<void>
   saveEntry(entry: Entry, create: boolean): Promise<void>
   deleteEntry(id: string): Promise<void>
@@ -117,12 +117,19 @@ export function createApi(supabase: SupabaseClient<Database>): Api {
       }
     },
 
-    async startTimer(id) {
-      check(await supabase.rpc("start_timer", { p_id: id, p_description: "", p_label_ids: [] }))
+    async startTimer(id, at) {
+      check(
+        await supabase.rpc("start_timer", {
+          p_id: id,
+          p_started_at: at,
+          p_description: "",
+          p_label_ids: [],
+        })
+      )
     },
 
-    async stopTimer() {
-      check(await supabase.rpc("stop_timer"))
+    async stopTimer(at) {
+      check(await supabase.rpc("stop_timer", { p_ended_at: at }))
     },
 
     async setEntryDetails(id, description, labelIds) {

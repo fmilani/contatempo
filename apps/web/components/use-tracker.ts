@@ -121,13 +121,14 @@ function useTracker(api: Api, range: DayRange | null, labelIds: string[]) {
           ...stopRunning(current, now),
           running: { id, description: "", labelIds: [], startedAt: now, endedAt: null },
         }),
-        () => api.startTimer(id),
+        () => api.startTimer(id, now),
         true
       )
     },
 
     stop() {
-      mutate((current) => stopRunning(current, new Date().toISOString()), () => api.stopTimer(), true)
+      const now = new Date().toISOString()
+      mutate((current) => stopRunning(current, now), () => api.stopTimer(now), true)
     },
 
     setDetails(id: string, description: string, labelIds: string[]) {

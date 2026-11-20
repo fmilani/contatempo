@@ -147,11 +147,17 @@ export type Database = {
         Args: { p_description: string; p_id: string; p_label_ids: string[] }
         Returns: undefined
       }
+      client_time: { Args: { p_at: string }; Returns: string }
       start_timer: {
-        Args: { p_description: string; p_id?: string; p_label_ids: string[] }
+        Args: {
+          p_description: string
+          p_id?: string
+          p_label_ids: string[]
+          p_started_at?: string
+        }
         Returns: string
       }
-      stop_timer: { Args: never; Returns: string }
+      stop_timer: { Args: { p_ended_at?: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

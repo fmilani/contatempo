@@ -2,26 +2,20 @@
 
 import { Button } from "@ui-sdk/react/button"
 import {
-  createDialogController,
-  Dialog,
-  DialogBackdrop,
-  DialogClose,
-  DialogContent,
-  DialogTitle,
-} from "@ui-sdk/react/dialog"
-import { Field, FieldError, FieldLabel } from "@ui-sdk/react/field"
+  Combobox,
+  ComboboxContent,
+  ComboboxCreate,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxList,
+  ComboboxTrigger,
+  createComboboxController,
+} from "@ui-sdk/react/combobox"
 import { Input } from "@ui-sdk/react/input"
-import {
-  Menu,
-  MenuCheckboxItem,
-  MenuContent,
-  MenuItem,
-  MenuItemIndicator,
-  MenuSeparator,
-  MenuTrigger,
-} from "@ui-sdk/react/menu"
 import { useShortcut, useShortcutHint } from "@ui-sdk/react/shortcuts"
-import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react"
+import { useEffect, useRef, useState, type RefObject } from "react"
 import type { Entry, Label } from "@/lib/api"
 import { durationOf, formatClock } from "@/lib/time"
 import { CheckIcon, PlayIcon, PlusIcon, StopIcon, TagIcon } from "./icons"
@@ -38,9 +32,6 @@ type TimerBarProps = {
 
 const SAVE_DELAY = 400
 
-const createLabelDialog = () => createDialogController<unknown, unknown>()
-type LabelDialogController = ReturnType<typeof createLabelDialog>
-
 function Elapsed({ entry }: { entry: Entry }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
@@ -54,79 +45,43 @@ function Elapsed({ entry }: { entry: Entry }) {
   )
 }
 
-function NewLabelDialog({
-  controller,
-  onCreate,
-}: {
-  controller: LabelDialogController
-  onCreate: (name: string) => void
-}) {
-  const [name, setName] = useState("")
-
-  function submit(event: FormEvent) {
-    event.preventDefault()
-    onCreate(name.trim())
-    setName("")
-    controller.close()
-  }
-
-  return (
-    <Dialog controller={controller}>
-      <DialogBackdrop />
-      <DialogContent>
-        <DialogTitle>New label</DialogTitle>
-        <form onSubmit={submit} className="flex flex-col gap-4">
-          <Field>
-            <FieldLabel>Label name</FieldLabel>
-            <Input
-              required
-              maxLength={50}
-              pattern=".*\S.*"
-              value={name}
-              onValueChange={(value) => setName(value)}
-            />
-            <FieldError match="valueMissing">Enter a name for the label.</FieldError>
-            <FieldError match="patternMismatch">Enter a name for the label.</FieldError>
-          </Field>
-          <div className="flex justify-end gap-2">
-            <DialogClose>Cancel</DialogClose>
-            <Button type="submit" data-variant="solid">
-              Create label
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 type DetailsProps = {
   entry: Entry
   labels: Label[]
   onUpdate: (id: string, description: string, labelIds: string[]) => void
   onCreateLabel: (name: string) => Label
   flushRef: RefObject<(() => void) | null>
+  labelPicker: LabelPickerController
   autoFocus: boolean
 }
 
 // Edits save on their own: labels at once, the description once typing pauses or the field
 // loses focus. Stop sends what was just typed first, through `flushRef`.
+const createLabelPicker = () => createComboboxController<string, true>()
+type LabelPickerController = ReturnType<typeof createLabelPicker>
+
+// useShortcutHint wraps the keys in invisible direction marks, which show as boxes in a title.
+const plain = (text: string) => text.replace(/[\u2066-\u2069]/g, "")
+
 function RunningDetails({
   entry,
   labels,
   onUpdate,
   onCreateLabel,
   flushRef,
+  labelPicker,
   autoFocus,
 }: DetailsProps) {
   const [description, setDescription] = useState(entry.description)
   const [labelIds, setLabelIds] = useState(entry.labelIds)
-  const [newLabel] = useState(createLabelDialog)
+  const [query, setQuery] = useState("")
+  const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
   const initial = { description: entry.description, labelIds: entry.labelIds }
   const latest = useRef(initial)
   const saved = useRef(initial)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const descriptionRef = useRef<HTMLInputElement>(null)
+  const labelHint = useShortcutHint("l")
 
   useEffect(() => {
     // preventScroll keeps the page still while the card grows open.
@@ -179,41 +134,67 @@ function RunningDetails({
           }}
           onBlur={save}
         />
-        <Menu presentation="auto">
-          <MenuTrigger aria-label="Choose timer labels">
+        <Combobox
+          multiple
+          autoHighlight
+          controller={labelPicker}
+          value={labelIds}
+          onValueChange={(next) => changeLabels(next as string[])}
+          itemToLabel={(id) => labels.find((label) => label.id === id)?.name ?? ""}
+          query={query}
+          onQueryChange={setQuery}
+          onOpenChangeComplete={(open) => !open && trigger?.focus()}
+        >
+          <ComboboxTrigger
+            ref={setTrigger}
+            aria-label="Choose timer labels"
+            aria-keyshortcuts={labelHint.ariaKeyshortcuts}
+            title={`Labels (${plain(labelHint.text)})`}
+            className="label-trigger"
+          >
             <TagIcon />
-          </MenuTrigger>
-          <MenuContent align="end">
-            {labels.map((label) => (
-              <MenuCheckboxItem
-                key={label.id}
-                value={label.id}
-                label={label.name}
-                checked={labelIds.includes(label.id)}
-                onCheckedChange={(checked) =>
-                  changeLabels(
-                    checked ? [...labelIds, label.id] : labelIds.filter((id) => id !== label.id)
-                  )
-                }
-              >
-                <MenuItemIndicator>
-                  <CheckIcon />
-                </MenuItemIndicator>
-                <span className="flex items-center gap-2">
+          </ComboboxTrigger>
+          <ComboboxContent anchor={trigger} align="end" className="label-popup">
+            <ComboboxInput
+              autoFocus
+              aria-label="Find or create a label"
+              placeholder="Find or create a label…"
+              maxLength={50}
+              className="label-popup-input"
+            />
+            <ComboboxEmpty>
+              {(state) => (state.empty && !state.query.trim() ? "No labels yet. Type a name to create one." : null)}
+            </ComboboxEmpty>
+            <ComboboxList>
+              {labels.map((label) => (
+                <ComboboxItem key={label.id} value={label.id} label={label.name}>
                   <LabelDot color={label.color} />
                   {label.name}
-                </span>
-              </MenuCheckboxItem>
-            ))}
-            {labels.length > 0 ? <MenuSeparator /> : null}
-            <MenuItem onSelect={() => void newLabel.open()}>
-              <span className="flex items-center gap-2">
-                <PlusIcon />
-                New label…
-              </span>
-            </MenuItem>
-          </MenuContent>
-        </Menu>
+                  <ComboboxItemIndicator>
+                    <CheckIcon />
+                  </ComboboxItemIndicator>
+                </ComboboxItem>
+              ))}
+              <ComboboxCreate
+                className="label-create"
+                onCreate={(name) => {
+                  const label = onCreateLabel(name.trim())
+                  if (!latest.current.labelIds.includes(label.id)) {
+                    changeLabels([...latest.current.labelIds, label.id])
+                  }
+                  setQuery("")
+                }}
+              >
+                {(state) => (
+                  <>
+                    <PlusIcon />
+                    <span>Create “{state.query.trim()}”</span>
+                  </>
+                )}
+              </ComboboxCreate>
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       </div>
       {selected.length > 0 ? (
         <ul aria-label="Timer labels" className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
@@ -225,15 +206,6 @@ function RunningDetails({
           ))}
         </ul>
       ) : null}
-      <NewLabelDialog
-        controller={newLabel}
-        onCreate={(name) => {
-          const label = onCreateLabel(name)
-          if (!latest.current.labelIds.includes(label.id)) {
-            changeLabels([...latest.current.labelIds, label.id])
-          }
-        }}
-      />
     </div>
   )
 }
@@ -265,6 +237,11 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onCreateLabel }:
   })
   const hint = useShortcutHint("s")
 
+  const [labelPicker] = useState(createLabelPicker)
+  useShortcut(running ? "l" : null, () => labelPicker.open(), {
+    description: "Choose the running timer's labels",
+  })
+
   return (
     <section aria-label="Timer" className="card timer-card" data-running={running ? "" : undefined}>
       <div className="flex items-center gap-3">
@@ -273,7 +250,7 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onCreateLabel }:
           className="timer-toggle"
           aria-label={running ? "Stop timer" : "Start timer"}
           aria-keyshortcuts={hint.ariaKeyshortcuts}
-          title={`${running ? "Stop" : "Start"} (${hint.text.replace(/[\u2066-\u2069]/g, "")})`}
+          title={`${running ? "Stop" : "Start"} (${plain(hint.text)})`}
           onClick={toggle}
         >
           <span className="timer-icon timer-icon-start">
@@ -301,6 +278,7 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onCreateLabel }:
               onUpdate={onUpdate}
               onCreateLabel={onCreateLabel}
               flushRef={flushRef}
+              labelPicker={labelPicker}
               autoFocus={shown.id === startedHere}
             />
           ) : null}

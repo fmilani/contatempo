@@ -91,45 +91,113 @@ test("the description saves while the timer runs, and Stop saves what was just t
   expect(screen.getByRole("region", { name: "Timer" }).querySelector("[inert]")).not.toBeNull()
 })
 
-test("labels are toggled from the menu, and saved on the running entry", async () => {
+// The timer card's labels popup: a filter field inside it, the labels as options, and a Create option.
+async function openTimerLabels(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
+  return screen.findByRole("combobox", { name: "Find or create a label" })
+}
+
+test("labels are toggled from the popup, and saved on the running entry", async () => {
   const { user, entries } = await setup({ labels: [work, admin], entries: [] })
   await user.click(screen.getByRole("button", { name: "Start timer" }))
   await screen.findByRole("timer")
 
-  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
-  const items = await screen.findAllByRole("menuitemcheckbox")
-  expect(items.map((item) => item.textContent)).toEqual(["Admin", "Work"])
-  await user.click(screen.getByRole("menuitemcheckbox", { name: "Work" }))
+  const filter = await openTimerLabels(user)
+  expect(document.activeElement).toBe(filter)
+  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Admin", "Work"])
+  await user.click(screen.getByRole("option", { name: "Work" }))
 
   await waitFor(() => expect(entries()[0].labelIds).toEqual(["work"]))
-  expect(screen.getByRole("menuitemcheckbox", { name: "Work" }).getAttribute("aria-checked")).toBe("true")
+  expect(screen.getByRole("option", { name: "Work" }).getAttribute("aria-selected")).toBe("true")
   expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Work")).toBeTruthy()
 
-  await user.click(screen.getByRole("menuitemcheckbox", { name: "Work" }))
+  await user.click(screen.getByRole("option", { name: "Work" }))
   await waitFor(() => expect(entries()[0].labelIds).toEqual([]))
   expect(screen.queryByRole("list", { name: "Timer labels" })).toBeNull()
 })
 
-test("a new label made from the menu is created and added to the running timer", async () => {
+test("typing in the popup filters the labels", async () => {
+  const { user } = await setup({ labels: [work, admin], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  const filter = await openTimerLabels(user)
+
+  await user.type(filter, "wo")
+
+  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+    "Work",
+    "Create “wo”",
+  ])
+
+  await user.keyboard("{Escape}")
+  await waitFor(() => expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull())
+  const reopened = await openTimerLabels(user)
+  expect(reopened).toHaveProperty("value", "")
+  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Admin", "Work"])
+})
+
+test("a name that matches no label can be created from the popup, and is added to the timer", async () => {
   const { user, entries, labels } = await setup({ labels: [work], entries: [] })
   await user.click(screen.getByRole("button", { name: "Start timer" }))
-  await screen.findByRole("timer")
+  const filter = await openTimerLabels(user)
 
-  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
-  await user.click(await screen.findByRole("menuitem", { name: /New label/ }))
-  const dialog = within(await screen.findByRole("dialog", { name: "New label" }))
-  await user.click(dialog.getByRole("button", { name: "Create label" }))
-  expect(dialog.getByText("Enter a name for the label.")).toBeTruthy()
-  expect(labels()).toHaveLength(1)
+  await user.type(filter, "Research")
+  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Create “Research”"])
+  await user.keyboard("{Enter}")
 
-  await user.type(dialog.getByRole("textbox", { name: "Label name" }), "Research")
-  await user.click(dialog.getByRole("button", { name: "Create label" }))
-
-  await waitFor(() => expect(screen.queryByRole("dialog", { name: "New label" })).toBeNull())
   const created = labels().find((label) => label.name === "Research")
   expect(created?.color).toMatch(/^#[0-9a-f]{6}$/)
   await waitFor(() => expect(entries()[0].labelIds).toEqual([created?.id]))
   expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Research")).toBeTruthy()
+  expect(filter).toHaveProperty("value", "")
+  expect(screen.getByRole("option", { name: "Research" }).getAttribute("aria-selected")).toBe("true")
+})
+
+test("an exact match offers no Create, whatever the case", async () => {
+  const { user, labels } = await setup({ labels: [work], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  const filter = await openTimerLabels(user)
+
+  await user.type(filter, "work")
+
+  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Work"])
+  await user.keyboard("{Enter}")
+  expect(labels()).toEqual([work])
+})
+
+test("L opens the labels popup while the timer runs, and does nothing while it's stopped", async () => {
+  const { user } = await setup({ labels: [work], entries: [] })
+
+  await user.keyboard("l")
+  expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull()
+
+  // After a stop the card is still on screen while it collapses: L must not open its popup.
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await screen.findByRole("timer")
+  await user.tab()
+  await user.click(screen.getByRole("button", { name: "Stop timer" }))
+  await user.keyboard("l")
+  expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull()
+
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await screen.findByRole("timer")
+  await user.tab()
+  expect(screen.getByRole("button", { name: "Choose timer labels" }).getAttribute("aria-keyshortcuts")).toBe("L")
+  await user.keyboard("l")
+
+  const filter = await screen.findByRole("combobox", { name: "Find or create a label" })
+  await waitFor(() => expect(document.activeElement).toBe(filter))
+  expect(filter).toHaveProperty("value", "")
+})
+
+test("typing an L in the description doesn't open the labels popup", async () => {
+  const { user } = await setup({ labels: [work], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  const description = screen.getByRole("textbox", { name: "What are you working on?" })
+
+  await user.type(description, "Planning")
+
+  expect(description).toHaveProperty("value", "Planning")
+  expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull()
 })
 
 test("the running card has no edit button, and its description takes focus on start", async () => {
@@ -327,7 +395,7 @@ test("an agent can find every control, start and stop a timer, and needs a perso
   const described = await agent.act({
     steps: [
       { ref: "What are you working on?", action: "setValue", args: ["Agent task"] },
-      { ref: "Choose timer labels", action: "press", args: ["Work"] },
+      { ref: "Choose timer labels", action: "setValue", args: [["Work"]] },
     ],
   })
   expect(described.ok, described.error?.message).toBe(true)
@@ -368,8 +436,8 @@ test("start, typing, labels, stop and delete all show before the server answers"
   expect(screen.getByRole("timer", { name: "Elapsed time" })).toBeTruthy()
   const description = screen.getByRole("textbox", { name: "What are you working on?" })
   await user.type(description, "Offline work")
-  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
-  await user.click(await screen.findByRole("menuitemcheckbox", { name: "Work" }))
+  await openTimerLabels(user)
+  await user.click(screen.getByRole("option", { name: "Work" }))
   await user.keyboard("{Escape}")
   await user.click(screen.getByRole("button", { name: "Stop timer" }))
 

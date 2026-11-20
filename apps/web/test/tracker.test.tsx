@@ -458,3 +458,49 @@ test("start and stop send the moment the button was pressed, not when the server
   expect(endedAt).toBeGreaterThanOrEqual(beforeStop)
   expect(endedAt).toBeLessThanOrEqual(afterStop)
 })
+
+test("pressing S starts the timer and pressing it again stops it", async () => {
+  const { user, entries: stored } = await setup({ labels: [], entries: [] })
+
+  expect(screen.getByRole("button", { name: "Start timer" }).getAttribute("aria-keyshortcuts")).toBe("S")
+  await user.keyboard("s")
+  expect(screen.getByRole("timer", { name: "Elapsed time" })).toBeTruthy()
+  await waitFor(() => expect(stored()).toHaveLength(1))
+
+  await user.keyboard("s")
+  expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
+  await waitFor(() => expect(stored()[0].endedAt).not.toBeNull())
+})
+
+test("holding S down toggles once, not over and over", async () => {
+  const { user, entries: stored } = await setup({ labels: [], entries: [] })
+
+  await user.keyboard("{s>5/}")
+  expect(screen.getByRole("button", { name: "Stop timer" })).toBeTruthy()
+  await waitFor(() => expect(stored()).toHaveLength(1))
+  expect(stored()[0].endedAt).toBeNull()
+})
+
+test("typing an S in the description doesn't stop the timer", async () => {
+  const { user, entries: stored } = await setup({ labels: [], entries: [] })
+  await user.keyboard("s")
+  const description = screen.getByRole("textbox", { name: "What are you working on?" })
+
+  await user.type(description, "Sales sync")
+
+  expect(description).toHaveProperty("value", "Sales sync")
+  expect(screen.getByRole("button", { name: "Stop timer" })).toBeTruthy()
+  await waitFor(() => expect(stored()[0].description).toBe("Sales sync"))
+  expect(stored()[0].endedAt).toBeNull()
+})
+
+test("S does nothing while a dialog is open", async () => {
+  const { user, entries: stored } = await setup({ labels: [], entries: [] })
+
+  await user.click(screen.getByRole("button", { name: "Add entry" }))
+  await screen.findByRole("dialog", { name: "Add entry" })
+  await user.keyboard("s")
+
+  expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
+  expect(stored()).toEqual([])
+})

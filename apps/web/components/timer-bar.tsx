@@ -20,6 +20,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@ui-sdk/react/menu"
+import { useShortcut, useShortcutHint } from "@ui-sdk/react/shortcuts"
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react"
 import type { Entry, Label } from "@/lib/api"
 import { durationOf, formatClock } from "@/lib/time"
@@ -239,6 +240,11 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onEdit, onCreate
     onStop()
   }
 
+  useShortcut("s", toggle, {
+    description: "Start or stop the timer",
+  })
+  const hint = useShortcutHint("s")
+
   return (
     <section aria-label="Timer" className="card timer-card" data-running={running ? "" : undefined}>
       <div className="flex items-center gap-3">
@@ -246,6 +252,8 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onEdit, onCreate
           data-variant="solid"
           className="timer-toggle"
           aria-label={running ? "Stop timer" : "Start timer"}
+          aria-keyshortcuts={hint.ariaKeyshortcuts}
+          title={`${running ? "Stop" : "Start"} (${hint.text.replace(/[\u2066-\u2069]/g, "")})`}
           onClick={toggle}
         >
           <span className="timer-icon timer-icon-start">

@@ -24,7 +24,7 @@ import { useShortcut, useShortcutHint } from "@ui-sdk/react/shortcuts"
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react"
 import type { Entry, Label } from "@/lib/api"
 import { durationOf, formatClock } from "@/lib/time"
-import { CheckIcon, PencilIcon, PlayIcon, PlusIcon, StopIcon, TagIcon } from "./icons"
+import { CheckIcon, PlayIcon, PlusIcon, StopIcon, TagIcon } from "./icons"
 import { LabelDot } from "./label-picker"
 
 type TimerBarProps = {
@@ -33,7 +33,6 @@ type TimerBarProps = {
   onStart: () => void
   onStop: () => void
   onUpdate: (id: string, description: string, labelIds: string[]) => void
-  onEdit: (entry: Entry) => void
   onCreateLabel: (name: string) => Label
 }
 
@@ -105,14 +104,21 @@ type DetailsProps = {
   entry: Entry
   labels: Label[]
   onUpdate: (id: string, description: string, labelIds: string[]) => void
-  onEdit: (entry: Entry) => void
   onCreateLabel: (name: string) => Label
   flushRef: RefObject<(() => void) | null>
+  autoFocus: boolean
 }
 
 // Edits save on their own: labels at once, the description once typing pauses or the field
 // loses focus. Stop sends what was just typed first, through `flushRef`.
-function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushRef }: DetailsProps) {
+function RunningDetails({
+  entry,
+  labels,
+  onUpdate,
+  onCreateLabel,
+  flushRef,
+  autoFocus,
+}: DetailsProps) {
   const [description, setDescription] = useState(entry.description)
   const [labelIds, setLabelIds] = useState(entry.labelIds)
   const [newLabel] = useState(createLabelDialog)
@@ -120,6 +126,12 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
   const latest = useRef(initial)
   const saved = useRef(initial)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const descriptionRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    // preventScroll keeps the page still while the card grows open.
+    if (autoFocus) descriptionRef.current?.focus({ preventScroll: true })
+  }, [autoFocus])
 
   function save() {
     clearTimeout(timer.current)
@@ -153,6 +165,7 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
     <div className="flex flex-col gap-2 pt-3">
       <div className="flex items-center gap-2">
         <Input
+          ref={descriptionRef}
           aria-label="What are you working on?"
           placeholder="What are you working on?"
           maxLength={500}
@@ -201,9 +214,6 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
             </MenuItem>
           </MenuContent>
         </Menu>
-        <Button aria-label="Edit running timer" onClick={() => onEdit(entry)}>
-          <PencilIcon />
-        </Button>
       </div>
       {selected.length > 0 ? (
         <ul aria-label="Timer labels" className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
@@ -228,14 +238,24 @@ function RunningDetails({ entry, labels, onUpdate, onEdit, onCreateLabel, flushR
   )
 }
 
-function TimerBar({ running, labels, onStart, onStop, onUpdate, onEdit, onCreateLabel }: TimerBarProps) {
+function TimerBar({ running, labels, onStart, onStop, onUpdate, onCreateLabel }: TimerBarProps) {
   const flushRef = useRef<(() => void) | null>(null)
+  // Only a timer started here takes focus, not one that was already running when the page loaded.
+  const [startedHere, setStartedHere] = useState<string | null>(null)
+  const [pendingStart, setPendingStart] = useState(false)
+  if (pendingStart && running) {
+    setPendingStart(false)
+    setStartedHere(running.id)
+  }
   // The details stay on screen while the card shrinks after Stop, so the collapse can animate.
   const [shown, setShown] = useState(running)
   if (running && running !== shown) setShown(running)
 
   function toggle() {
-    if (!running) return onStart()
+    if (!running) {
+      setPendingStart(true)
+      return onStart()
+    }
     flushRef.current?.()
     onStop()
   }
@@ -279,9 +299,9 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onEdit, onCreate
               entry={shown}
               labels={labels}
               onUpdate={onUpdate}
-              onEdit={onEdit}
               onCreateLabel={onCreateLabel}
               flushRef={flushRef}
+              autoFocus={shown.id === startedHere}
             />
           ) : null}
         </div>

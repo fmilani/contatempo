@@ -132,23 +132,43 @@ test("a new label made from the menu is created and added to the running timer",
   expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Research")).toBeTruthy()
 })
 
-test("editing the running timer in the dialog updates the card", async () => {
-  const { user } = await setup({ labels: [work], entries: [] })
+test("the running card has no edit button, and its description takes focus on start", async () => {
+  const { user } = await setup({ labels: [], entries: [] })
+
   await user.click(screen.getByRole("button", { name: "Start timer" }))
-  await screen.findByRole("timer")
 
-  await user.click(screen.getByRole("button", { name: "Edit running timer" }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Edit running timer" }))
-  await user.type(dialog.getByRole("textbox", { name: "Entry description" }), "From the dialog")
-  await user.click(dialog.getByRole("button", { name: "Save entry" }))
+  const card = within(screen.getByRole("region", { name: "Timer" }))
+  expect(card.queryByRole("button", { name: /edit/i })).toBeNull()
+  const description = card.getByRole("textbox", { name: "What are you working on?" })
+  await waitFor(() => expect(document.activeElement).toBe(description))
+})
 
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-  await waitFor(() =>
-    expect(screen.getByRole("textbox", { name: "What are you working on?" })).toHaveProperty(
-      "value",
-      "From the dialog"
-    )
-  )
+test("starting with S focuses the description without typing the S into it", async () => {
+  const { user, entries: stored } = await setup({ labels: [], entries: [] })
+
+  await user.keyboard("s")
+  const description = screen.getByRole("textbox", { name: "What are you working on?" })
+  await waitFor(() => expect(document.activeElement).toBe(description))
+  expect(description).toHaveProperty("value", "")
+
+  await user.keyboard("Review")
+  expect(description).toHaveProperty("value", "Review")
+  await waitFor(() => expect(stored()[0]).toMatchObject({ description: "Review", endedAt: null }))
+})
+
+test("a timer already running when the page opens doesn't take focus", async () => {
+  const runningEntry: Entry = {
+    id: "r1",
+    description: "From before",
+    labelIds: [],
+    startedAt: new Date(Date.now() - 60_000).toISOString(),
+    endedAt: null,
+  }
+  await setup({ labels: [], entries: [runningEntry] })
+
+  const description = await screen.findByRole("textbox", { name: "What are you working on?" })
+  expect(description).toHaveProperty("value", "From before")
+  expect(document.activeElement).not.toBe(description)
 })
 
 test("filters by label, matching entries with any selected label", async () => {
@@ -467,6 +487,8 @@ test("pressing S starts the timer and pressing it again stops it", async () => {
   expect(screen.getByRole("timer", { name: "Elapsed time" })).toBeTruthy()
   await waitFor(() => expect(stored()).toHaveLength(1))
 
+  // Starting puts focus in the description, where S is a letter; Tab leaves the field.
+  await user.tab()
   await user.keyboard("s")
   expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
   await waitFor(() => expect(stored()[0].endedAt).not.toBeNull())

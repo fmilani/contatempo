@@ -28,8 +28,6 @@ function Tracker({ api, onSignOut }: TrackerProps) {
   const [editing, setEditing] = useState<EntryInput | null>(null)
   const [deleting, setDeleting] = useState<Entry | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  // Bumped when the entry dialog saves the running timer, so the card picks up its new values.
-  const [runningVersion, setRunningVersion] = useState(0)
   const tracker = useTracker(api, range, labelIds)
   const { labels, running, entries } = tracker
 
@@ -58,13 +56,11 @@ function Tracker({ api, onSignOut }: TrackerProps) {
         {onSignOut ? <Button onClick={onSignOut}>Sign out</Button> : null}
       </header>
       <TimerBar
-        key={runningVersion}
         running={running}
         labels={labels}
         onStart={tracker.start}
         onStop={tracker.stop}
         onUpdate={tracker.setDetails}
-        onEdit={setEditing}
         onCreateLabel={tracker.createLabel}
       />
       <Filters
@@ -102,7 +98,6 @@ function Tracker({ api, onSignOut }: TrackerProps) {
         onClose={() => setEditing(null)}
         onSave={(draft) => {
           tracker.saveEntry({ ...draft, id: draft.id ?? crypto.randomUUID() }, !draft.id)
-          if (draft.endedAt === null) setRunningVersion((version) => version + 1)
         }}
         onCreateLabel={tracker.createLabel}
       />

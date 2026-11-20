@@ -34,7 +34,6 @@ function EntryForm({
   onSave,
   onCreateLabel,
 }: EntryDialogProps & { entry: EntryInput }) {
-  const running = entry.endedAt === null
   const [description, setDescription] = useState(entry.description)
   const [labelIds, setLabelIds] = useState(entry.labelIds)
   const [start, setStart] = useState<string | null>(toLocalInput(entry.startedAt))
@@ -48,18 +47,14 @@ function EntryForm({
   function submit(event: FormEvent) {
     event.preventDefault()
     const startedAt = start ? instant(start, entry.startedAt) : null
-    const endedAt = running || !end ? null : instant(end, entry.endedAt)
+    const endedAt = end ? instant(end, entry.endedAt) : null
     const problem = !startedAt
       ? "Enter when it started."
-      : running
-        ? Date.parse(startedAt) > Date.now()
-          ? "A running timer can't start in the future."
+      : !endedAt
+        ? "Enter when it ended."
+        : endedAt < startedAt
+          ? "The end can't be before the start."
           : ""
-        : !endedAt
-          ? "Enter when it ended."
-          : endedAt < startedAt
-            ? "The end can't be before the start."
-            : ""
     if (problem || !startedAt) {
       setError(problem)
       return
@@ -98,19 +93,17 @@ function EntryForm({
             }}
           />
         </Field>
-        {running ? null : (
-          <Field>
-            <FieldLabel>Ended at</FieldLabel>
-            <DateInput
-              granularity="minute"
-              value={end}
-              onValueChange={(value) => {
-                setEnd(value)
-                setError("")
-              }}
-            />
-          </Field>
-        )}
+        <Field>
+          <FieldLabel>Ended at</FieldLabel>
+          <DateInput
+            granularity="minute"
+            value={end}
+            onValueChange={(value) => {
+              setEnd(value)
+              setError("")
+            }}
+          />
+        </Field>
       </div>
       <Field invalid={error ? true : undefined}>
         {error ? <FieldError match>{error}</FieldError> : null}
@@ -132,7 +125,7 @@ function EntryDialog(props: EntryDialogProps) {
       <DialogBackdrop />
       <DialogContent>
         <DialogTitle>
-          {!entry?.id ? "Add entry" : entry.endedAt === null ? "Edit running timer" : "Edit entry"}
+          {entry?.id ? "Edit entry" : "Add entry"}
         </DialogTitle>
         {entry ? <EntryForm key={entry.id ?? "new"} {...props} entry={entry} /> : null}
       </DialogContent>

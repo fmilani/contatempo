@@ -56,6 +56,7 @@ function Tracker({ api, onSignOut }: TrackerProps) {
         {onSignOut ? <Button onClick={onSignOut}>Sign out</Button> : null}
       </header>
       <TimerBar
+        loaded={entries !== null}
         running={running}
         labels={labels}
         onStart={tracker.start}

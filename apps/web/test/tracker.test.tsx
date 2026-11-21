@@ -57,10 +57,13 @@ test("the idle card shows only the start button; the details appear once it runs
     "Start timer",
   ])
   expect(card.querySelector("[inert]")).not.toBeNull()
+  expect(card.textContent).not.toMatch(/\d:\d\d:\d\d/)
+  expect(screen.queryByRole("timer")).toBeNull()
 
   await user.click(screen.getByRole("button", { name: "Start timer" }))
 
   expect(await screen.findByRole("timer", { name: "Elapsed time" })).toBeTruthy()
+  expect(screen.getByRole("timer").closest("[inert]")).toBeNull()
   expect(entries()).toMatchObject([{ description: "", labelIds: [], endedAt: null }])
   expect(card.querySelector("[inert]")).toBeNull()
   expect(card.hasAttribute("data-running")).toBe(true)
@@ -89,6 +92,8 @@ test("the description saves while the timer runs, and Stop saves what was just t
   expect(summary().getByText("1 entry")).toBeTruthy()
   expect(screen.getByText("Deep work and review")).toBeTruthy()
   expect(screen.getByRole("region", { name: "Timer" }).querySelector("[inert]")).not.toBeNull()
+  // The clock fades out with its last value, out of reach while it does.
+  expect(screen.getByRole("timer").closest("[inert]")).not.toBeNull()
 })
 
 // The timer card's labels popup: a filter field inside it, the labels as options, and a Create option.

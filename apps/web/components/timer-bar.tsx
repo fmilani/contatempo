@@ -22,6 +22,7 @@ import { CheckIcon, PlayIcon, PlusIcon, StopIcon, TagIcon } from "./icons"
 import { LabelDot } from "./label-picker"
 
 type TimerBarProps = {
+  loaded: boolean
   running: Entry | null
   labels: Label[]
   onStart: () => void
@@ -32,12 +33,14 @@ type TimerBarProps = {
 
 const SAVE_DELAY = 400
 
-function Elapsed({ entry }: { entry: Entry }) {
+// Stops ticking, and keeps its last value, while the clock fades out after Stop.
+function Elapsed({ entry, ticking }: { entry: Entry; ticking: boolean }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
+    if (!ticking) return
     const interval = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [ticking])
   return (
     <span role="timer" aria-label="Elapsed time" className="font-mono text-2xl tabular-nums">
       {formatClock(durationOf(entry, now))}
@@ -210,7 +213,15 @@ function RunningDetails({
   )
 }
 
-function TimerBar({ running, labels, onStart, onStop, onUpdate, onCreateLabel }: TimerBarProps) {
+function TimerBar({ loaded, running, labels, onStart, onStop, onUpdate, onCreateLabel }: TimerBarProps) {
+  // Transitions turn on a frame after the first load, so a timer that was already running
+  // appears in place instead of sliding in.
+  const [animated, setAnimated] = useState(false)
+  useEffect(() => {
+    if (!loaded) return
+    const frame = requestAnimationFrame(() => setAnimated(true))
+    return () => cancelAnimationFrame(frame)
+  }, [loaded])
   const flushRef = useRef<(() => void) | null>(null)
   // Only a timer started here takes focus, not one that was already running when the page loaded.
   const [startedHere, setStartedHere] = useState<string | null>(null)
@@ -243,8 +254,16 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onCreateLabel }:
   })
 
   return (
-    <section aria-label="Timer" className="card timer-card" data-running={running ? "" : undefined}>
-      <div className="flex items-center gap-3">
+    <section
+      aria-label="Timer"
+      className="card timer-card"
+      data-running={running ? "" : undefined}
+      data-animated={animated ? "" : undefined}
+    >
+      {/* The spacer and the clock share the free space while idle, which centers the button.
+          Running, the spacer shrinks to nothing, sliding the button left as the clock fades in. */}
+      <div className="timer-head">
+        <span className="timer-head-spacer" />
         <Button
           data-variant="solid"
           className="timer-toggle"
@@ -260,13 +279,9 @@ function TimerBar({ running, labels, onStart, onStop, onUpdate, onCreateLabel }:
             <StopIcon />
           </span>
         </Button>
-        {running ? (
-          <Elapsed key={running.id} entry={running} />
-        ) : (
-          <span className="font-mono text-2xl tabular-nums text-(--ui-muted-foreground)">
-            0:00:00
-          </span>
-        )}
+        <div className="timer-clock" inert={!running}>
+          <div>{shown ? <Elapsed key={shown.id} entry={shown} ticking={Boolean(running)} /> : null}</div>
+        </div>
       </div>
       <div className="timer-details" inert={!running}>
         <div>

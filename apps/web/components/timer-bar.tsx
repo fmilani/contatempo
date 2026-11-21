@@ -260,10 +260,7 @@ function TimerBar({ loaded, running, labels, onStart, onStop, onUpdate, onCreate
       data-running={running ? "" : undefined}
       data-animated={animated ? "" : undefined}
     >
-      {/* The spacer and the clock share the free space while idle, which centers the button.
-          Running, the spacer shrinks to nothing, sliding the button left as the clock fades in. */}
       <div className="timer-head">
-        <span className="timer-head-spacer" />
         <Button
           data-variant="solid"
           className="timer-toggle"

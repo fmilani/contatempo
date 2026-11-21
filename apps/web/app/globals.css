@@ -115,39 +115,36 @@ body {
   }
 }
 
+/* Idle, the card hugs the start button; running, it widens to the right as the clock fades in.
+   The button stays where it is. max-width animates where width can't, from a length to 100%. */
+.timer-card {
+  max-width: calc(2.75rem + 2rem + 2px);
+  overflow: hidden;
+  transition: max-width 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  &[data-running] {
+    max-width: 100%;
+  }
+}
+
 .timer-head {
   display: flex;
   align-items: center;
 }
 
-.timer-head-spacer,
 .timer-clock {
   flex: 1 1 0;
   min-width: 0;
-}
-
-.timer-head-spacer {
-  transition: flex-grow 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.timer-clock {
   overflow: hidden;
   white-space: nowrap;
   opacity: 0;
   transition: opacity 200ms ease;
 
-  /* Padding on the inner box, so both flex items stay the same size while idle. */
   & > div {
     padding-inline-start: 0.75rem;
   }
-}
 
-.timer-card[data-running] {
-  & .timer-head-spacer {
-    flex-grow: 0;
-  }
-
-  & .timer-clock {
+  .timer-card[data-running] & {
     opacity: 1;
   }
 }
@@ -191,13 +188,14 @@ body {
   }
 }
 
-.timer-card:not([data-animated]) :is(.timer-icon, .timer-head-spacer, .timer-clock, .timer-details) {
+.timer-card:not([data-animated]),
+.timer-card:not([data-animated]) :is(.timer-icon, .timer-clock, .timer-details) {
   transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .timer-card,
   .timer-icon,
-  .timer-head-spacer,
   .timer-clock,
   .timer-details {
     transition: none;

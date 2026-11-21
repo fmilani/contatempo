@@ -14,6 +14,22 @@
   --ui-font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
+/* The build rewrites light-dark() into these two variables, which a prefers-color-scheme query
+   flips, so color-scheme alone can't invert the colors. Setting both covers either way. */
+html[data-theme="inverted"] {
+  color-scheme: dark;
+  --lightningcss-light: ;
+  --lightningcss-dark: initial;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="inverted"] {
+    color-scheme: light;
+    --lightningcss-light: initial;
+    --lightningcss-dark: ;
+  }
+}
+
 body {
   background: var(--ui-background);
   color: var(--ui-foreground);
@@ -241,5 +257,37 @@ body {
   & svg {
     width: 1rem;
     height: 1rem;
+  }
+}
+
+.theme-toggle {
+  width: calc(var(--ui-spacing) * 8);
+  padding: 0;
+}
+
+.theme-icon {
+  display: grid;
+  place-items: center;
+}
+
+/* The moon shows in a light theme, the sun in a dark one. */
+.theme-icon-sun,
+html[data-theme="inverted"] .theme-icon-moon {
+  display: none;
+}
+
+html[data-theme="inverted"] .theme-icon-sun {
+  display: grid;
+}
+
+@media (prefers-color-scheme: dark) {
+  .theme-icon-moon,
+  html[data-theme="inverted"] .theme-icon-sun {
+    display: none;
+  }
+
+  .theme-icon-sun,
+  html[data-theme="inverted"] .theme-icon-moon {
+    display: grid;
   }
 }

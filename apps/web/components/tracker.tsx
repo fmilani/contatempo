@@ -17,6 +17,7 @@ import { EntryDialog, type EntryInput } from "./entry-dialog"
 import { EntryList, entryName } from "./entry-list"
 import { Filters } from "./filters"
 import { Summary } from "./summary"
+import { ThemeToggle } from "./theme-toggle"
 import { TimerBar } from "./timer-bar"
 import { useTracker } from "./use-tracker"
 
@@ -53,7 +54,10 @@ function Tracker({ api, onSignOut }: TrackerProps) {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-semibold tracking-tight">contatempo</h1>
-        {onSignOut ? <Button onClick={onSignOut}>Sign out</Button> : null}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {onSignOut ? <Button onClick={onSignOut}>Sign out</Button> : null}
+        </div>
       </header>
       <TimerBar
         loaded={entries !== null}

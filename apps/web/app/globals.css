@@ -291,3 +291,27 @@ html[data-theme="inverted"] .theme-icon-sun {
     display: grid;
   }
 }
+
+a[data-slot="button"] {
+  text-decoration: none;
+}
+
+.page-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  align-self: flex-start;
+  border: 1px solid var(--ui-border);
+  border-radius: calc(var(--ui-radius) * 1.25);
+
+  & > [data-slot="button"] {
+    border-color: transparent;
+    background: transparent;
+    color: var(--ui-muted-foreground);
+  }
+
+  & > [aria-current="page"] {
+    background: var(--ui-muted);
+    color: var(--ui-foreground);
+  }
+}

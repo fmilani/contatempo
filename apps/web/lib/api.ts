@@ -12,7 +12,8 @@ export type Entry = {
 }
 
 // `from` is inclusive and `to` exclusive, as instants. An entry matches when it has any of `labelIds`.
-export type EntryFilter = { from?: string; to?: string; labelIds: string[] }
+// `limit` keeps only the newest entries.
+export type EntryFilter = { from?: string; to?: string; labelIds: string[]; limit?: number }
 
 // The same rule the server applies in listEntries, so a change can be placed in the list before it answers.
 export function matchesFilter(entry: Entry, { from, to, labelIds }: EntryFilter) {
@@ -95,9 +96,10 @@ export function createApi(supabase: SupabaseClient<Database>): Api {
       return row ? toEntry(row) : null
     },
 
-    async listEntries({ from, to, labelIds }) {
+    async listEntries({ from, to, labelIds, limit }) {
       const entries: Entry[] = []
-      for (let offset = 0; ; offset += PAGE) {
+      const page = Math.min(limit ?? PAGE, PAGE)
+      for (let offset = 0; ; offset += page) {
         let query =
           labelIds.length > 0
             ? supabase.from("time_entries").select(ENTRY_MATCHING).in("matched.label_id", labelIds)
@@ -110,10 +112,10 @@ export function createApi(supabase: SupabaseClient<Database>): Api {
             await query
               .order("started_at", { ascending: false })
               .order("id")
-              .range(offset, offset + PAGE - 1)
+              .range(offset, offset + page - 1)
           ) ?? []
         entries.push(...rows.map(toEntry))
-        if (rows.length < PAGE) return entries
+        if (rows.length < page || (limit && entries.length >= limit)) return entries
       }
     },
 

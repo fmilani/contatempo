@@ -22,7 +22,11 @@ const byName = (a: Label, b: Label) => a.name.localeCompare(b.name)
 // Every change shows at once and is sent in the background, one write at a time so they reach
 // the server in the order they were made. A failed write shows a toast, and the data is read
 // again once the writes settle, which undoes whatever the server refused.
-function useTracker(api: Api, range: DayRange | null, labelIds: string[]) {
+export type TrackerQuery = { range: DayRange | null; labelIds: string[]; limit?: number }
+
+const noLabels: string[] = []
+
+function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuery) {
   const [data, setData] = useState<Data>({ labels: [], running: null, entries: null })
   const dataRef = useRef(data)
   const queue = useRef(Promise.resolve())
@@ -47,7 +51,7 @@ function useTracker(api: Api, range: DayRange | null, labelIds: string[]) {
         const [labels, running, entries] = await Promise.all([
           api.listLabels(),
           api.getRunning(),
-          api.listEntries({ from, to, labelIds }),
+          api.listEntries({ from, to, labelIds, limit }),
         ])
         if (read !== reads.current) return
         // A read that crossed a write could undo it on screen: read again once the writes settle.
@@ -62,7 +66,7 @@ function useTracker(api: Api, range: DayRange | null, labelIds: string[]) {
       }
       return
     }
-  }, [api, from, to, labelIds])
+  }, [api, from, to, labelIds, limit])
 
   const loadRef = useRef(load)
   useEffect(() => {
@@ -103,7 +107,7 @@ function useTracker(api: Api, range: DayRange | null, labelIds: string[]) {
   const place = (entries: Entry[] | null, entry: Entry) => {
     if (!entries) return entries
     const rest = entries.filter((other) => other.id !== entry.id)
-    return matchesFilter(entry, filter) ? [...rest, entry].sort(byNewest) : rest
+    return matchesFilter(entry, filter) ? [...rest, entry].sort(byNewest).slice(0, limit) : rest
   }
   const stopRunning = (current: Data, at: string): Data =>
     current.running
@@ -178,7 +182,9 @@ function useTracker(api: Api, range: DayRange | null, labelIds: string[]) {
           ...current,
           entries: current.entries?.filter((entry) => entry.id !== id) ?? null,
         }),
-        () => api.deleteEntry(id)
+        () => api.deleteEntry(id),
+        // A shortened list reads again, so the next entry takes the deleted one's place.
+        limit !== undefined
       )
     },
   }

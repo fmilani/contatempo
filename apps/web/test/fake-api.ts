@@ -43,7 +43,7 @@ export function createFakeApi(seed: { labels?: Label[]; entries?: Entry[] } = {}
         labels = [...labels, label]
       }),
     getRunning: () => read(() => entries.find((entry) => entry.endedAt === null) ?? null),
-    listEntries: ({ from, to, labelIds }) =>
+    listEntries: ({ from, to, labelIds, limit }) =>
       read(() =>
       entries
         .filter((entry) => entry.endedAt !== null)
@@ -51,6 +51,7 @@ export function createFakeApi(seed: { labels?: Label[]; entries?: Entry[] } = {}
         .filter((entry) => !to || entry.startedAt < to)
         .filter((entry) => labelIds.length === 0 || entry.labelIds.some((l) => labelIds.includes(l)))
         .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+        .slice(0, limit)
       ),
     startTimer: (id, at) =>
       write(() => {

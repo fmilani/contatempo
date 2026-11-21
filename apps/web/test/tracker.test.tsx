@@ -1,8 +1,11 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { createAgent } from "@ui-sdk/react/agent"
+import { OverlayHost } from "@ui-sdk/react/overlays"
+import { useState } from "react"
 import { expect, test } from "vitest"
-import { Tracker } from "@/components/tracker"
+import { HistoryView, RECENT_LIMIT, TimerView } from "@/components/tracker"
+import { emptyHistoryQuery, type HistoryQuery } from "@/lib/history-query"
 import type { Entry, Label } from "@/lib/api"
 import { createFakeApi } from "./fake-api"
 
@@ -22,18 +25,54 @@ const entries: Entry[] = [
   { id: "e4", description: "", labelIds: [], startedAt: at(12, 11), endedAt: at(12, 11, 15) },
 ]
 
+// The timer page: the start/stop card and the most recent entries.
 async function setup(seed = { labels: [work, admin], entries }) {
   const fake = createFakeApi(seed)
   const user = userEvent.setup()
-  render(<Tracker api={fake.api} />)
-  await screen.findByRole("region", { name: "Summary" })
+  render(
+    <>
+      <TimerView api={fake.api} />
+      <OverlayHost />
+    </>
+  )
+  await screen.findByRole("heading", { name: "Recent" })
+  await waitFor(() => expect(screen.queryByText("Loading entries…")).toBeNull())
   return { ...fake, user }
 }
 
+// The history page, with its filters held in state like the URL would hold them.
+async function setupHistory(seed = { labels: [work, admin], entries }, initial: HistoryQuery = emptyHistoryQuery) {
+  const fake = createFakeApi(seed)
+  const user = userEvent.setup()
+  const queries: HistoryQuery[] = []
+  function Page() {
+    const [query, setQuery] = useState(initial)
+    return (
+      <HistoryView
+        api={fake.api}
+        query={query}
+        onQueryChange={(next) => {
+          queries.push(next)
+          setQuery(next)
+        }}
+      />
+    )
+  }
+  render(
+    <>
+      <Page />
+      <OverlayHost />
+    </>
+  )
+  await screen.findByRole("region", { name: "Summary" })
+  return { ...fake, user, queries }
+}
+
+const recent = () => within(screen.getByRole("region", { name: "Recent" }))
 const summary = () => within(screen.getByRole("region", { name: "Summary" }))
 
 test("shows the total, the time by label and daily subtotals", async () => {
-  await setup()
+  await setupHistory()
 
   expect(summary().getByText("3h 15m")).toBeTruthy()
   expect(summary().getByText("4 entries")).toBeTruthy()
@@ -69,7 +108,7 @@ test("the idle card shows only the start button; the details appear once it runs
   expect(card.hasAttribute("data-running")).toBe(true)
   expect(screen.getByRole("textbox", { name: "What are you working on?" })).toBeTruthy()
   expect(screen.getByRole("button", { name: "Choose timer labels" })).toBeTruthy()
-  expect(summary().getByText("0 entries")).toBeTruthy()
+  expect(recent().getByText("Nothing tracked yet. Press start to begin.")).toBeTruthy()
 })
 
 test("the description saves while the timer runs, and Stop saves what was just typed", async () => {
@@ -89,8 +128,7 @@ test("the description saves while the timer runs, and Stop saves what was just t
   expect(await screen.findByRole("button", { name: "Start timer" })).toBeTruthy()
   expect(entries()[0]).toMatchObject({ description: "Deep work and review" })
   expect(entries()[0].endedAt).not.toBeNull()
-  expect(summary().getByText("1 entry")).toBeTruthy()
-  expect(screen.getByText("Deep work and review")).toBeTruthy()
+  expect(recent().getByText("Deep work and review")).toBeTruthy()
   expect(screen.getByRole("region", { name: "Timer" }).querySelector("[inert]")).not.toBeNull()
   // The clock fades out with its last value, out of reach while it does.
   expect(screen.getByRole("timer").closest("[inert]")).not.toBeNull()
@@ -245,7 +283,7 @@ test("a timer already running when the page opens doesn't take focus", async () 
 })
 
 test("filters by label, matching entries with any selected label", async () => {
-  const { user } = await setup()
+  const { user } = await setupHistory()
 
   await user.click(screen.getByRole("combobox", { name: "Filter labels" }))
   await user.click(await screen.findByRole("option", { name: "Admin" }))
@@ -261,7 +299,7 @@ test("filters by label, matching entries with any selected label", async () => {
 })
 
 test("filters by a date range that includes both days", async () => {
-  const { user } = await setup()
+  const { user } = await setupHistory()
 
   await user.type(screen.getByRole("textbox", { name: "From date" }), "11/10/2026")
   await user.type(screen.getByRole("textbox", { name: "To date" }), "11/10/2026{Enter}")
@@ -275,7 +313,7 @@ test("filters by a date range that includes both days", async () => {
 })
 
 test("says when no entry matches the filters", async () => {
-  const { user } = await setup({ labels: [work, admin], entries: [entries[0]] })
+  const { user } = await setupHistory({ labels: [work, admin], entries: [entries[0]] })
 
   await user.click(screen.getByRole("combobox", { name: "Filter labels" }))
   await user.click(await screen.findByRole("option", { name: "Admin" }))
@@ -284,7 +322,7 @@ test("says when no entry matches the filters", async () => {
 })
 
 test("edits an entry's description and keeps its times", async () => {
-  const { user, entries: stored } = await setup()
+  const { user, entries: stored } = await setupHistory()
 
   await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
   const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
@@ -303,7 +341,7 @@ test("edits an entry's description and keeps its times", async () => {
 })
 
 test("cancel closes the dialog without saving", async () => {
-  const { user, entries: stored } = await setup()
+  const { user, entries: stored } = await setupHistory()
 
   await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
   const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
@@ -315,7 +353,7 @@ test("cancel closes the dialog without saving", async () => {
 })
 
 test("adds a past entry by hand, one hour long by default", async () => {
-  const { user, entries: stored } = await setup({ labels: [work], entries: [] })
+  const { user, entries: stored } = await setupHistory({ labels: [work], entries: [] })
 
   await user.click(screen.getByRole("button", { name: "Add entry" }))
   const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
@@ -329,7 +367,7 @@ test("adds a past entry by hand, one hour long by default", async () => {
 })
 
 test("changing a time saves it, and leaves the other one alone", async () => {
-  const { user, entries: stored } = await setup()
+  const { user, entries: stored } = await setupHistory()
 
   await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
   const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
@@ -346,7 +384,7 @@ test("changing a time saves it, and leaves the other one alone", async () => {
 })
 
 test("refuses an end before the start", async () => {
-  const { user, entries: stored } = await setup()
+  const { user, entries: stored } = await setupHistory()
 
   await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
   const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
@@ -360,7 +398,7 @@ test("refuses an end before the start", async () => {
 })
 
 test("deleting asks first, and keeps the entry on cancel", async () => {
-  const { user, entries: stored } = await setup()
+  const { user, entries: stored } = await setupHistory()
 
   await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
   await user.click(await screen.findByRole("button", { name: "Keep entry" }))
@@ -384,7 +422,7 @@ test("an agent can find every control, start and stop a timer, and needs a perso
     expect(entry.label, `${entry.component} ${entry.ref} has no name`).toBeTruthy()
   }
   const labels = components.map((entry) => entry.label)
-  for (const label of ["Start timer", "Filter labels", "Add entry"]) {
+  for (const label of ["Start timer", "See all history"]) {
     expect(labels, `${label} is missing from the snapshot`).toContain(label)
   }
   expect(labels.some((label) => label?.startsWith("Edit Invoices at"))).toBe(true)
@@ -447,13 +485,12 @@ test("start, typing, labels, stop and delete all show before the server answers"
   await user.click(screen.getByRole("button", { name: "Stop timer" }))
 
   expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
-  expect(screen.getByText("Offline work")).toBeTruthy()
-  expect(summary().getByText("2 entries")).toBeTruthy()
+  expect(recent().getByText("Offline work")).toBeTruthy()
+  expect(recent().getByText("Invoices")).toBeTruthy()
 
   await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
   await user.click(await screen.findByRole("button", { name: "Delete forever" }))
   await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
-  expect(summary().getByText("1 entry")).toBeTruthy()
   expect(stored()).toEqual([entries[1]])
 
   release()
@@ -466,7 +503,7 @@ test("start, typing, labels, stop and delete all show before the server answers"
 })
 
 test("a manual entry and a new label show at once, and save in order", async () => {
-  const { user, entries: stored, labels, hold } = await setup({ labels: [], entries: [] })
+  const { user, entries: stored, labels, hold } = await setupHistory({ labels: [], entries: [] })
   const release = hold()
 
   await user.click(screen.getByRole("button", { name: "Add entry" }))
@@ -487,7 +524,7 @@ test("a manual entry and a new label show at once, and save in order", async () 
 })
 
 test("a change the server refuses is undone, with a message", async () => {
-  const { user, entries: stored, failNextWrite } = await setup()
+  const { user, entries: stored, failNextWrite } = await setupHistory()
 
   failNextWrite("Network down")
   await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
@@ -500,7 +537,7 @@ test("a change the server refuses is undone, with a message", async () => {
 })
 
 test("writes reach the server in the order they were made, even when one is slow", async () => {
-  const { user, entries: stored, labels, slowNextWrite } = await setup({ labels: [], entries: [] })
+  const { user, entries: stored, labels, slowNextWrite } = await setupHistory({ labels: [], entries: [] })
 
   slowNextWrite()
   await user.click(screen.getByRole("button", { name: "Add entry" }))
@@ -515,7 +552,7 @@ test("writes reach the server in the order they were made, even when one is slow
 })
 
 test("a refresh that started before a change doesn't undo it on screen", async () => {
-  const { user, entries: stored, holdReads } = await setup()
+  const { user, entries: stored, holdReads } = await setupHistory()
 
   const release = holdReads()
   document.dispatchEvent(new Event("visibilitychange"))
@@ -590,12 +627,95 @@ test("typing an S in the description doesn't stop the timer", async () => {
 })
 
 test("S does nothing while a dialog is open", async () => {
-  const { user, entries: stored } = await setup({ labels: [], entries: [] })
+  const { user, entries: stored } = await setup({ labels: [], entries: [entries[1]] })
 
-  await user.click(screen.getByRole("button", { name: "Add entry" }))
-  await screen.findByRole("dialog", { name: "Add entry" })
+  await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
+  await screen.findByRole("dialog", { name: "Edit entry" })
   await user.keyboard("s")
 
   expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
-  expect(stored()).toEqual([])
+  expect(stored()).toEqual([entries[1]])
+})
+
+test("the timer page lists only the most recent entries, newest first", async () => {
+  const many: Entry[] = Array.from({ length: RECENT_LIMIT + 3 }, (_, index) => ({
+    id: `m${index}`,
+    description: `Task ${index}`,
+    labelIds: [],
+    startedAt: at(1, 8, index),
+    endedAt: at(1, 8, index, 30),
+  }))
+  await setup({ labels: [], entries: many })
+
+  const shown = recent().getAllByText(/^Task \d+$/).map((item) => item.textContent)
+  expect(shown).toHaveLength(RECENT_LIMIT)
+  expect(shown[0]).toBe(`Task ${RECENT_LIMIT + 2}`)
+  expect(shown).not.toContain("Task 0")
+  expect(screen.queryByRole("region", { name: "Summary" })).toBeNull()
+  expect(screen.queryByRole("combobox", { name: "Filter labels" })).toBeNull()
+})
+
+test("deleting from the recent list brings the next older entry in", async () => {
+  const many: Entry[] = Array.from({ length: RECENT_LIMIT + 1 }, (_, index) => ({
+    id: `m${index}`,
+    description: `Task ${index}`,
+    labelIds: [],
+    startedAt: at(1, 8, index),
+    endedAt: at(1, 8, index, 30),
+  }))
+  const { user } = await setup({ labels: [], entries: many })
+  expect(recent().queryByText("Task 0")).toBeNull()
+
+  await user.click(screen.getByRole("button", { name: /^Delete Task 5 at/ }))
+  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+
+  await waitFor(() => expect(recent().getByText("Task 0")).toBeTruthy())
+  expect(recent().queryByText("Task 5")).toBeNull()
+  expect(recent().getAllByText(/^Task \d+$/)).toHaveLength(RECENT_LIMIT)
+})
+
+test("a newly stopped timer joins the top of the recent list, which stays the same length", async () => {
+  const many: Entry[] = Array.from({ length: RECENT_LIMIT }, (_, index) => ({
+    id: `m${index}`,
+    description: `Task ${index}`,
+    labelIds: [],
+    startedAt: at(1, 8, index),
+    endedAt: at(1, 8, index, 30),
+  }))
+  const { user, hold } = await setup({ labels: [], entries: many })
+
+  // Before the server answers: the list on screen has to keep its length by itself.
+  const release = hold()
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await user.type(screen.getByRole("textbox", { name: "What are you working on?" }), "Newest")
+  await user.click(screen.getByRole("button", { name: "Stop timer" }))
+
+  const shown = recent().getAllByText(/^(Task \d+|Newest)$/).map((item) => item.textContent)
+  expect(shown[0]).toBe("Newest")
+  expect(shown).toHaveLength(RECENT_LIMIT)
+  expect(shown).not.toContain("Task 0")
+  release()
+})
+
+test("the history page opens with the filters from its URL", async () => {
+  await setupHistory(undefined, { range: ["2026-11-10", "2026-11-10"], labelIds: ["admin"] })
+
+  await waitFor(() => expect(summary().getByText("1 entry")).toBeTruthy())
+  expect(screen.getByText("Invoices")).toBeTruthy()
+  expect(screen.getByRole("textbox", { name: "From date" })).toHaveProperty("value", "11/10/2026")
+  expect(screen.getByRole("button", { name: "Remove Admin" })).toBeTruthy()
+})
+
+test("changing a filter reports the new query, for the URL", async () => {
+  const { user, queries } = await setupHistory()
+
+  await user.click(screen.getByRole("combobox", { name: "Filter labels" }))
+  await user.click(await screen.findByRole("option", { name: "Admin" }))
+  expect(queries.at(-1)).toEqual({ range: null, labelIds: ["admin"] })
+
+  await user.type(screen.getByRole("textbox", { name: "From date" }), "11/10/2026")
+  await user.type(screen.getByRole("textbox", { name: "To date" }), "11/12/2026{Enter}")
+  await waitFor(() =>
+    expect(queries.at(-1)).toEqual({ range: ["2026-11-10", "2026-11-12"], labelIds: ["admin"] })
+  )
 })

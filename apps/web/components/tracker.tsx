@@ -9,33 +9,26 @@ import {
   AlertDialogTitle,
 } from "@ui-sdk/react/alert-dialog"
 import { Button } from "@ui-sdk/react/button"
-import { OverlayHost } from "@ui-sdk/react/overlays"
+import Link from "next/link"
 import { useState } from "react"
 import type { Api, Entry } from "@/lib/api"
-import type { DayRange } from "@/lib/time"
+import type { HistoryQuery } from "@/lib/history-query"
 import { EntryDialog, type EntryInput } from "./entry-dialog"
 import { EntryList, entryName } from "./entry-list"
 import { Filters } from "./filters"
 import { Summary } from "./summary"
-import { ThemeToggle } from "./theme-toggle"
 import { TimerBar } from "./timer-bar"
 import { useTracker } from "./use-tracker"
 
-type TrackerProps = { api: Api; onSignOut?: () => Promise<void> }
+export const RECENT_LIMIT = 10
 
-function Tracker({ api, onSignOut }: TrackerProps) {
-  const [range, setRange] = useState<DayRange | null>(null)
-  const [labelIds, setLabelIds] = useState<string[]>([])
+type Tracker = ReturnType<typeof useTracker>
+
+// The edit dialog and the delete confirmation, shared by the pages that list entries.
+function useEntryEditing(tracker: Tracker) {
   const [editing, setEditing] = useState<EntryInput | null>(null)
   const [deleting, setDeleting] = useState<Entry | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const tracker = useTracker(api, range, labelIds)
-  const { labels, running, entries } = tracker
-
-  function askToDelete(entry: Entry) {
-    setDeleting(entry)
-    setConfirmingDelete(true)
-  }
 
   function addEntry() {
     const end = new Date()
@@ -48,58 +41,11 @@ function Tracker({ api, onSignOut }: TrackerProps) {
     })
   }
 
-  const filtered = range !== null || labelIds.length > 0
-
-  return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
-      <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold tracking-tight">contatempo</h1>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          {onSignOut ? <Button onClick={onSignOut}>Sign out</Button> : null}
-        </div>
-      </header>
-      <TimerBar
-        loaded={entries !== null}
-        running={running}
-        labels={labels}
-        onStart={tracker.start}
-        onStop={tracker.stop}
-        onUpdate={tracker.setDetails}
-        onCreateLabel={tracker.createLabel}
-      />
-      <Filters
-        labels={labels}
-        range={range}
-        labelIds={labelIds}
-        onRangeChange={setRange}
-        onLabelIdsChange={setLabelIds}
-      />
-      {entries === null ? (
-        <p role="status" className="text-(--ui-muted-foreground)">
-          Loading entries…
-        </p>
-      ) : (
-        <>
-          <Summary entries={entries} labels={labels} />
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Entries</h2>
-            <Button onClick={addEntry}>Add entry</Button>
-          </div>
-          {entries.length > 0 ? (
-            <EntryList entries={entries} labels={labels} onEdit={setEditing} onDelete={askToDelete} />
-          ) : (
-            <p className="text-(--ui-muted-foreground)">
-              {filtered
-                ? "No entries match these filters."
-                : "Nothing tracked yet. Start the timer, or add an entry by hand."}
-            </p>
-          )}
-        </>
-      )}
+  const dialogs = (
+    <>
       <EntryDialog
         entry={editing}
-        labels={labels}
+        labels={tracker.labels}
         onClose={() => setEditing(null)}
         onSave={(draft) => {
           tracker.saveEntry({ ...draft, id: draft.id ?? crypto.randomUUID() }, !draft.id)
@@ -126,9 +72,106 @@ function Tracker({ api, onSignOut }: TrackerProps) {
           </div>
         </AlertDialogContent>
       </AlertDialog>
-      <OverlayHost toast={{ "data-agent-hidden": "" } as object} />
-    </div>
+    </>
+  )
+
+  return {
+    edit: setEditing,
+    remove(entry: Entry) {
+      setDeleting(entry)
+      setConfirmingDelete(true)
+    },
+    addEntry,
+    dialogs,
+  }
+}
+
+const loading = (
+  <p role="status" className="text-(--ui-muted-foreground)">
+    Loading entries…
+  </p>
+)
+
+const recentQuery = { range: null, labelIds: [], limit: RECENT_LIMIT }
+
+function TimerView({ api }: { api: Api }) {
+  const tracker = useTracker(api, recentQuery)
+  const editing = useEntryEditing(tracker)
+  const { labels, running, entries } = tracker
+
+  return (
+    <>
+      <TimerBar
+        loaded={entries !== null}
+        running={running}
+        labels={labels}
+        onStart={tracker.start}
+        onStop={tracker.stop}
+        onUpdate={tracker.setDetails}
+        onCreateLabel={tracker.createLabel}
+      />
+      <section aria-labelledby="recent-heading" className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h1 id="recent-heading" className="text-lg font-semibold">
+            Recent
+          </h1>
+          {entries?.length ? <Button render={<Link href="/history" />}>See all history</Button> : null}
+        </div>
+        {entries === null ? (
+          loading
+        ) : entries.length > 0 ? (
+          <EntryList entries={entries} labels={labels} onEdit={editing.edit} onDelete={editing.remove} />
+        ) : (
+          <p className="text-(--ui-muted-foreground)">Nothing tracked yet. Press start to begin.</p>
+        )}
+      </section>
+      {editing.dialogs}
+    </>
   )
 }
 
-export { Tracker }
+type HistoryViewProps = {
+  api: Api
+  query: HistoryQuery
+  onQueryChange: (query: HistoryQuery) => void
+}
+
+function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
+  const tracker = useTracker(api, query)
+  const editing = useEntryEditing(tracker)
+  const { labels, entries } = tracker
+  const filtered = query.range !== null || query.labelIds.length > 0
+
+  return (
+    <>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold">History</h1>
+        <Button onClick={editing.addEntry}>Add entry</Button>
+      </div>
+      <Filters
+        labels={labels}
+        range={query.range}
+        labelIds={query.labelIds}
+        onRangeChange={(range) => onQueryChange({ ...query, range })}
+        onLabelIdsChange={(labelIds) => onQueryChange({ ...query, labelIds })}
+      />
+      {entries === null ? (
+        loading
+      ) : (
+        <>
+          <Summary entries={entries} labels={labels} />
+          {entries.length > 0 ? (
+            <EntryList entries={entries} labels={labels} onEdit={editing.edit} onDelete={editing.remove} />
+          ) : (
+            <p className="text-(--ui-muted-foreground)">
+              {filtered ? "No entries match these filters." : "Nothing tracked yet."}
+            </p>
+          )}
+        </>
+      )}
+      {editing.dialogs}
+    </>
+  )
+}
+
+export { HistoryView, TimerView }

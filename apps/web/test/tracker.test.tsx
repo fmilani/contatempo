@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { createAgent } from "@ui-sdk/react/agent"
 import { OverlayHost } from "@ui-sdk/react/overlays"
 import { useState } from "react"
-import { expect, test } from "vitest"
+import { expect, test, vi } from "vitest"
 import { HistoryView, RECENT_LIMIT, TimerView } from "@/components/tracker"
 import { emptyHistoryQuery, type HistoryQuery } from "@/lib/history-query"
 import type { Entry, Label } from "@/lib/api"
@@ -813,4 +813,70 @@ test("on a larger or mouse-driven screen it stays a centered dialog", async () =
   } finally {
     restore()
   }
+})
+
+// A timer that started 10 minutes ago, with the Work label.
+const runningSince = (minutes: number, labelIds = ["work"]): Entry => ({
+  id: "live",
+  description: "Live work",
+  labelIds,
+  startedAt: new Date(Date.now() - minutes * 60_000).toISOString(),
+  endedAt: null,
+})
+
+test("history lists the running timer, and its time keeps counting in the row and every total", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ["setInterval", "clearInterval", "Date"] })
+  try {
+    const today = new Date().toISOString()
+    const finished: Entry = {
+      id: "done",
+      description: "Done today",
+      labelIds: [],
+      startedAt: new Date(Date.parse(today) - 3 * 3_600_000).toISOString(),
+      endedAt: new Date(Date.parse(today) - 2 * 3_600_000).toISOString(),
+    }
+    await setupHistory({ labels: [work], entries: [finished, runningSince(10)] })
+
+    const row = screen.getByText("Live work").closest("[data-entry-id]") as HTMLElement
+    expect(row.getAttribute("data-running")).toBe("")
+    expect(row.textContent).toContain("now")
+    expect(summary().getByText("2 entries")).toBeTruthy()
+    expect(summary().getByText("1h 10m")).toBeTruthy()
+    const byLabel = () =>
+      within(summary().getByRole("list", { name: "Time by label" })).getAllByRole("listitem").map((item) => item.textContent)
+    expect(byLabel()).toEqual(["Work10m", "No label1h 00m"])
+
+    await act(async () => {
+      vi.advanceTimersByTime(5 * 60_000)
+    })
+    expect(within(row).getByText("15m")).toBeTruthy()
+    expect(summary().getByText("1h 15m")).toBeTruthy()
+    expect(byLabel()).toEqual(["Work15m", "No label1h 00m"])
+    const day = row.closest("section") as HTMLElement
+    expect(within(day).getAllByText("1h 15m").length).toBeGreaterThan(0)
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
+test("the running row can't be opened: there is no button to edit or delete it", async () => {
+  await setupHistory({ labels: [work], entries: [runningSince(10)] })
+
+  expect(screen.getByText("Live work")).toBeTruthy()
+  expect(screen.queryByRole("button", { name: /^Edit Live work/ })).toBeNull()
+})
+
+test("the running timer is left out when it doesn't match the filters", async () => {
+  await setupHistory({ labels: [work, admin], entries: [entries[1], runningSince(10)] }, { range: null, labelIds: ["admin"] })
+
+  await waitFor(() => expect(summary().getByText("1 entry")).toBeTruthy())
+  expect(screen.queryByText("Live work")).toBeNull()
+})
+
+test("the timer page doesn't repeat the running timer in its recent list", async () => {
+  await setup({ labels: [work], entries: [entries[0], runningSince(10)] })
+
+  expect(screen.getByRole("timer", { name: "Elapsed time" })).toBeTruthy()
+  expect(recent().queryByText("Live work")).toBeNull()
+  expect(recent().getByText("Write report")).toBeTruthy()
 })

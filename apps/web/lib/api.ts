@@ -15,15 +15,19 @@ export type Entry = {
 // `limit` keeps only the newest entries.
 export type EntryFilter = { from?: string; to?: string; labelIds: string[]; limit?: number }
 
-// The same rule the server applies in listEntries, so a change can be placed in the list before it answers.
-export function matchesFilter(entry: Entry, { from, to, labelIds }: EntryFilter) {
+// Whether an entry falls in the filter's dates and labels, finished or not.
+export function inFilter(entry: Entry, { from, to, labelIds }: EntryFilter) {
   const started = Date.parse(entry.startedAt)
   return (
-    entry.endedAt !== null &&
     (!from || started >= Date.parse(from)) &&
     (!to || started < Date.parse(to)) &&
     (labelIds.length === 0 || entry.labelIds.some((id) => labelIds.includes(id)))
   )
+}
+
+// The same rule the server applies in listEntries, so a change can be placed in the list before it answers.
+export function matchesFilter(entry: Entry, filter: EntryFilter) {
+  return entry.endedAt !== null && inFilter(entry, filter)
 }
 
 // The app picks the ids of what it creates, so it can show new things before the server answers.

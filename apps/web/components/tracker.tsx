@@ -3,13 +3,14 @@
 import { Button } from "@ui-sdk/react/button"
 import Link from "next/link"
 import { useState } from "react"
-import type { Api } from "@/lib/api"
+import { inFilter, type Api } from "@/lib/api"
 import type { HistoryQuery } from "@/lib/history-query"
 import { EntryDialog, type EntryInput } from "./entry-dialog"
 import { EntryList } from "./entry-list"
 import { Filters } from "./filters"
 import { Summary } from "./summary"
 import { TimerBar } from "./timer-bar"
+import { useNow } from "./use-now"
 import { useTracker } from "./use-tracker"
 
 export const RECENT_LIMIT = 10
@@ -100,8 +101,12 @@ type HistoryViewProps = {
 function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
   const tracker = useTracker(api, query)
   const editing = useEntryEditing(tracker)
-  const { labels, entries } = tracker
+  const { labels, running, filter } = tracker
   const filtered = query.range !== null || query.labelIds.length > 0
+  // The running timer joins the list when it matches the filters, and its time keeps counting.
+  const live = running && inFilter(running, filter) ? running : null
+  const entries = tracker.entries && live ? [live, ...tracker.entries] : tracker.entries
+  const now = useNow(live !== null)
 
   return (
     <>
@@ -120,9 +125,9 @@ function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
         loading
       ) : (
         <>
-          <Summary entries={entries} labels={labels} />
+          <Summary entries={entries} labels={labels} now={now} />
           {entries.length > 0 ? (
-            <EntryList entries={entries} labels={labels} onOpen={editing.open} />
+            <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} />
           ) : (
             <p className="text-(--ui-muted-foreground)">
               {filtered ? "No entries match these filters." : "Nothing tracked yet."}

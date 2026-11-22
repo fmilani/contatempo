@@ -333,7 +333,33 @@ a[data-slot="button"] {
   text-align: start;
   white-space: normal;
 
-  &:hover {
+  &:hover:not([data-running]) {
     background: var(--ui-muted);
+  }
+}
+
+/* The running timer's row isn't a button: it shows the entry while it counts. */
+.entry-row[data-running] {
+  font-size: var(--ui-font-size);
+  line-height: var(--ui-line-height);
+}
+
+.live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: oklch(0.63 0.2 25);
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
   }
 }

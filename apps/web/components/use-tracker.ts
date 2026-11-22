@@ -116,6 +116,7 @@ function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuer
 
   return {
     ...data,
+    filter,
 
     start() {
       const now = new Date().toISOString()

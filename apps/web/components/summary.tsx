@@ -2,20 +2,21 @@ import type { Entry, Label } from "@/lib/api"
 import { durationOf, formatDuration } from "@/lib/time"
 import { LabelDot } from "./label-picker"
 
-function Summary({ entries, labels }: { entries: Entry[]; labels: Label[] }) {
-  const total = entries.reduce((sum, entry) => sum + durationOf(entry), 0)
+// `now` is where a running entry's time ends, so the totals keep counting while it runs.
+function Summary({ entries, labels, now }: { entries: Entry[]; labels: Label[]; now?: number }) {
+  const total = entries.reduce((sum, entry) => sum + durationOf(entry, now), 0)
   const perLabel = labels
     .map((label) => ({
       label,
       total: entries
         .filter((entry) => entry.labelIds.includes(label.id))
-        .reduce((sum, entry) => sum + durationOf(entry), 0),
+        .reduce((sum, entry) => sum + durationOf(entry, now), 0),
     }))
     .filter((row) => row.total > 0)
     .sort((a, b) => b.total - a.total)
   const unlabeled = entries
     .filter((entry) => entry.labelIds.length === 0)
-    .reduce((sum, entry) => sum + durationOf(entry), 0)
+    .reduce((sum, entry) => sum + durationOf(entry, now), 0)
 
   return (
     <section aria-label="Summary" className="card flex flex-wrap items-start gap-x-10 gap-y-4">

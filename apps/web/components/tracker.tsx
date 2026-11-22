@@ -1,20 +1,12 @@
 "use client"
 
-import {
-  AlertDialog,
-  AlertDialogBackdrop,
-  AlertDialogClose,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from "@ui-sdk/react/alert-dialog"
 import { Button } from "@ui-sdk/react/button"
 import Link from "next/link"
 import { useState } from "react"
-import type { Api, Entry } from "@/lib/api"
+import type { Api } from "@/lib/api"
 import type { HistoryQuery } from "@/lib/history-query"
 import { EntryDialog, type EntryInput } from "./entry-dialog"
-import { EntryList, entryName } from "./entry-list"
+import { EntryList } from "./entry-list"
 import { Filters } from "./filters"
 import { Summary } from "./summary"
 import { TimerBar } from "./timer-bar"
@@ -24,11 +16,9 @@ export const RECENT_LIMIT = 10
 
 type Tracker = ReturnType<typeof useTracker>
 
-// The edit dialog and the delete confirmation, shared by the pages that list entries.
+// The dialog that adds, edits and deletes entries, shared by the pages that list them.
 function useEntryEditing(tracker: Tracker) {
   const [editing, setEditing] = useState<EntryInput | null>(null)
-  const [deleting, setDeleting] = useState<Entry | null>(null)
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   function addEntry() {
     const end = new Date()
@@ -42,48 +32,19 @@ function useEntryEditing(tracker: Tracker) {
   }
 
   const dialogs = (
-    <>
-      <EntryDialog
-        entry={editing}
-        labels={tracker.labels}
-        onClose={() => setEditing(null)}
-        onSave={(draft) => {
-          tracker.saveEntry({ ...draft, id: draft.id ?? crypto.randomUUID() }, !draft.id)
-        }}
-        onCreateLabel={tracker.createLabel}
-      />
-      <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
-        <AlertDialogBackdrop />
-        <AlertDialogContent>
-          <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-          <AlertDialogDescription>
-            {deleting ? `${entryName(deleting)} will be removed for good.` : ""}
-          </AlertDialogDescription>
-          <div className="flex justify-end gap-2">
-            <AlertDialogClose>Keep entry</AlertDialogClose>
-            <AlertDialogClose
-              value="confirm"
-              data-variant="destructive"
-              data-agent-confirm={deleting ? `Deletes the entry ${entryName(deleting)}` : undefined}
-              onClick={() => deleting && tracker.deleteEntry(deleting.id)}
-            >
-              Delete forever
-            </AlertDialogClose>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <EntryDialog
+      entry={editing}
+      labels={tracker.labels}
+      onClose={() => setEditing(null)}
+      onSave={(draft) => {
+        tracker.saveEntry({ ...draft, id: draft.id ?? crypto.randomUUID() }, !draft.id)
+      }}
+      onDelete={tracker.deleteEntry}
+      onCreateLabel={tracker.createLabel}
+    />
   )
 
-  return {
-    edit: setEditing,
-    remove(entry: Entry) {
-      setDeleting(entry)
-      setConfirmingDelete(true)
-    },
-    addEntry,
-    dialogs,
-  }
+  return { open: setEditing, addEntry, dialogs }
 }
 
 const loading = (
@@ -120,7 +81,7 @@ function TimerView({ api }: { api: Api }) {
         {entries === null ? (
           loading
         ) : entries.length > 0 ? (
-          <EntryList entries={entries} labels={labels} onEdit={editing.edit} onDelete={editing.remove} />
+          <EntryList entries={entries} labels={labels} onOpen={editing.open} />
         ) : (
           <p className="text-(--ui-muted-foreground)">Nothing tracked yet. Press start to begin.</p>
         )}
@@ -161,7 +122,7 @@ function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
         <>
           <Summary entries={entries} labels={labels} />
           {entries.length > 0 ? (
-            <EntryList entries={entries} labels={labels} onEdit={editing.edit} onDelete={editing.remove} />
+            <EntryList entries={entries} labels={labels} onOpen={editing.open} />
           ) : (
             <p className="text-(--ui-muted-foreground)">
               {filtered ? "No entries match these filters." : "Nothing tracked yet."}

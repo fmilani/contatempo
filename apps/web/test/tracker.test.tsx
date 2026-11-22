@@ -69,6 +69,15 @@ async function setupHistory(seed = { labels: [work, admin], entries }, initial: 
 }
 
 const recent = () => within(screen.getByRole("region", { name: "Recent" }))
+
+// Open an entry by its row, press Delete in the dialog, and answer the confirmation.
+async function deleteFromDialog(user: ReturnType<typeof userEvent.setup>, row: RegExp, answer: "Delete forever" | "Keep entry") {
+  await user.click(screen.getByRole("button", { name: row }))
+  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
+  await user.click(dialog.getByRole("button", { name: "Delete" }))
+  await user.click(await screen.findByRole("button", { name: answer }))
+}
+
 const summary = () => within(screen.getByRole("region", { name: "Summary" }))
 
 test("shows the total, the time by label and daily subtotals", async () => {
@@ -397,19 +406,59 @@ test("refuses an end before the start", async () => {
   expect(stored()).toEqual(entries)
 })
 
-test("deleting asks first, and keeps the entry on cancel", async () => {
+test("deleting is in the dialog: it asks first, and keeps the entry on cancel", async () => {
   const { user, entries: stored } = await setupHistory()
 
-  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
-  await user.click(await screen.findByRole("button", { name: "Keep entry" }))
+  await deleteFromDialog(user, /^Edit Invoices at/, "Keep entry")
   await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
+  // Keeping the entry goes back to the edit dialog, not out of it.
+  expect(screen.getByRole("dialog", { name: "Edit entry" })).toBeTruthy()
   expect(stored()).toHaveLength(4)
+  await user.click(screen.getByRole("button", { name: "Cancel" }))
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
 
-  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
-  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
   await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
+  // Both dialogs close once the entry is gone.
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+  expect(screen.queryByRole("alertdialog")).toBeNull()
   expect(stored().map((entry) => entry.id)).toEqual(["e1", "e3", "e4"])
   expect(summary().getByText("3 entries")).toBeTruthy()
+  // Focus lands on the neighbouring row, not the top of the page.
+  await waitFor(() =>
+    expect(document.activeElement?.getAttribute("aria-label")).toMatch(/^Edit Write report at/)
+  )
+})
+
+test("rows have no edit or delete buttons of their own; the whole row opens the entry", async () => {
+  const { user } = await setupHistory()
+
+  expect(screen.queryByRole("button", { name: /^Delete / })).toBeNull()
+  const rows = screen.getAllByRole("button", { name: /^Edit .* at / })
+  expect(rows).toHaveLength(entries.length)
+  const planning = screen.getByRole("button", { name: /^Edit Planning at/ })
+  expect(planning.textContent).toContain("Planning")
+
+  // A press anywhere on the row opens it, not only on its text.
+  await user.click(within(planning).getByText("1h 00m"))
+  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
+  expect(dialog.getByRole("textbox", { name: "Entry description" })).toHaveProperty("value", "Planning")
+})
+
+test("a new entry has no Delete in its dialog", async () => {
+  const { user } = await setupHistory()
+
+  await user.click(screen.getByRole("button", { name: "Add entry" }))
+  const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
+  expect(dialog.queryByRole("button", { name: "Delete" })).toBeNull()
+})
+
+test("a row opens from the keyboard too", async () => {
+  const { user } = await setupHistory()
+
+  screen.getByRole("button", { name: /^Edit Invoices at/ }).focus()
+  await user.keyboard("{Enter}")
+  expect(await screen.findByRole("dialog", { name: "Edit entry" })).toBeTruthy()
 })
 
 test("an agent can find every control, start and stop a timer, and needs a person to delete", async () => {
@@ -456,7 +505,8 @@ test("an agent can find every control, start and stop a timer, and needs a perso
 
   const remove = {
     steps: [
-      { ref: "Delete Invoices", action: "press" },
+      { ref: "Edit Invoices", action: "press" },
+      { ref: "Edit entry", action: "press", args: ["Delete"] },
       { ref: "Delete this entry?", action: "press", args: ["Delete forever"] },
     ],
   }
@@ -464,6 +514,8 @@ test("an agent can find every control, start and stop a timer, and needs a perso
   expect(stored().some((entry) => entry.id === "e2")).toBe(true)
   await agent.act({ steps: [{ ref: "Delete this entry?", action: "press", args: ["Keep entry"] }] })
   await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
+  await agent.act({ steps: [{ ref: "Edit entry", action: "press", args: ["Cancel"] }] })
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
 
   approve = true
   const removed = await agent.act(remove)
@@ -488,8 +540,7 @@ test("start, typing, labels, stop and delete all show before the server answers"
   expect(recent().getByText("Offline work")).toBeTruthy()
   expect(recent().getByText("Invoices")).toBeTruthy()
 
-  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
-  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
   await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
   expect(stored()).toEqual([entries[1]])
 
@@ -527,8 +578,7 @@ test("a change the server refuses is undone, with a message", async () => {
   const { user, entries: stored, failNextWrite } = await setupHistory()
 
   failNextWrite("Network down")
-  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
-  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
 
   expect(await screen.findByText("Network down")).toBeTruthy()
   expect(await screen.findByText("Invoices")).toBeTruthy()
@@ -556,8 +606,7 @@ test("a refresh that started before a change doesn't undo it on screen", async (
 
   const release = holdReads()
   document.dispatchEvent(new Event("visibilitychange"))
-  await user.click(screen.getByRole("button", { name: /^Delete Invoices at/ }))
-  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
   await waitFor(() => expect(stored()).toHaveLength(3))
 
   release()
@@ -666,8 +715,7 @@ test("deleting from the recent list brings the next older entry in", async () =>
   const { user } = await setup({ labels: [], entries: many })
   expect(recent().queryByText("Task 0")).toBeNull()
 
-  await user.click(screen.getByRole("button", { name: /^Delete Task 5 at/ }))
-  await user.click(await screen.findByRole("button", { name: "Delete forever" }))
+  await deleteFromDialog(user, /^Edit Task 5 at/, "Delete forever")
 
   await waitFor(() => expect(recent().getByText("Task 0")).toBeTruthy())
   expect(recent().queryByText("Task 5")).toBeNull()

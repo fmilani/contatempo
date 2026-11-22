@@ -198,6 +198,8 @@ function EntryDialog(props: EntryDialogProps) {
   const [returnTo, setReturnTo] = useState<HTMLElement | undefined>()
   return (
     <Dialog
+      // A bottom sheet on small touch screens, a centered dialog elsewhere.
+      presentation="auto"
       open={entry !== null}
       onOpenChange={(open) => !open && onClose()}
       onOpenChangeComplete={(open) => !open && setReturnTo(undefined)}

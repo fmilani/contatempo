@@ -767,3 +767,50 @@ test("changing a filter reports the new query, for the URL", async () => {
     expect(queries.at(-1)).toEqual({ range: ["2026-11-10", "2026-11-12"], labelIds: ["admin"] })
   )
 })
+
+// ui-sdk picks a sheet for "(max-width: 640px) and (pointer: coarse)", a phone.
+function pretendScreen(phone: boolean) {
+  const original = window.matchMedia
+  window.matchMedia = (query: string) =>
+    ({
+      matches: phone && /max-width|coarse/.test(query),
+      media: query,
+      onchange: null,
+      addEventListener() {},
+      removeEventListener() {},
+      addListener() {},
+      removeListener() {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList
+  return () => {
+    window.matchMedia = original
+  }
+}
+
+test("on a phone the entry dialog is a bottom sheet", async () => {
+  const restore = pretendScreen(true)
+  try {
+    const { user } = await setupHistory()
+    await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
+    const dialog = await screen.findByRole("dialog", { name: "Edit entry" })
+    expect(dialog.getAttribute("data-presentation")).toBe("sheet")
+    await user.keyboard("{Escape}")
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+  } finally {
+    restore()
+  }
+})
+
+test("on a larger or mouse-driven screen it stays a centered dialog", async () => {
+  const restore = pretendScreen(false)
+  try {
+    const { user } = await setupHistory()
+    await user.click(screen.getByRole("button", { name: "Add entry" }))
+    const dialog = await screen.findByRole("dialog", { name: "Add entry" })
+    expect(dialog.getAttribute("data-presentation")).toBe("dialog")
+    await user.keyboard("{Escape}")
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+  } finally {
+    restore()
+  }
+})

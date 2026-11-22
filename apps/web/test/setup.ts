@@ -9,11 +9,43 @@ globalThis.__UI_SDK_STRICT__ = true
 HTMLElement.prototype.showPopover = function () {}
 HTMLElement.prototype.hidePopover = function () {}
 Element.prototype.getAnimations = () => []
+// The bottom sheet slides with the Web Animations API, which jsdom lacks: finish at once.
+Element.prototype.animate = function () {
+  const done = Promise.resolve()
+  return {
+    finished: done,
+    ready: done,
+    cancel() {},
+    finish() {},
+    pause() {},
+    play() {},
+    commitStyles() {},
+    addEventListener() {},
+    removeEventListener() {},
+    currentTime: 0,
+    startTime: 0,
+    playState: "finished",
+    effect: null,
+    onfinish: null,
+  } as unknown as Animation
+}
 Element.prototype.scrollIntoView = function () {}
 Element.prototype.checkVisibility = () => true
 Element.prototype.getClientRects = () => [] as unknown as DOMRectList
 document.elementFromPoint = () => null
 document.elementsFromPoint = () => []
+// The bottom sheet watches its own visibility, which jsdom can't report.
+globalThis.IntersectionObserver ??= class {
+  root = null
+  rootMargin = ""
+  thresholds = []
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return []
+  }
+} as unknown as typeof IntersectionObserver
 globalThis.ResizeObserver ??= class {
   observe() {}
   unobserve() {}

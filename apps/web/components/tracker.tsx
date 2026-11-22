@@ -59,12 +59,19 @@ const recentQuery = { range: null, labelIds: [], limit: RECENT_LIMIT }
 function TimerView({ api }: { api: Api }) {
   const tracker = useTracker(api, recentQuery)
   const editing = useEntryEditing(tracker)
-  const { labels, running, entries } = tracker
+  const { labels, running } = tracker
+  // The running timer heads the list. The list keeps its length, so on Stop its row simply
+  // becomes a finished one instead of the list growing a row.
+  const entries =
+    tracker.entries && running
+      ? [running, ...tracker.entries].slice(0, RECENT_LIMIT)
+      : tracker.entries
+  const now = useNow(running !== null)
 
   return (
     <>
       <TimerBar
-        loaded={entries !== null}
+        loaded={tracker.entries !== null}
         running={running}
         labels={labels}
         onStart={tracker.start}
@@ -82,7 +89,7 @@ function TimerView({ api }: { api: Api }) {
         {entries === null ? (
           loading
         ) : entries.length > 0 ? (
-          <EntryList entries={entries} labels={labels} onOpen={editing.open} />
+          <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} />
         ) : (
           <p className="text-(--ui-muted-foreground)">Nothing tracked yet. Press start to begin.</p>
         )}

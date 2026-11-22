@@ -117,7 +117,9 @@ test("the idle card shows only the start button; the details appear once it runs
   expect(card.hasAttribute("data-running")).toBe(true)
   expect(screen.getByRole("textbox", { name: "What are you working on?" })).toBeTruthy()
   expect(screen.getByRole("button", { name: "Choose timer labels" })).toBeTruthy()
-  expect(recent().getByText("Nothing tracked yet. Press start to begin.")).toBeTruthy()
+  // The new timer is the first entry in Recent.
+  expect(recent().queryByText("Nothing tracked yet. Press start to begin.")).toBeNull()
+  expect(recent().getByText("No description").closest("[data-running]")).not.toBeNull()
 })
 
 test("the description saves while the timer runs, and Stop saves what was just typed", async () => {
@@ -873,10 +875,56 @@ test("the running timer is left out when it doesn't match the filters", async ()
   expect(screen.queryByText("Live work")).toBeNull()
 })
 
-test("the timer page doesn't repeat the running timer in its recent list", async () => {
-  await setup({ labels: [work], entries: [entries[0], runningSince(10)] })
+test("the timer page lists the running timer first in Recent, and it keeps counting", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ["setInterval", "clearInterval", "Date"] })
+  try {
+    await setup({ labels: [work], entries: [entries[0], runningSince(10)] })
 
-  expect(screen.getByRole("timer", { name: "Elapsed time" })).toBeTruthy()
-  expect(recent().queryByText("Live work")).toBeNull()
-  expect(recent().getByText("Write report")).toBeTruthy()
+    const rows = recent().getAllByText(/^(Live work|Write report)$/).map((item) => item.textContent)
+    expect(rows).toEqual(["Live work", "Write report"])
+    const row = recent().getByText("Live work").closest("[data-entry-id]") as HTMLElement
+    expect(row.getAttribute("data-running")).toBe("")
+    expect(within(row).getByText("10m")).toBeTruthy()
+    expect(screen.queryByRole("button", { name: /^Edit Live work/ })).toBeNull()
+
+    await act(async () => {
+      vi.advanceTimersByTime(3 * 60_000)
+    })
+    expect(within(row).getByText("13m")).toBeTruthy()
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
+test("what's typed on the timer card shows in its Recent row as it's typed", async () => {
+  const { user } = await setup({ labels: [work], entries: [] })
+
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  expect(recent().getByText("No description")).toBeTruthy()
+  await user.type(screen.getByRole("textbox", { name: "What are you working on?" }), "Planning")
+
+  await waitFor(() => expect(recent().getByText("Planning")).toBeTruthy())
+})
+
+test("Recent keeps its length with a timer running, and Stop doesn't shift the rows", async () => {
+  const many: Entry[] = Array.from({ length: RECENT_LIMIT }, (_, index) => ({
+    id: `m${index}`,
+    description: `Task ${index}`,
+    labelIds: [],
+    startedAt: at(1, 8, index),
+    endedAt: at(1, 8, index, 30),
+  }))
+  const { user } = await setup({ labels: [], entries: many })
+  const shown = () => recent().getAllByText(/^(Task \d+|Now)$/).map((item) => item.textContent)
+
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await user.type(screen.getByRole("textbox", { name: "What are you working on?" }), "Now")
+  await waitFor(() => expect(shown()[0]).toBe("Now"))
+  const running = shown()
+  expect(running).toHaveLength(RECENT_LIMIT)
+  expect(running).not.toContain("Task 0")
+
+  await user.click(screen.getByRole("button", { name: "Stop timer" }))
+  expect(shown()).toEqual(running)
+  expect(screen.getByRole("button", { name: /^Edit Now at/ })).toBeTruthy()
 })

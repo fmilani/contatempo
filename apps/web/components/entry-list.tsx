@@ -23,6 +23,11 @@ const timeFormat = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
   minute: "2-digit",
 })
+// Two-digit hours in the list, so the times line up row under row: 09:05, not 9:05.
+const rowTimeFormat = new Intl.DateTimeFormat(undefined, {
+  hour: "2-digit",
+  minute: "2-digit",
+})
 
 function entryName(entry: Entry) {
   const start = new Date(entry.startedAt)
@@ -40,41 +45,40 @@ function RowContent({
 }) {
   return (
     <>
-          <span className="min-w-0 flex-1 basis-full text-start sm:basis-48">
-            <span
-              className={
-                entry.description
-                  ? "block truncate"
-                  : "block text-(--ui-muted-foreground)"
-              }
-            >
-              {entry.description || "No description"}
-            </span>
-            {entry.labelIds.length > 0 ? (
-              <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-(--ui-muted-foreground)">
-                {entry.labelIds.map((id) => (
-                  <span key={id} className="flex items-center gap-1.5">
-                    <LabelDot color={byId.get(id)?.color ?? "transparent"} />
-                    {byId.get(id)?.name}
-                  </span>
-                ))}
+      {/* tabular-nums gives every digit the same width, so times and durations line up across rows. */}
+      <span className="entry-times tabular-nums text-sm text-(--ui-muted-foreground)">
+        {rowTimeFormat.format(new Date(entry.startedAt))} –{" "}
+        {entry.endedAt ? (
+          rowTimeFormat.format(new Date(entry.endedAt))
+        ) : (
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden="true" className="live-dot" />
+            now
+          </span>
+        )}
+      </span>
+      <span className="min-w-0 flex-1 text-start">
+        <span
+          className={
+            entry.description ? "block truncate" : "block text-(--ui-muted-foreground)"
+          }
+        >
+          {entry.description || "No description"}
+        </span>
+        {entry.labelIds.length > 0 ? (
+          <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-(--ui-muted-foreground)">
+            {entry.labelIds.map((id) => (
+              <span key={id} className="flex items-center gap-1.5">
+                <LabelDot color={byId.get(id)?.color ?? "transparent"} />
+                {byId.get(id)?.name}
               </span>
-            ) : null}
+            ))}
           </span>
-          <span className="text-sm tabular-nums text-(--ui-muted-foreground)">
-            {timeFormat.format(new Date(entry.startedAt))} –{" "}
-            {entry.endedAt ? (
-              timeFormat.format(new Date(entry.endedAt))
-            ) : (
-              <span className="inline-flex items-center gap-1.5">
-                <span aria-hidden="true" className="live-dot" />
-                now
-              </span>
-            )}
-          </span>
-          <span className="ms-auto w-16 text-end font-medium tabular-nums sm:ms-0">
-            {formatDuration(durationOf(entry, now))}
-          </span>
+        ) : null}
+      </span>
+      <span className="w-16 shrink-0 text-end font-medium tabular-nums">
+        {formatDuration(durationOf(entry, now))}
+      </span>
     </>
   )
 }

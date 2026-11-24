@@ -317,13 +317,16 @@ a[data-slot="button"] {
 }
 
 /* A list row that is one big button: reset the button look, keep the row's layout. */
+/* No padding on the end side, so the duration's right edge lines up with the day's total above it.
+   The hover fill reaches past it through the negative margin instead. */
 .entry-row {
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
   gap: 0.375rem 1rem;
-  width: 100%;
+  width: calc(100% + 0.5rem);
   height: auto;
+  margin-inline-end: -0.5rem;
   padding: 0.625rem 0.5rem;
   border: 0;
   border-radius: var(--ui-radius);
@@ -344,15 +347,28 @@ a[data-slot="button"] {
   white-space: nowrap;
 }
 
-/* Narrow screens: the times go on their own line above the description. */
+/* Narrow screens: the times and the duration share the first line, the description goes below. */
 @media (max-width: 30rem) {
   .entry-row {
-    flex-wrap: wrap;
-  }
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 1rem;
 
-  .entry-times {
-    flex-basis: 100%;
-    min-width: 0;
+    & > .entry-times {
+      grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
+    }
+
+    & > :last-child {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    & > :nth-child(2) {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
   }
 }
 

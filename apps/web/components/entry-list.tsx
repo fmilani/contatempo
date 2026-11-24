@@ -115,27 +115,38 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
     })
   }
 
-  // C collapses or expands the day with focus, or the most recent day when focus is elsewhere.
+  const keys = [...days.keys()]
+  const anyOpen = keys.some((key) => !closed.has(key))
+
+  // C collapses every day, or expands them all when they're all collapsed already.
   useShortcut(
     "c",
     () => {
-      const focused = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-day]")
-      const inList = focused && listRef.current?.contains(focused)
-      const key = inList ? focused.dataset.day : [...days.keys()][0]
-      if (key) setOpen(key, closed.has(key))
+      // Focus inside a day's entries would be lost when they unmount: keep it on the day instead.
+      const active = document.activeElement as HTMLElement | null
+      const day = active?.closest<HTMLElement>("[data-day]")
+      if (anyOpen && day && listRef.current?.contains(day) && active !== day) day.focus()
+      setClosed(anyOpen ? new Set(keys) : new Set())
     },
     {
-      description: "Collapse or expand a day",
+      description: anyOpen ? "Collapse all days" : "Expand all days",
       // Next keeps a page you left in the document, hidden. Only the list on screen answers C.
       when: () => days.size > 0 && listRef.current?.checkVisibility() === true,
     }
   )
   const hint = useShortcutHint("c")
+  // useShortcutHint wraps the keys in invisible direction marks, which show as boxes in a title.
+  const keyText = hint.text.replace(/[\u2066-\u2069]/g, "")
 
   return (
     // One point per day, with that day's entries under it. Arrow keys move between days, Tab goes
     // from a day to its header button, which collapses it, and then into its entries.
-    <Timeline ref={listRef} aria-label="Entries by day" className="day-timeline">
+    <Timeline
+      ref={listRef}
+      aria-label="Entries by day"
+      aria-keyshortcuts={hint.ariaKeyshortcuts}
+      className="day-timeline"
+    >
       {[...days].map(([key, dayEntries]) => {
         const first = new Date(dayEntries[0].startedAt)
         const open = !closed.has(key)
@@ -147,8 +158,7 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
               <TimelineTitle render={<h2 />} className="day-title">
                 <CollapsibleTrigger
                   className="day-trigger"
-                  aria-keyshortcuts={hint.ariaKeyshortcuts}
-                  title={`${open ? "Collapse" : "Expand"} (${hint.text.replace(/[\u2066-\u2069]/g, "")})`}
+                  title={`${open ? "Collapse" : "Expand"} · ${keyText} ${anyOpen ? "collapses" : "expands"} all days`}
                 >
                   <time dateTime={key}>{dayFormat.format(first)}</time>
                   <ChevronDownIcon />

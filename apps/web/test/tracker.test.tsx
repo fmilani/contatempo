@@ -980,31 +980,52 @@ test("a day collapses and expands from its header, hiding its entries but keepin
   expect(await screen.findByText("Invoices")).toBeTruthy()
 })
 
-test("C collapses the day with focus, and expands it again", async () => {
+const expanded = () =>
+  within(screen.getByRole("list", { name: "Entries by day" }))
+    .getAllByRole("button")
+    .filter((button) => button.hasAttribute("aria-expanded"))
+    .map((button) => button.getAttribute("aria-expanded"))
+
+test("C collapses every day, and expands them all again", async () => {
   const { user } = await setupHistory()
-  const days = within(screen.getByRole("list", { name: "Entries by day" })).getAllByRole("listitem", { name: /2026/ })
-
-  days[1].focus()
-  await user.keyboard("c")
-  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("false")
-  expect(dayToggle(/November 12, 2026/).getAttribute("aria-expanded")).toBe("true")
-  // Focus stays on the day, so C can open it again right away.
-  expect(document.activeElement).toBe(days[1])
+  expect(expanded()).toEqual(["true", "true"])
 
   await user.keyboard("c")
-  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("true")
+  expect(expanded()).toEqual(["false", "false"])
+  await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
+  expect(screen.queryByText("Planning")).toBeNull()
+
+  await user.keyboard("c")
+  expect(expanded()).toEqual(["true", "true"])
+  expect(await screen.findByText("Invoices")).toBeTruthy()
 })
 
-test("C works from inside a day's entries too, and on the newest day when focus is elsewhere", async () => {
+test("with some days already collapsed, C collapses the rest; once all are, C expands them", async () => {
+  const { user } = await setupHistory()
+
+  await user.click(dayToggle(/November 10, 2026/))
+  expect(expanded()).toEqual(["true", "false"])
+
+  await user.keyboard("c")
+  expect(expanded()).toEqual(["false", "false"])
+  await user.keyboard("c")
+  expect(expanded()).toEqual(["true", "true"])
+})
+
+test("C from inside a day's entries keeps focus in the list, on that day", async () => {
   const { user } = await setupHistory()
 
   screen.getByRole("button", { name: /^Edit Invoices at/ }).focus()
   await user.keyboard("c")
-  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("false")
 
-  ;(document.activeElement as HTMLElement | null)?.blur()
-  await user.keyboard("c")
-  expect(dayToggle(/November 12, 2026/).getAttribute("aria-expanded")).toBe("false")
+  expect(expanded()).toEqual(["false", "false"])
+  const day = dayToggle(/November 10, 2026/).closest("[data-day]")
+  expect(document.activeElement).toBe(day)
+})
+
+test("the shortcut is announced on the list", async () => {
+  await setupHistory()
+  expect(screen.getByRole("list", { name: "Entries by day" }).getAttribute("aria-keyshortcuts")).toBe("C")
 })
 
 test("typing a C in a field doesn't collapse anything", async () => {

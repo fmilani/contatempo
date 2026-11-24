@@ -464,13 +464,29 @@ a[data-slot="button"] {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  column-gap: 0.75rem;
   row-gap: 0.25rem;
 }
 
 .day-title {
   grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
   margin: 0;
   font-size: inherit;
+}
+
+/* The trigger gives way first, so the count stays readable and the date shortens. */
+.day-trigger {
+  min-width: 0;
+}
+
+.day-count {
+  flex-shrink: 0;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .day-trigger {
@@ -545,7 +561,7 @@ a[data-slot="button"] {
 }
 
 /* The full date stays in the page, visually hidden, so it's still the day's name. */
-@media (max-width: 24rem) {
+@media (max-width: 30rem) {
   .day-name-long {
     position: absolute;
     width: 1px;

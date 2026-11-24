@@ -25,7 +25,23 @@ test("a day's name is its full date, read once, whatever form is shown", async (
   render(<EntryList entries={[running]} labels={[work]} onOpen={() => {}} now={start + 60_000} />)
 
   const full = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(new Date(start))
-  expect(await screen.findByRole("listitem", { name: full })).toBeTruthy()
+  // The day reads its full date, then how many entries it has.
+  expect(await screen.findByRole("listitem", { name: new RegExp(`^${full}\\s*,\\s*1 entry$`) })).toBeTruthy()
   // The collapse button reads the same full date, without the short form shown on phones.
   expect(screen.getByRole("button", { name: full })).toBeTruthy()
+})
+
+test("each day shows how many entries it has", () => {
+  const at = (id: string, hour: number, day = 22): Entry => ({
+    id,
+    description: id,
+    labelIds: [],
+    startedAt: `2026-11-${day}T${String(hour).padStart(2, "0")}:00:00Z`,
+    endedAt: `2026-11-${day}T${String(hour).padStart(2, "0")}:30:00Z`,
+  })
+  render(
+    <EntryList entries={[at("a", 9), at("b", 11), at("c", 13), at("d", 9, 20)]} labels={[]} onOpen={() => {}} />,
+  )
+  const counts = [...document.querySelectorAll(".day-count")].map((el) => el.textContent)
+  expect(counts).toEqual([", 3 entries", ", 1 entry"])
 })

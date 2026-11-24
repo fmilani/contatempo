@@ -34,12 +34,12 @@ const dayFormat = new Intl.DateTimeFormat(undefined, {
   day: "numeric",
   year: "numeric",
 })
-// Shorter day names on narrow screens, so a day's name fits on one line next to its total.
+// Shorter day names on narrow screens, so a day's name fits on one line with its entry count and
+// total. The year is left out there; screen readers still get the full date.
 const shortDayFormat = new Intl.DateTimeFormat(undefined, {
   weekday: "short",
   month: "short",
   day: "numeric",
-  year: "numeric",
 })
 const timeFormat = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
@@ -221,15 +221,15 @@ function EntryList({ entries, labels, onOpen, now, collapse: shared }: EntryList
                   </time>
                   <ChevronDownIcon />
                 </CollapsibleTrigger>
+                <span className="day-count text-sm tabular-nums text-(--ui-muted-foreground)">
+                  <span className="sr-only">, </span>
+                  {dayEntries.length} {dayEntries.length === 1 ? "entry" : "entries"}
+                </span>
               </TimelineTitle>
               <TimelineDescription className="day-total text-sm tabular-nums text-(--ui-muted-foreground)">
                 {formatDuration(dayEntries.reduce((sum, entry) => sum + durationOf(entry, now), 0))}
                 <span className="sr-only"> tracked</span>
-                {open ? null : (
-                  <span className="sr-only">
-                    , {dayEntries.length} {dayEntries.length === 1 ? "entry" : "entries"} hidden
-                  </span>
-                )}
+                {open ? null : <span className="sr-only">, entries hidden</span>}
               </TimelineDescription>
               <CollapsiblePanel className="day-panel">
                 <ul className="day-entries">

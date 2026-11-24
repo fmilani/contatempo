@@ -35,3 +35,5 @@ export const SunIcon = () => (
   <Icon path="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
 )
 export const ChevronDownIcon = () => <Icon path="m6 9 6 6 6-6" />
+export const CollapseAllIcon = () => <Icon path="M7 20l5-5 5 5M7 4l5 5 5-5" />
+export const ExpandAllIcon = () => <Icon path="M7 15l5 5 5-5M7 9l5-5 5 5" />

@@ -6,7 +6,7 @@ import { useState } from "react"
 import { inFilter, type Api } from "@/lib/api"
 import type { HistoryQuery } from "@/lib/history-query"
 import { EntryDialog, type EntryInput } from "./entry-dialog"
-import { EntryList } from "./entry-list"
+import { CollapseAllToggle, EntryList, useDayCollapse } from "./entry-list"
 import { Filters } from "./filters"
 import { Summary } from "./summary"
 import { TimerBar } from "./timer-bar"
@@ -67,6 +67,7 @@ function TimerView({ api }: { api: Api }) {
       ? [running, ...tracker.entries].slice(0, RECENT_LIMIT)
       : tracker.entries
   const now = useNow(running !== null)
+  const collapse = useDayCollapse(entries)
 
   return (
     <>
@@ -84,12 +85,17 @@ function TimerView({ api }: { api: Api }) {
           <h1 id="recent-heading" className="text-lg font-semibold">
             Recent
           </h1>
-          {entries?.length ? <Button render={<Link href="/history" />}>See all history</Button> : null}
+          {entries?.length ? (
+            <div className="flex items-center gap-2">
+              <CollapseAllToggle collapse={collapse} />
+              <Button render={<Link href="/history" />}>See all history</Button>
+            </div>
+          ) : null}
         </div>
         {entries === null ? (
           loading
         ) : entries.length > 0 ? (
-          <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} />
+          <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} collapse={collapse} />
         ) : (
           <p className="text-(--ui-muted-foreground)">Nothing tracked yet. Press start to begin.</p>
         )}
@@ -114,12 +120,16 @@ function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
   const live = running && inFilter(running, filter) ? running : null
   const entries = tracker.entries && live ? [live, ...tracker.entries] : tracker.entries
   const now = useNow(live !== null)
+  const collapse = useDayCollapse(entries)
 
   return (
     <>
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">History</h1>
-        <Button onClick={editing.addEntry}>Add entry</Button>
+        <div className="flex items-center gap-2">
+          {entries?.length ? <CollapseAllToggle collapse={collapse} /> : null}
+          <Button onClick={editing.addEntry}>Add entry</Button>
+        </div>
       </div>
       <Filters
         labels={labels}
@@ -134,7 +144,7 @@ function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
         <>
           <Summary entries={entries} labels={labels} now={now} />
           {entries.length > 0 ? (
-            <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} />
+            <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} collapse={collapse} />
           ) : (
             <p className="text-(--ui-muted-foreground)">
               {filtered ? "No entries match these filters." : "Nothing tracked yet."}

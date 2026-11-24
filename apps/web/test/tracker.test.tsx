@@ -1051,3 +1051,46 @@ test("a collapsed day stays collapsed when the list refreshes", async () => {
   expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("false")
   expect(screen.queryByText("Invoices")).toBeNull()
 })
+
+const collapseAll = () => screen.getByRole("button", { name: "Collapse all days" })
+
+test("the collapse-all toggle collapses every day, and is pressed while they're collapsed", async () => {
+  const { user } = await setupHistory()
+  expect(collapseAll().getAttribute("aria-pressed")).toBe("false")
+
+  await user.click(collapseAll())
+  expect(expanded()).toEqual(["false", "false"])
+  expect(collapseAll().getAttribute("aria-pressed")).toBe("true")
+
+  await user.click(collapseAll())
+  expect(expanded()).toEqual(["true", "true"])
+  expect(collapseAll().getAttribute("aria-pressed")).toBe("false")
+})
+
+test("the toggle follows C and the day headers", async () => {
+  const { user } = await setupHistory()
+
+  await user.keyboard("c")
+  expect(collapseAll().getAttribute("aria-pressed")).toBe("true")
+
+  // Opening one day means they're no longer all collapsed.
+  await user.click(dayToggle(/November 10, 2026/))
+  expect(collapseAll().getAttribute("aria-pressed")).toBe("false")
+
+  // Collapsing it again by hand: all collapsed, so the toggle is pressed.
+  await user.click(dayToggle(/November 10, 2026/))
+  expect(collapseAll().getAttribute("aria-pressed")).toBe("true")
+})
+
+test("the timer page has the collapse-all toggle for its recent list", async () => {
+  const { user } = await setup()
+
+  await user.click(collapseAll())
+  expect(expanded().every((value) => value === "false")).toBe(true)
+  expect(recent().queryByText("Write report")).toBeNull()
+})
+
+test("there's no collapse-all toggle without entries", async () => {
+  await setupHistory({ labels: [], entries: [] })
+  expect(screen.queryByRole("button", { name: "Collapse all days" })).toBeNull()
+})

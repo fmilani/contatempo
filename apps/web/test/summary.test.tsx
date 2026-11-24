@@ -20,3 +20,12 @@ test("the list row and its day subtotal end a running entry at the given time", 
   render(<EntryList entries={[running]} labels={[work]} onOpen={() => {}} now={start + 40 * 60_000} />)
   expect(screen.getAllByText("40m")).toHaveLength(2)
 })
+
+test("a day's name is its full date, read once, whatever form is shown", async () => {
+  render(<EntryList entries={[running]} labels={[work]} onOpen={() => {}} now={start + 60_000} />)
+
+  const full = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(new Date(start))
+  expect(await screen.findByRole("listitem", { name: full })).toBeTruthy()
+  // The collapse button reads the same full date, without the short form shown on phones.
+  expect(screen.getByRole("button", { name: full })).toBeTruthy()
+})

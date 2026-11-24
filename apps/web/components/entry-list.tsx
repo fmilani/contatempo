@@ -3,6 +3,7 @@
 import { Button } from "@ui-sdk/react/button"
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible"
 import { useShortcut, useShortcutHint } from "@ui-sdk/react/shortcuts"
+import { Toggle } from "@ui-sdk/react/toggle"
 import {
   Timeline,
   TimelineConnector,
@@ -14,7 +15,7 @@ import {
 import type { Entry, Label } from "@/lib/api"
 import { dateKey, durationOf, formatDuration } from "@/lib/time"
 import { useRef, useState } from "react"
-import { ChevronDownIcon } from "./icons"
+import { ChevronDownIcon, CollapseAllIcon, ExpandAllIcon } from "./icons"
 import { LabelDot } from "./label-picker"
 
 type EntryListProps = {
@@ -23,11 +24,20 @@ type EntryListProps = {
   onOpen: (entry: Entry) => void
   // Where a running entry's time ends, so its row and its day's subtotal keep counting.
   now?: number
+  // Which days are collapsed, when the page shares it with a collapse-all toggle.
+  collapse?: DayCollapse
 }
 
 const dayFormat = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
   month: "long",
+  day: "numeric",
+  year: "numeric",
+})
+// Shorter day names on narrow screens, so a day's name fits on one line next to its total.
+const shortDayFormat = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  month: "short",
   day: "numeric",
   year: "numeric",
 })
@@ -95,28 +105,67 @@ function RowContent({
   )
 }
 
-function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
-  const byId = new Map(labels.map((label) => [label.id, label]))
+function groupByDay(entries: Entry[]) {
   const days = new Map<string, Entry[]>()
   for (const entry of entries) {
     const key = dateKey(new Date(entry.startedAt))
     days.set(key, [...(days.get(key) ?? []), entry])
   }
-  // Closed days, by date. Days open by default, and stay as you left them while the list updates.
+  return days
+}
+
+// Which days are collapsed, by date. Days start open, and stay as you left them while the list
+// updates. The page holds it, so the list and its collapse-all toggle share it.
+function useDayCollapse(entries: Entry[] | null) {
   const [closed, setClosed] = useState<ReadonlySet<string>>(new Set())
+  const keys = entries ? [...groupByDay(entries).keys()] : []
+  const allClosed = keys.length > 0 && keys.every((key) => closed.has(key))
+  return {
+    closed,
+    allClosed,
+    setDay(key: string, open: boolean) {
+      setClosed((current) => {
+        const next = new Set(current)
+        if (open) next.delete(key)
+        else next.add(key)
+        return next
+      })
+    },
+    setAll(collapse: boolean) {
+      setClosed(collapse ? new Set(keys) : new Set())
+    },
+  }
+}
+
+type DayCollapse = ReturnType<typeof useDayCollapse>
+
+// Collapses or expands every day at once, the same as the C key. Pressed while all are collapsed.
+function CollapseAllToggle({ collapse }: { collapse: DayCollapse }) {
+  const hint = useShortcutHint("c")
+  const keyText = hint.text.replace(/[\u2066-\u2069]/g, "")
+  return (
+    <Toggle
+      className="collapse-toggle"
+      aria-label="Collapse all days"
+      aria-keyshortcuts={hint.ariaKeyshortcuts}
+      title={`${collapse.allClosed ? "Expand" : "Collapse"} all days (${keyText})`}
+      pressed={collapse.allClosed}
+      onPressedChange={(pressed) => collapse.setAll(pressed)}
+    >
+      {collapse.allClosed ? <ExpandAllIcon /> : <CollapseAllIcon />}
+    </Toggle>
+  )
+}
+
+function EntryList({ entries, labels, onOpen, now, collapse: shared }: EntryListProps) {
+  const byId = new Map(labels.map((label) => [label.id, label]))
+  const days = groupByDay(entries)
+  const own = useDayCollapse(entries)
+  const collapse = shared ?? own
+  const { closed } = collapse
   const listRef = useRef<HTMLDivElement>(null)
 
-  function setOpen(key: string, open: boolean) {
-    setClosed((current) => {
-      const next = new Set(current)
-      if (open) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }
-
-  const keys = [...days.keys()]
-  const anyOpen = keys.some((key) => !closed.has(key))
+  const anyOpen = !collapse.allClosed
 
   // C collapses every day, or expands them all when they're all collapsed already.
   useShortcut(
@@ -126,7 +175,7 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
       const active = document.activeElement as HTMLElement | null
       const day = active?.closest<HTMLElement>("[data-day]")
       if (anyOpen && day && listRef.current?.contains(day) && active !== day) day.focus()
-      setClosed(anyOpen ? new Set(keys) : new Set())
+      collapse.setAll(anyOpen)
     },
     {
       description: anyOpen ? "Collapse all days" : "Expand all days",
@@ -154,13 +203,22 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
           <TimelineItem key={key} value={key} className="day-item" data-day={key}>
             <TimelineMarker />
             <TimelineConnector />
-            <Collapsible open={open} onOpenChange={(next) => setOpen(key, next)} className="day-collapsible">
+            <Collapsible
+              open={open}
+              onOpenChange={(next) => collapse.setDay(key, next)}
+              className="day-collapsible"
+            >
               <TimelineTitle render={<h2 />} className="day-title">
                 <CollapsibleTrigger
                   className="day-trigger"
                   title={`${open ? "Collapse" : "Expand"} · ${keyText} ${anyOpen ? "collapses" : "expands"} all days`}
                 >
-                  <time dateTime={key}>{dayFormat.format(first)}</time>
+                  <time dateTime={key}>
+                    <span className="day-name-long">{dayFormat.format(first)}</span>
+                    <span className="day-name-short" aria-hidden="true">
+                      {shortDayFormat.format(first)}
+                    </span>
+                  </time>
                   <ChevronDownIcon />
                 </CollapsibleTrigger>
               </TimelineTitle>
@@ -205,4 +263,4 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
   )
 }
 
-export { EntryList, entryName }
+export { CollapseAllToggle, EntryList, entryName, useDayCollapse }

@@ -1,6 +1,14 @@
 "use client"
 
 import { Button } from "@ui-sdk/react/button"
+import {
+  Timeline,
+  TimelineConnector,
+  TimelineDescription,
+  TimelineItem,
+  TimelineMarker,
+  TimelineTitle,
+} from "@ui-sdk/react/timeline"
 import type { Entry, Label } from "@/lib/api"
 import { dateKey, durationOf, formatDuration } from "@/lib/time"
 import { LabelDot } from "./label-picker"
@@ -92,22 +100,25 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    // One point per day, with that day's entries under it. Arrow keys move between days, and Tab
+    // goes from a day into its entries.
+    <Timeline aria-label="Entries by day" className="day-timeline">
       {[...days].map(([key, dayEntries]) => {
         const first = new Date(dayEntries[0].startedAt)
         return (
-          <section key={key} aria-labelledby={`day-${key}`}>
-            <div className="flex items-baseline justify-between border-b border-(--ui-border) pb-1.5">
-              <h2 id={`day-${key}`} className="font-medium">
-                {dayFormat.format(first)}
-              </h2>
-              <span className="text-sm tabular-nums text-(--ui-muted-foreground)">
-                {formatDuration(dayEntries.reduce((sum, entry) => sum + durationOf(entry, now), 0))}
-              </span>
-            </div>
-            <ul>
+          <TimelineItem key={key} value={key} className="day-item" data-day={key}>
+            <TimelineMarker />
+            <TimelineConnector />
+            <TimelineTitle render={<h2 />} className="font-medium">
+              <time dateTime={key}>{dayFormat.format(first)}</time>
+            </TimelineTitle>
+            <TimelineDescription className="day-total text-sm tabular-nums text-(--ui-muted-foreground)">
+              {formatDuration(dayEntries.reduce((sum, entry) => sum + durationOf(entry, now), 0))}
+              <span className="sr-only"> tracked</span>
+            </TimelineDescription>
+            <ul className="day-entries">
               {dayEntries.map((entry) => (
-                <li key={entry.id} className="border-b border-(--ui-border)">
+                <li key={entry.id} className="border-b border-(--ui-border) last:border-b-0">
                   {entry.endedAt === null ? (
                     // The running timer is edited on its card, so its row only shows it.
                     <div className="entry-row" data-running="" data-entry-id={entry.id}>
@@ -127,10 +138,10 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
                 </li>
               ))}
             </ul>
-          </section>
+          </TimelineItem>
         )
       })}
-    </div>
+    </Timeline>
   )
 }
 

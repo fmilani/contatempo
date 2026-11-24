@@ -90,7 +90,7 @@ test("shows the total, the time by label and daily subtotals", async () => {
     .map((item) => item.textContent)
   expect(byLabel).toEqual(["Work2h 30m", "Admin1h 30m", "No label15m"])
 
-  const days = screen.getAllByRole("region").filter((region) => region.querySelector("h2[id^=day-]"))
+  const days = within(screen.getByRole("list", { name: "Entries by day" })).getAllByRole("listitem", { name: /2026/ })
   expect(days).toHaveLength(2)
   expect(within(days[0]).getByText("1h 15m")).toBeTruthy()
   expect(within(days[1]).getByText("2h 00m")).toBeTruthy()
@@ -854,7 +854,7 @@ test("history lists the running timer, and its time keeps counting in the row an
     expect(within(row).getByText("15m")).toBeTruthy()
     expect(summary().getByText("1h 15m")).toBeTruthy()
     expect(byLabel()).toEqual(["Work15m", "No label1h 00m"])
-    const day = row.closest("section") as HTMLElement
+    const day = row.closest("[data-day]") as HTMLElement
     expect(within(day).getAllByText("1h 15m").length).toBeGreaterThan(0)
   } finally {
     vi.useRealTimers()
@@ -927,4 +927,25 @@ test("Recent keeps its length with a timer running, and Stop doesn't shift the r
   await user.click(screen.getByRole("button", { name: "Stop timer" }))
   expect(shown()).toEqual(running)
   expect(screen.getByRole("button", { name: /^Edit Now at/ })).toBeTruthy()
+})
+
+test("days are points on a timeline: named by the day, with arrow keys between them", async () => {
+  const { user } = await setupHistory()
+
+  const timeline = screen.getByRole("list", { name: "Entries by day" })
+  const days = within(timeline).getAllByRole("listitem", { name: /2026/ })
+  expect(days).toHaveLength(2)
+  expect(days[0].getAttribute("aria-label") ?? days[0].textContent).toMatch(/November 12, 2026/)
+  expect(within(days[0]).getByRole("heading", { level: 2 })).toBeTruthy()
+  expect(days[0].querySelector("time")?.getAttribute("dateTime")).toBe("2026-11-12")
+
+  // One tab stop for the days: only the first day is in the tab order, and Tab goes into its entries.
+  expect(days.map((day) => day.tabIndex)).toEqual([0, -1])
+  days[0].focus()
+  await user.keyboard("{ArrowDown}")
+  expect(document.activeElement).toBe(days[1])
+  await user.keyboard("{ArrowUp}")
+  expect(document.activeElement).toBe(days[0])
+  await user.tab()
+  expect(document.activeElement?.getAttribute("aria-label")).toMatch(/^Edit .* November 12, 2026$/)
 })

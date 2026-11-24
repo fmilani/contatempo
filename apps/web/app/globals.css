@@ -381,3 +381,78 @@ a[data-slot="button"] {
     animation: none;
   }
 }
+
+/* Days as points on a vertical line: the marker and line in the first column, the day's
+   name and total on its first row, and its entries below. */
+.day-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  row-gap: 0.25rem;
+  align-items: center;
+  padding-bottom: 1.5rem;
+  border-radius: var(--ui-radius);
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-ring-border);
+    outline-offset: 4px;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.day-item > [data-slot="timeline-marker"] {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--ui-foreground);
+  border-radius: 9999px;
+  background: var(--ui-background);
+}
+
+/* The line runs from under this day's marker to the next day's. */
+.day-item > [data-slot="timeline-connector"] {
+  position: absolute;
+  top: 1.25rem;
+  bottom: -0.25rem;
+  left: calc(0.5rem - 1px);
+  width: 2px;
+  background: var(--ui-border);
+}
+
+.day-item:last-child > [data-slot="timeline-connector"],
+.day-item[data-last] > [data-slot="timeline-connector"] {
+  display: none;
+}
+
+.day-item > [data-slot="timeline-title"] {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  font-size: inherit;
+}
+
+.day-total {
+  grid-column: 3;
+  grid-row: 1;
+  margin: 0;
+}
+
+.day-entries {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

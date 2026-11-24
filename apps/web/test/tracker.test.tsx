@@ -946,6 +946,87 @@ test("days are points on a timeline: named by the day, with arrow keys between t
   expect(document.activeElement).toBe(days[1])
   await user.keyboard("{ArrowUp}")
   expect(document.activeElement).toBe(days[0])
+  // Tab goes from the day to its collapse button, then into its entries.
+  await user.tab()
+  expect(document.activeElement?.textContent).toMatch(/November 12, 2026/)
+  expect(document.activeElement?.getAttribute("aria-expanded")).toBe("true")
   await user.tab()
   expect(document.activeElement?.getAttribute("aria-label")).toMatch(/^Edit .* November 12, 2026$/)
+})
+
+const dayToggle = (day: RegExp) =>
+  screen.getAllByRole("button", { name: day }).find((button) => button.hasAttribute("aria-expanded"))!
+
+test("a day collapses and expands from its header, hiding its entries but keeping its total", async () => {
+  const { user } = await setupHistory()
+
+  const toggle = dayToggle(/November 10, 2026/)
+  expect(toggle.getAttribute("aria-expanded")).toBe("true")
+  expect(screen.getByText("Invoices")).toBeTruthy()
+
+  await user.click(toggle)
+  expect(toggle.getAttribute("aria-expanded")).toBe("false")
+  await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
+  expect(screen.queryByText("Write report")).toBeNull()
+  const day = toggle.closest("[data-day]") as HTMLElement
+  expect(within(day).getByText("2h 00m")).toBeTruthy()
+  // The other day is untouched.
+  expect(screen.getByText("Planning")).toBeTruthy()
+  // Summary totals still count the hidden entries.
+  expect(summary().getByText("4 entries")).toBeTruthy()
+
+  await user.click(toggle)
+  expect(toggle.getAttribute("aria-expanded")).toBe("true")
+  expect(await screen.findByText("Invoices")).toBeTruthy()
+})
+
+test("C collapses the day with focus, and expands it again", async () => {
+  const { user } = await setupHistory()
+  const days = within(screen.getByRole("list", { name: "Entries by day" })).getAllByRole("listitem", { name: /2026/ })
+
+  days[1].focus()
+  await user.keyboard("c")
+  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("false")
+  expect(dayToggle(/November 12, 2026/).getAttribute("aria-expanded")).toBe("true")
+  // Focus stays on the day, so C can open it again right away.
+  expect(document.activeElement).toBe(days[1])
+
+  await user.keyboard("c")
+  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("true")
+})
+
+test("C works from inside a day's entries too, and on the newest day when focus is elsewhere", async () => {
+  const { user } = await setupHistory()
+
+  screen.getByRole("button", { name: /^Edit Invoices at/ }).focus()
+  await user.keyboard("c")
+  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("false")
+
+  ;(document.activeElement as HTMLElement | null)?.blur()
+  await user.keyboard("c")
+  expect(dayToggle(/November 12, 2026/).getAttribute("aria-expanded")).toBe("false")
+})
+
+test("typing a C in a field doesn't collapse anything", async () => {
+  const { user } = await setupHistory()
+
+  await user.click(screen.getByRole("combobox", { name: "Filter labels" }))
+  await user.keyboard("c")
+  await user.keyboard("{Escape}")
+
+  expect(dayToggle(/November 12, 2026/).getAttribute("aria-expanded")).toBe("true")
+  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("true")
+})
+
+test("a collapsed day stays collapsed when the list refreshes", async () => {
+  const { user } = await setupHistory()
+
+  await user.click(dayToggle(/November 10, 2026/))
+  await act(async () => {
+    document.dispatchEvent(new Event("visibilitychange"))
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  })
+
+  expect(dayToggle(/November 10, 2026/).getAttribute("aria-expanded")).toBe("false")
+  expect(screen.queryByText("Invoices")).toBeNull()
 })

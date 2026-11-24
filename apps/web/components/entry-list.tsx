@@ -1,6 +1,8 @@
 "use client"
 
 import { Button } from "@ui-sdk/react/button"
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible"
+import { useShortcut, useShortcutHint } from "@ui-sdk/react/shortcuts"
 import {
   Timeline,
   TimelineConnector,
@@ -11,6 +13,8 @@ import {
 } from "@ui-sdk/react/timeline"
 import type { Entry, Label } from "@/lib/api"
 import { dateKey, durationOf, formatDuration } from "@/lib/time"
+import { useRef, useState } from "react"
+import { ChevronDownIcon } from "./icons"
 import { LabelDot } from "./label-picker"
 
 type EntryListProps = {
@@ -98,46 +102,92 @@ function EntryList({ entries, labels, onOpen, now }: EntryListProps) {
     const key = dateKey(new Date(entry.startedAt))
     days.set(key, [...(days.get(key) ?? []), entry])
   }
+  // Closed days, by date. Days open by default, and stay as you left them while the list updates.
+  const [closed, setClosed] = useState<ReadonlySet<string>>(new Set())
+  const listRef = useRef<HTMLDivElement>(null)
+
+  function setOpen(key: string, open: boolean) {
+    setClosed((current) => {
+      const next = new Set(current)
+      if (open) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  // C collapses or expands the day with focus, or the most recent day when focus is elsewhere.
+  useShortcut(
+    "c",
+    () => {
+      const focused = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-day]")
+      const inList = focused && listRef.current?.contains(focused)
+      const key = inList ? focused.dataset.day : [...days.keys()][0]
+      if (key) setOpen(key, closed.has(key))
+    },
+    {
+      description: "Collapse or expand a day",
+      // Next keeps a page you left in the document, hidden. Only the list on screen answers C.
+      when: () => days.size > 0 && listRef.current?.checkVisibility() === true,
+    }
+  )
+  const hint = useShortcutHint("c")
 
   return (
-    // One point per day, with that day's entries under it. Arrow keys move between days, and Tab
-    // goes from a day into its entries.
-    <Timeline aria-label="Entries by day" className="day-timeline">
+    // One point per day, with that day's entries under it. Arrow keys move between days, Tab goes
+    // from a day to its header button, which collapses it, and then into its entries.
+    <Timeline ref={listRef} aria-label="Entries by day" className="day-timeline">
       {[...days].map(([key, dayEntries]) => {
         const first = new Date(dayEntries[0].startedAt)
+        const open = !closed.has(key)
         return (
           <TimelineItem key={key} value={key} className="day-item" data-day={key}>
             <TimelineMarker />
             <TimelineConnector />
-            <TimelineTitle render={<h2 />} className="font-medium">
-              <time dateTime={key}>{dayFormat.format(first)}</time>
-            </TimelineTitle>
-            <TimelineDescription className="day-total text-sm tabular-nums text-(--ui-muted-foreground)">
-              {formatDuration(dayEntries.reduce((sum, entry) => sum + durationOf(entry, now), 0))}
-              <span className="sr-only"> tracked</span>
-            </TimelineDescription>
-            <ul className="day-entries">
-              {dayEntries.map((entry) => (
-                <li key={entry.id} className="border-b border-(--ui-border) last:border-b-0">
-                  {entry.endedAt === null ? (
-                    // The running timer is edited on its card, so its row only shows it.
-                    <div className="entry-row" data-running="" data-entry-id={entry.id}>
-                      <RowContent entry={entry} byId={byId} now={now} />
-                    </div>
-                  ) : (
-                    // The whole row opens the entry. Its name is the entry, so the content stays visible text.
-                    <Button
-                      className="entry-row"
-                      data-entry-id={entry.id}
-                      aria-label={`Edit ${entryName(entry)}`}
-                      onClick={() => onOpen(entry)}
-                    >
-                      <RowContent entry={entry} byId={byId} now={now} />
-                    </Button>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <Collapsible open={open} onOpenChange={(next) => setOpen(key, next)} className="day-collapsible">
+              <TimelineTitle render={<h2 />} className="day-title">
+                <CollapsibleTrigger
+                  className="day-trigger"
+                  aria-keyshortcuts={hint.ariaKeyshortcuts}
+                  title={`${open ? "Collapse" : "Expand"} (${hint.text.replace(/[\u2066-\u2069]/g, "")})`}
+                >
+                  <time dateTime={key}>{dayFormat.format(first)}</time>
+                  <ChevronDownIcon />
+                </CollapsibleTrigger>
+              </TimelineTitle>
+              <TimelineDescription className="day-total text-sm tabular-nums text-(--ui-muted-foreground)">
+                {formatDuration(dayEntries.reduce((sum, entry) => sum + durationOf(entry, now), 0))}
+                <span className="sr-only"> tracked</span>
+                {open ? null : (
+                  <span className="sr-only">
+                    , {dayEntries.length} {dayEntries.length === 1 ? "entry" : "entries"} hidden
+                  </span>
+                )}
+              </TimelineDescription>
+              <CollapsiblePanel className="day-panel">
+                <ul className="day-entries">
+                  {dayEntries.map((entry) => (
+                    <li key={entry.id} className="border-b border-(--ui-border) last:border-b-0">
+                      {entry.endedAt === null ? (
+                        // The running timer is edited on its card, so its row only shows it.
+                        <div className="entry-row" data-running="" data-entry-id={entry.id}>
+                          <RowContent entry={entry} byId={byId} now={now} />
+                        </div>
+                      ) : (
+                        // The whole row opens the entry. Its name is the entry, so the content stays visible text.
+                        <Button
+                          className="entry-row"
+                          data-entry-id={entry.id}
+                          aria-label={`Edit ${entryName(entry)}`}
+                          onClick={() => onOpen(entry)}
+                        >
+                          <RowContent entry={entry} byId={byId} now={now} />
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CollapsiblePanel>
+            </Collapsible>
           </TimelineItem>
         )
       })}

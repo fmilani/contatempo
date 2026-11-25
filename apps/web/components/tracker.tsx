@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@ui-sdk/react/button"
-import Link from "next/link"
 import { useState } from "react"
 import { inFilter, type Api } from "@/lib/api"
 import type { HistoryQuery } from "@/lib/history-query"
@@ -85,12 +84,7 @@ function TimerView({ api }: { api: Api }) {
           <h1 id="recent-heading" className="text-lg font-semibold">
             Recent
           </h1>
-          {entries?.length ? (
-            <div className="flex items-center gap-2">
-              <CollapseAllToggle collapse={collapse} />
-              <Button render={<Link href="/history" />}>See all history</Button>
-            </div>
-          ) : null}
+          {entries?.length ? <CollapseAllToggle collapse={collapse} /> : null}
         </div>
         {entries === null ? (
           loading

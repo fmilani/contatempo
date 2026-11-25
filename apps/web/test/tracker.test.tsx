@@ -473,7 +473,7 @@ test("an agent can find every control, start and stop a timer, and needs a perso
     expect(entry.label, `${entry.component} ${entry.ref} has no name`).toBeTruthy()
   }
   const labels = components.map((entry) => entry.label)
-  for (const label of ["Start timer", "See all history"]) {
+  for (const label of ["Start timer", "Collapse all days"]) {
     expect(labels, `${label} is missing from the snapshot`).toContain(label)
   }
   expect(labels.some((label) => label?.startsWith("Edit Invoices at"))).toBe(true)
@@ -1116,4 +1116,11 @@ test.each(["{Enter}", "{Escape}"])("%s in the description leaves it and saves, s
   expect(description).toHaveProperty("value", "Review")
   await waitFor(() => expect(stored()[0].endedAt).not.toBeNull())
   expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
+})
+
+test("the timer page has no history button; the History tab is the way there", async () => {
+  await setup()
+  expect(await screen.findByRole("heading", { name: "Recent" })).toBeTruthy()
+  expect(screen.queryByRole("link", { name: /history/i })).toBeNull()
+  expect(screen.queryByRole("button", { name: /history/i })).toBeNull()
 })

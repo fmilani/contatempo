@@ -1099,3 +1099,21 @@ test("there's no collapse-all toggle without entries", async () => {
   await setupHistory({ labels: [], entries: [] })
   expect(screen.queryByRole("button", { name: "Collapse all days" })).toBeNull()
 })
+
+test.each(["{Enter}", "{Escape}"])("%s in the description leaves it and saves, so S then stops", async (key) => {
+  const { user, entries: stored } = await setup({ labels: [], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  const description = screen.getByRole("textbox", { name: "What are you working on?" })
+  await waitFor(() => expect(document.activeElement).toBe(description))
+
+  await user.type(description, "Review")
+  await user.keyboard(key)
+  expect(document.activeElement).not.toBe(description)
+  // Saved at once, not after the typing pause.
+  await waitFor(() => expect(stored()[0]).toMatchObject({ description: "Review", endedAt: null }))
+
+  await user.keyboard("s")
+  expect(description).toHaveProperty("value", "Review")
+  await waitFor(() => expect(stored()[0].endedAt).not.toBeNull())
+  expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
+})

@@ -139,6 +139,15 @@ function RunningDetails({
           timer.current = setTimeout(save, SAVE_DELAY)
         }}
         onBlur={save}
+        // Enter or Escape is done typing: leave the field, which saves it, so S stops the timer.
+        // IME composition uses Enter to pick a word, so that one stays in the field.
+        onKeyDown={(event) => {
+          if (event.nativeEvent.isComposing) return
+          if (event.key === "Enter" || event.key === "Escape") {
+            event.preventDefault()
+            event.currentTarget.blur()
+          }
+        }}
       />
       <Combobox
         multiple

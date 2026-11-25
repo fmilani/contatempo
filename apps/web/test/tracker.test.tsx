@@ -1124,3 +1124,84 @@ test("the timer page has no history button; the History tab is the way there", a
   expect(screen.queryByRole("link", { name: /history/i })).toBeNull()
   expect(screen.queryByRole("button", { name: /history/i })).toBeNull()
 })
+
+// The times in a row: buttons that turn into a time input in place.
+const startOf = (name: string) => screen.getByRole("button", { name: new RegExp(`^Change start time of ${name} at`) })
+const endOf = (name: string) => screen.getByRole("button", { name: new RegExp(`^Change end time of ${name} at`) })
+const timeEditor = () => screen.getByRole("group", { name: /time of / })
+const segment = (unit: string) => within(timeEditor()).getByRole("spinbutton", { name: unit })
+const byId = (list: Entry[], id: string) => list.find((entry) => entry.id === id)!
+
+test("pressing a row's start time edits it in place, and Enter saves it on the same day", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(startOf("Invoices"))
+  // No dialog: the time itself became the input, with focus on its hour.
+  expect(screen.queryByRole("dialog")).toBeNull()
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+
+  await user.keyboard("{ArrowDown}{Enter}")
+  await waitFor(() => expect(byId(stored(), "e2").startedAt).toBe(at(10, 13)))
+  // The end didn't move, and the seconds of the edited time are gone, as the input shows minutes.
+  expect(byId(stored(), "e2").endedAt).toBe(at(10, 14, 30, 20))
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  // Focus goes back to the time, now showing the new value, and the duration follows.
+  await waitFor(() => expect(document.activeElement).toBe(startOf("Invoices")))
+  expect(startOf("Invoices").closest("li")?.textContent).toContain("1h 30m")
+})
+
+test("the end time saves when the input loses focus", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(endOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}")
+  await user.click(document.body)
+
+  await waitFor(() => expect(byId(stored(), "e3").endedAt).toBe(at(12, 11)))
+  expect(byId(stored(), "e3").startedAt).toBe(at(12, 9))
+})
+
+test("Escape puts the time back without saving", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}{Escape}")
+
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  expect(stored()).toEqual(before)
+  await waitFor(() => expect(document.activeElement).toBe(startOf("Planning")))
+})
+
+test("an end before the start isn't saved: the input stays open, marked invalid", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(endOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  // 10:00 back two hours is 08:00, before the 09:00 start.
+  await user.keyboard("{ArrowDown}{ArrowDown}{Enter}")
+
+  expect(timeEditor().getAttribute("aria-invalid")).toBe("true")
+  expect(stored()).toEqual(before)
+  // Leaving it now drops the bad time instead of saving it.
+  await user.click(document.body)
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  expect(stored()).toEqual(before)
+})
+
+test("pressing elsewhere on the row still opens the entry", async () => {
+  const { user } = await setupHistory()
+
+  await user.click(screen.getByText("Invoices"))
+  expect(await screen.findByRole("dialog", { name: "Edit entry" })).toBeTruthy()
+})
+
+test("the running row's times aren't editable", async () => {
+  await setupHistory({ labels: [work], entries: [runningSince(10)] })
+
+  expect(screen.getByText("Live work")).toBeTruthy()
+  expect(screen.queryByRole("button", { name: /^Change (start|end) time of Live work/ })).toBeNull()
+})

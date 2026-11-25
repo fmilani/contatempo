@@ -372,15 +372,32 @@ a[data-slot="button"] {
   }
 }
 
-/* A list row that is one big button: reset the button look, keep the row's layout. */
+/* A list row: one big button that opens the entry, with the start and end times on top of it,
+   each a button of its own. The row's grid sets the columns, and the big button shares them
+   through subgrid, so the times sit in the first column exactly where they'd be inside it. */
 .entry-row {
-  display: flex;
+  --row-pad-block: 0.625rem;
+  --row-pad-inline: 0.5rem;
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr) 4rem;
+  column-gap: 1rem;
   align-items: baseline;
-  justify-content: flex-start;
-  gap: 0.375rem 1rem;
-  width: 100%;
+  padding: var(--row-pad-block) var(--row-pad-inline);
+}
+
+/* Covers the whole row, padding included: the negative margin and the padding cancel out for
+   what's inside, so its content lines up with the times. */
+.entry-open {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: subgrid;
+  /* A subgrid takes its own gap, and a button has one: match the row's, so every row lines up. */
+  gap: inherit;
+  align-items: baseline;
   height: auto;
-  padding: 0.625rem 0.5rem;
+  margin: calc(-1 * var(--row-pad-block)) calc(-1 * var(--row-pad-inline));
+  padding: var(--row-pad-block) var(--row-pad-inline);
   border: 0;
   border-radius: var(--ui-radius);
   background: transparent;
@@ -388,39 +405,131 @@ a[data-slot="button"] {
   text-align: start;
   white-space: normal;
 
-  &:hover:not([data-running]) {
+  &:hover:not(:is([data-running], [data-running] *)) {
     background: var(--ui-muted);
+  }
+
+  & > .entry-main {
+    grid-column: 2;
+  }
+
+  & > .entry-duration {
+    grid-column: 3;
   }
 }
 
-/* The time range has a fixed width, so the descriptions start in one column whatever the times are. */
 .entry-times {
-  flex-shrink: 0;
-  min-width: 9.5rem;
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
   white-space: nowrap;
+  /* Only the times take presses; the gaps around them go through to the row. */
+  pointer-events: none;
+
+  & > * {
+    pointer-events: auto;
+  }
+}
+
+/* Room either side of the dash, for the ring around a time being edited. */
+.entry-dash {
+  padding-inline: 0.4375rem;
+}
+
+/* The time as a button and as an input have the same size and the same text in the same place,
+   so pressing it changes nothing around it. The input takes the button's width when it opens. */
+.entry-time,
+.entry-time-edit {
+  display: inline-block;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--ui-radius) / 2);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: start;
+  vertical-align: baseline;
+}
+
+.entry-time {
+  cursor: text;
+
+  &:hover {
+    color: var(--ui-foreground);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-ring-border);
+    outline-offset: 1px;
+  }
+}
+
+/* ui-sdk's input box would be taller and padded: here it's only the text, with a ring drawn
+   outside it, which takes no space. */
+[data-slot="time-input"].entry-time-edit {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  height: auto;
+  /* The segments can be a hair wider than the text: they may spill, but never push. */
+  overflow: visible;
+  white-space: nowrap;
+  color: var(--ui-foreground);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ui-background), 0 0 0 4px var(--ui-ring-border);
+
+  &:has(:focus-visible) {
+    outline: none;
+  }
+
+  &[data-bad] {
+    box-shadow: 0 0 0 2px var(--ui-background), 0 0 0 4px var(--ui-destructive);
+  }
+
+  & [data-slot="time-input-segment"] {
+    &[data-type="literal"] {
+      padding: 0;
+      color: inherit;
+    }
+
+    /* Each part as wide as its text, so the time reads exactly as it did as plain text. */
+    &:not([data-type="literal"]) {
+      field-sizing: content;
+      width: auto;
+      min-width: 0;
+      height: auto;
+      padding: 0;
+      border-radius: 2px;
+      font: inherit;
+      line-height: inherit;
+    }
+  }
 }
 
 /* Narrow screens: the times and the duration share the first line, the description goes below. */
 @media (max-width: 30rem) {
   .entry-row {
-    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 1rem;
+    grid-template-rows: auto auto;
+    row-gap: 0.375rem;
+  }
 
-    & > .entry-times {
-      grid-column: 1;
-      grid-row: 1;
-      min-width: 0;
-    }
+  .entry-open {
+    grid-row: 1 / span 2;
+    grid-template-rows: subgrid;
 
-    & > :last-child {
-      grid-column: 2;
-      grid-row: 1;
-    }
-
-    & > :nth-child(2) {
+    & > .entry-main {
       grid-column: 1 / -1;
       grid-row: 2;
+    }
+
+    & > .entry-duration {
+      grid-column: 2;
+      grid-row: 1;
     }
   }
 }

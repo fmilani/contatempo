@@ -89,7 +89,7 @@ function TimerView({ api }: { api: Api }) {
         {entries === null ? (
           loading
         ) : entries.length > 0 ? (
-          <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} collapse={collapse} />
+          <EntryList entries={entries} labels={labels} onOpen={editing.open} onSave={(entry) => tracker.saveEntry(entry, false)} now={now} collapse={collapse} />
         ) : (
           <p className="text-(--ui-muted-foreground)">Nothing tracked yet. Press start to begin.</p>
         )}
@@ -138,7 +138,7 @@ function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
         <>
           <Summary entries={entries} labels={labels} now={now} />
           {entries.length > 0 ? (
-            <EntryList entries={entries} labels={labels} onOpen={editing.open} now={now} collapse={collapse} />
+            <EntryList entries={entries} labels={labels} onOpen={editing.open} onSave={(entry) => tracker.saveEntry(entry, false)} now={now} collapse={collapse} />
           ) : (
             <p className="text-(--ui-muted-foreground)">
               {filtered ? "No entries match these filters." : "Nothing tracked yet."}

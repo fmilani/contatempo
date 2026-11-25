@@ -828,6 +828,11 @@ const runningSince = (minutes: number, labelIds = ["work"]): Entry => ({
 
 test("history lists the running timer, and its time keeps counting in the row and every total", async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ["setInterval", "clearInterval", "Date"] })
+  // Midday, so the entry from hours ago is still today: early in the morning it'd be yesterday,
+  // and the day's total would miss it.
+  const midday = new Date()
+  midday.setHours(12, 0, 0, 0)
+  vi.setSystemTime(midday)
   try {
     const today = new Date().toISOString()
     const finished: Entry = {

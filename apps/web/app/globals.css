@@ -145,23 +145,96 @@ body {
 
 .timer-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
-.timer-clock {
+/* Running, the details sit on the button's row: description, labels button, then the clock.
+   The first row is the button's height, so they centre on it. What sits below it (the chosen
+   labels, and the clock on phones) grows open as the card widens, and the whole area fades. */
+.timer-details {
   flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
   opacity: 0;
   transition: opacity 200ms ease;
 
+  .timer-card[data-running] & {
+    opacity: 1;
+  }
+}
+
+.timer-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-rows: 2.75rem auto;
+  grid-template-areas:
+    "description labels-button clock"
+    "labels labels labels";
+  align-items: center;
+  column-gap: 0.5rem;
+  /* Wide enough not to squash while the card narrows after Stop; the card clips it instead.
+     The padding keeps focus rings inside the clipped area. */
+  min-width: 11rem;
+  padding: 0 0.25rem 0 0.75rem;
+
+  & > .timer-description {
+    grid-area: description;
+    min-width: 0;
+  }
+
+  & > .label-trigger {
+    grid-area: labels-button;
+  }
+}
+
+/* Grows from no height to its content's. A collapsed track still holds its item's padding, so
+   spacing goes on the content inside the clipping box. */
+.timer-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
   & > div {
-    padding-inline-start: 0.75rem;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .timer-card[data-running] & {
-    opacity: 1;
+    grid-template-rows: 1fr;
+  }
+}
+
+.timer-clock {
+  grid-area: clock;
+  white-space: nowrap;
+
+  & > div > * {
+    display: block;
+    padding-inline-start: 0.25rem;
+  }
+}
+
+.timer-labels {
+  grid-area: labels;
+
+  & > div > * {
+    padding-top: 0.5rem;
+  }
+}
+
+/* Phones: the clock doesn't fit beside the description, so it goes below it. */
+@media (max-width: 30rem) {
+  .timer-body {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 2.75rem auto auto;
+    grid-template-areas:
+      "description labels-button"
+      "clock clock"
+      "labels labels";
+  }
+
+  .timer-clock > div > * {
+    padding: 0.25rem 0 0;
   }
 }
 
@@ -182,38 +255,16 @@ body {
   }
 }
 
-.timer-details {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transition:
-    grid-template-rows 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 200ms ease;
-
-  /* The negative margin keeps focus rings inside the clipped area. */
-  & > div {
-    min-height: 0;
-    overflow: hidden;
-    margin: -0.25rem;
-    padding: 0.25rem;
-  }
-
-  .timer-card[data-running] & {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
-}
-
 .timer-card:not([data-animated]),
-.timer-card:not([data-animated]) :is(.timer-icon, .timer-clock, .timer-details) {
+.timer-card:not([data-animated]) :is(.timer-icon, .timer-details, .timer-reveal) {
   transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .timer-card,
   .timer-icon,
-  .timer-clock,
-  .timer-details {
+  .timer-details,
+  .timer-reveal {
     transition: none;
   }
 }

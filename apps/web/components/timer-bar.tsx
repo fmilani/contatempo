@@ -56,6 +56,8 @@ type DetailsProps = {
   flushRef: RefObject<(() => void) | null>
   labelPicker: LabelPickerController
   autoFocus: boolean
+  // False while the details fade out after Stop: the clock keeps its last value.
+  ticking: boolean
 }
 
 // Edits save on their own: labels at once, the description once typing pauses or the field
@@ -74,6 +76,7 @@ function RunningDetails({
   flushRef,
   labelPicker,
   autoFocus,
+  ticking,
 }: DetailsProps) {
   const [description, setDescription] = useState(entry.description)
   const [labelIds, setLabelIds] = useState(entry.labelIds)
@@ -119,95 +122,103 @@ function RunningDetails({
 
   const selected = labels.filter((label) => labelIds.includes(label.id))
 
+  // One grid, so the clock can sit beside the description, or below it on narrow screens.
   return (
-    <div className="flex flex-col gap-2 pt-3">
-      <div className="flex items-center gap-2">
-        <Input
-          ref={descriptionRef}
-          aria-label="What are you working on?"
-          placeholder="What are you working on?"
-          maxLength={500}
-          className="min-w-0 flex-1"
-          value={description}
-          onValueChange={(value) => {
-            setDescription(value)
-            latest.current = { ...latest.current, description: value }
-            clearTimeout(timer.current)
-            timer.current = setTimeout(save, SAVE_DELAY)
-          }}
-          onBlur={save}
-        />
-        <Combobox
-          multiple
-          autoHighlight
-          controller={labelPicker}
-          value={labelIds}
-          onValueChange={(next) => changeLabels(next as string[])}
-          itemToLabel={(id) => labels.find((label) => label.id === id)?.name ?? ""}
-          query={query}
-          onQueryChange={setQuery}
-          onOpenChangeComplete={(open) => !open && trigger?.focus()}
+    <div className="timer-body">
+      <Input
+        ref={descriptionRef}
+        aria-label="What are you working on?"
+        placeholder="What are you working on?"
+        maxLength={500}
+        className="timer-description"
+        value={description}
+        onValueChange={(value) => {
+          setDescription(value)
+          latest.current = { ...latest.current, description: value }
+          clearTimeout(timer.current)
+          timer.current = setTimeout(save, SAVE_DELAY)
+        }}
+        onBlur={save}
+      />
+      <Combobox
+        multiple
+        autoHighlight
+        controller={labelPicker}
+        value={labelIds}
+        onValueChange={(next) => changeLabels(next as string[])}
+        itemToLabel={(id) => labels.find((label) => label.id === id)?.name ?? ""}
+        query={query}
+        onQueryChange={setQuery}
+        onOpenChangeComplete={(open) => !open && trigger?.focus()}
+      >
+        <ComboboxTrigger
+          ref={setTrigger}
+          aria-label="Choose timer labels"
+          aria-keyshortcuts={labelHint.ariaKeyshortcuts}
+          title={`Labels (${plain(labelHint.text)})`}
+          className="label-trigger"
         >
-          <ComboboxTrigger
-            ref={setTrigger}
-            aria-label="Choose timer labels"
-            aria-keyshortcuts={labelHint.ariaKeyshortcuts}
-            title={`Labels (${plain(labelHint.text)})`}
-            className="label-trigger"
-          >
-            <TagIcon />
-          </ComboboxTrigger>
-          <ComboboxContent anchor={trigger} align="end" className="label-popup">
-            <ComboboxInput
-              autoFocus
-              aria-label="Find or create a label"
-              placeholder="Find or create a label…"
-              maxLength={50}
-              className="label-popup-input"
-            />
-            <ComboboxEmpty>
-              {(state) => (state.empty && !state.query.trim() ? "No labels yet. Type a name to create one." : null)}
-            </ComboboxEmpty>
-            <ComboboxList>
-              {labels.map((label) => (
-                <ComboboxItem key={label.id} value={label.id} label={label.name}>
-                  <LabelDot color={label.color} />
-                  {label.name}
-                  <ComboboxItemIndicator>
-                    <CheckIcon />
-                  </ComboboxItemIndicator>
-                </ComboboxItem>
-              ))}
-              <ComboboxCreate
-                className="label-create"
-                onCreate={(name) => {
-                  const label = onCreateLabel(name.trim())
-                  if (!latest.current.labelIds.includes(label.id)) {
-                    changeLabels([...latest.current.labelIds, label.id])
-                  }
-                  setQuery("")
-                }}
-              >
-                {(state) => (
-                  <>
-                    <PlusIcon />
-                    <span>Create “{state.query.trim()}”</span>
-                  </>
-                )}
-              </ComboboxCreate>
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
+          <TagIcon />
+        </ComboboxTrigger>
+        <ComboboxContent anchor={trigger} align="end" className="label-popup">
+          <ComboboxInput
+            autoFocus
+            aria-label="Find or create a label"
+            placeholder="Find or create a label…"
+            maxLength={50}
+            className="label-popup-input"
+          />
+          <ComboboxEmpty>
+            {(state) => (state.empty && !state.query.trim() ? "No labels yet. Type a name to create one." : null)}
+          </ComboboxEmpty>
+          <ComboboxList>
+            {labels.map((label) => (
+              <ComboboxItem key={label.id} value={label.id} label={label.name}>
+                <LabelDot color={label.color} />
+                {label.name}
+                <ComboboxItemIndicator>
+                  <CheckIcon />
+                </ComboboxItemIndicator>
+              </ComboboxItem>
+            ))}
+            <ComboboxCreate
+              className="label-create"
+              onCreate={(name) => {
+                const label = onCreateLabel(name.trim())
+                if (!latest.current.labelIds.includes(label.id)) {
+                  changeLabels([...latest.current.labelIds, label.id])
+                }
+                setQuery("")
+              }}
+            >
+              {(state) => (
+                <>
+                  <PlusIcon />
+                  <span>Create “{state.query.trim()}”</span>
+                </>
+              )}
+            </ComboboxCreate>
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+      <div className="timer-reveal timer-clock">
+        <div>
+          <Elapsed entry={entry} ticking={ticking} />
+        </div>
       </div>
       {selected.length > 0 ? (
-        <ul aria-label="Timer labels" className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
-          {selected.map((label) => (
-            <li key={label.id} className="flex items-center gap-1.5">
-              <LabelDot color={label.color} />
-              {label.name}
-            </li>
-          ))}
-        </ul>
+        <div className="timer-reveal timer-labels">
+          <div>
+            <ul aria-label="Timer labels" className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+              {selected.map((label) => (
+                <li key={label.id} className="flex items-center gap-1.5">
+                  <LabelDot color={label.color} />
+                  {label.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       ) : null}
     </div>
   )
@@ -276,12 +287,7 @@ function TimerBar({ loaded, running, labels, onStart, onStop, onUpdate, onCreate
             <StopIcon />
           </span>
         </Button>
-        <div className="timer-clock" inert={!running}>
-          <div>{shown ? <Elapsed key={shown.id} entry={shown} ticking={Boolean(running)} /> : null}</div>
-        </div>
-      </div>
-      <div className="timer-details" inert={!running}>
-        <div>
+        <div className="timer-details" inert={!running}>
           {shown ? (
             <RunningDetails
               key={shown.id}
@@ -292,6 +298,7 @@ function TimerBar({ loaded, running, labels, onStart, onStop, onUpdate, onCreate
               flushRef={flushRef}
               labelPicker={labelPicker}
               autoFocus={shown.id === startedHere}
+              ticking={Boolean(running)}
             />
           ) : null}
         </div>

@@ -510,8 +510,64 @@ a[data-slot="button"] {
   }
 }
 
+/* The description on top of the row, in the place the row keeps for it: the button hugs the
+   words, the field spans the column. Both are one line of the row's text, so nothing moves. */
+.entry-desc,
+.entry-desc-edit {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--ui-radius) / 2);
+  background: transparent;
+  color: var(--ui-foreground);
+  font: inherit;
+  font-size: var(--ui-font-size);
+  line-height: var(--ui-line-height);
+  text-align: start;
+}
+
+.entry-desc {
+  justify-self: start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+
+  &[data-empty] {
+    color: var(--ui-muted-foreground);
+  }
+
+  &:hover {
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-ring-border);
+    outline-offset: 1px;
+  }
+}
+
+[data-slot="input"].entry-desc-edit {
+  justify-self: stretch;
+  width: 100%;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ui-background), 0 0 0 4px var(--ui-ring-border);
+}
+
 /* Narrow screens: the times and the duration share the first line, the description goes below. */
 @media (max-width: 30rem) {
+  .entry-desc,
+  .entry-desc-edit {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
   .entry-row {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto auto;

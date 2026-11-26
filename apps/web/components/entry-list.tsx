@@ -2,6 +2,7 @@
 
 import { Button } from "@ui-sdk/react/button"
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible"
+import { Input } from "@ui-sdk/react/input"
 import { useShortcut, useShortcutHint } from "@ui-sdk/react/shortcuts"
 import { TimeInput, createTimeInputController } from "@ui-sdk/react/time-input"
 import { Toggle } from "@ui-sdk/react/toggle"
@@ -321,26 +322,123 @@ function RowTimes({ entry, onSave }: { entry: Entry; onSave?: (entry: Entry) => 
   )
 }
 
+// A finished entry's description: its text is a button on top of the row, hugging the words so
+// the space after them still opens the entry. Pressed, it becomes a text field across the
+// column, in the same line, so nothing moves. Enter or leaving saves, Escape puts it back.
+function EditableDescription({ entry, onSave }: { entry: Entry; onSave: (entry: Entry) => void }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  // Whether to focus the button once the field closes: when the keyboard closed it.
+  const refocus = useRef(false)
+  // Set once the field closes, so a blur fired as it goes away doesn't save again.
+  const closed = useRef(false)
+
+  useEffect(() => {
+    if (editing) {
+      const input = inputRef.current
+      input?.focus()
+      // The caret at the end, as if the text had been pressed after its last word.
+      input?.setSelectionRange(input.value.length, input.value.length)
+    } else if (refocus.current) {
+      refocus.current = false
+      buttonRef.current?.focus()
+    }
+  }, [editing])
+
+  function close(focusBack: boolean) {
+    closed.current = true
+    refocus.current = focusBack
+    setEditing(false)
+  }
+
+  function save() {
+    const description = value.trim()
+    if (description !== entry.description) onSave({ ...entry, description })
+  }
+
+  if (editing) {
+    return (
+      <Input
+        ref={inputRef}
+        className="entry-desc-edit"
+        aria-label={`Description of ${entryName(entry)}`}
+        placeholder="No description"
+        maxLength={500}
+        value={value}
+        onValueChange={setValue}
+        onKeyDown={(event) => {
+          // An input method uses Enter to pick a word: that one stays in the field.
+          if (event.nativeEvent.isComposing) return
+          if (event.key === "Enter") {
+            event.preventDefault()
+            save()
+            close(true)
+          } else if (event.key === "Escape") {
+            // Only the edit is canceled, not a dialog or anything around it.
+            event.preventDefault()
+            event.stopPropagation()
+            close(true)
+          }
+        }}
+        onBlur={() => {
+          if (closed.current) return
+          save()
+          close(false)
+        }}
+      />
+    )
+  }
+
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      className="entry-desc"
+      data-empty={entry.description ? undefined : ""}
+      aria-label={`Change description of ${entryName(entry)}`}
+      onClick={() => {
+        closed.current = false
+        setValue(entry.description)
+        setEditing(true)
+      }}
+    >
+      {entry.description || "No description"}
+    </button>
+  )
+}
+
 // The description, labels and duration: inside the row's button, which covers the whole row.
+// When the description is edited in place, it sits on top of the row instead, and an empty line
+// holds its place here, so the labels stay below it.
 function RowContent({
   entry,
   byId,
   now,
+  descriptionOnTop = false,
 }: {
   entry: Entry
   byId: Map<string, Label>
   now?: number
+  descriptionOnTop?: boolean
 }) {
   return (
     <>
       <span className="entry-main min-w-0 text-start">
-        <span
-          className={
-            entry.description ? "block truncate" : "block text-(--ui-muted-foreground)"
-          }
-        >
-          {entry.description || "No description"}
-        </span>
+        {descriptionOnTop ? (
+          <span aria-hidden="true" className="block">
+            {"\u00a0"}
+          </span>
+        ) : (
+          <span
+            className={
+              entry.description ? "block truncate" : "block text-(--ui-muted-foreground)"
+            }
+          >
+            {entry.description || "No description"}
+          </span>
+        )}
         {entry.labelIds.length > 0 ? (
           <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-(--ui-muted-foreground)">
             {entry.labelIds.map((id) => (
@@ -507,9 +605,15 @@ function EntryList({ entries, labels, onOpen, onSave, now, collapse: shared }: E
                             aria-label={`Edit ${entryName(entry)}`}
                             onClick={() => onOpen(entry)}
                           >
-                            <RowContent entry={entry} byId={byId} now={now} />
+                            <RowContent
+                              entry={entry}
+                              byId={byId}
+                              now={now}
+                              descriptionOnTop={Boolean(onSave)}
+                            />
                           </Button>
                           <RowTimes entry={entry} onSave={onSave} />
+                          {onSave ? <EditableDescription entry={entry} onSave={onSave} /> : null}
                         </div>
                       )}
                     </li>

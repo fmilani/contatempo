@@ -439,9 +439,10 @@ test("rows have no edit or delete buttons of their own; the whole row opens the 
   const rows = screen.getAllByRole("button", { name: /^Edit .* at / })
   expect(rows).toHaveLength(entries.length)
   const planning = screen.getByRole("button", { name: /^Edit Planning at/ })
-  expect(planning.textContent).toContain("Planning")
+  // The description and times are buttons of their own, on top of the row's.
+  expect(screen.getByRole("button", { name: /^Change description of Planning at/ }).textContent).toBe("Planning")
 
-  // A press anywhere on the row opens it, not only on its text.
+  // A press anywhere else on the row opens it, like on its duration.
   await user.click(within(planning).getByText("1h 00m"))
   const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
   expect(dialog.getByRole("textbox", { name: "Entry description" })).toHaveProperty("value", "Planning")
@@ -1195,7 +1196,7 @@ test("an end before the start isn't saved: the input stays open, marked invalid"
 test("pressing elsewhere on the row still opens the entry", async () => {
   const { user } = await setupHistory()
 
-  await user.click(screen.getByText("Invoices"))
+  await user.click(within(screen.getByRole("button", { name: /^Edit Invoices at/ })).getByText("30m"))
   expect(await screen.findByRole("dialog", { name: "Edit entry" })).toBeTruthy()
 })
 
@@ -1392,4 +1393,92 @@ test("pressing anywhere else still saves the open time", async () => {
 
   await waitFor(() => expect(byId(stored(), "e3").startedAt).toBe(at(12, 8)))
   expect(timeEditor().getAttribute("aria-label")).toMatch(/^Start time of Invoices/)
+})
+
+// The description in a row: a button that turns into a text field in place.
+const descriptionOf = (name: string) =>
+  screen.getByRole("button", { name: new RegExp(`^Change description of ${name} at`) })
+const descriptionField = () => screen.getByRole("textbox", { name: /^Description of / })
+
+test("pressing a row's description edits it in place, and Enter saves it", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(descriptionOf("Invoices"))
+  expect(screen.queryByRole("dialog")).toBeNull()
+  const field = descriptionField()
+  await waitFor(() => expect(document.activeElement).toBe(field))
+  expect(field).toHaveProperty("value", "Invoices")
+  // The caret is at the end, ready to add to it.
+  expect((field as HTMLInputElement).selectionStart).toBe("Invoices".length)
+
+  await user.keyboard(" for October{Enter}")
+  await waitFor(() => expect(byId(stored(), "e2").description).toBe("Invoices for October"))
+  // Only the description changed.
+  expect(byId(stored(), "e2")).toMatchObject({ labelIds: ["admin"], startedAt: at(10, 14, 0, 20) })
+  expect(screen.queryByRole("textbox", { name: /^Description of / })).toBeNull()
+  await waitFor(() => expect(document.activeElement).toBe(descriptionOf("Invoices for October")))
+})
+
+test("the description saves when it loses focus, trimmed", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(descriptionOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await user.clear(descriptionField())
+  await user.type(descriptionField(), "  Roadmap  ")
+  await user.click(document.body)
+
+  await waitFor(() => expect(byId(stored(), "e3").description).toBe("Roadmap"))
+})
+
+test("Escape puts the description back without saving", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(descriptionOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await user.keyboard("{Backspace}{Backspace}{Escape}")
+
+  expect(screen.queryByRole("textbox", { name: /^Description of / })).toBeNull()
+  expect(stored()).toEqual(before)
+  await waitFor(() => expect(document.activeElement).toBe(descriptionOf("Planning")))
+})
+
+test("a description can be cleared, and an empty one edited from its placeholder", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(descriptionOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await user.clear(descriptionField())
+  await user.keyboard("{Enter}")
+  await waitFor(() => expect(byId(stored(), "e3").description).toBe(""))
+
+  // e3 and e4 have no description now: both show the placeholder, and either can be filled in.
+  const empty = screen.getAllByRole("button", { name: /^Change description of entry at/ })
+  expect(empty.map((button) => button.textContent)).toEqual(["No description", "No description"])
+  const untitled = empty.find((button) => button.closest(".entry-row")?.querySelector('[data-entry-id="e4"]'))
+  await user.click(untitled!)
+  await waitFor(() => expect(descriptionField()).toHaveProperty("value", ""))
+  await user.keyboard("Filed{Enter}")
+  await waitFor(() => expect(byId(stored(), "e4").description).toBe("Filed"))
+})
+
+test("an unchanged description isn't saved again", async () => {
+  const { user, entries: stored, api } = await setupHistory()
+  const before = stored()
+  const save = vi.spyOn(api, "saveEntry")
+
+  await user.click(descriptionOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await user.keyboard("{Enter}")
+
+  expect(save).not.toHaveBeenCalled()
+  expect(stored()).toEqual(before)
+})
+
+test("the running row's description isn't editable in the list", async () => {
+  await setupHistory({ labels: [work], entries: [runningSince(10)] })
+
+  expect(screen.getByText("Live work")).toBeTruthy()
+  expect(screen.queryByRole("button", { name: /^Change description of Live work/ })).toBeNull()
 })

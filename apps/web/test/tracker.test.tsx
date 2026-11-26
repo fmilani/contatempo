@@ -1333,3 +1333,63 @@ test("pressing the end directly edits it alone, as before", async () => {
   await waitFor(() => expect(byId(stored(), "e3").endedAt).toBe(at(12, 11)))
   expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
 })
+
+// Phones have no Tab: pressing the other time while one is open links them the same way.
+test("pressing the end while the start is open edits it without saving the start", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}{ArrowUp}")
+  await user.click(endOf("Planning"))
+
+  expect(timeEditor().getAttribute("aria-label")).toMatch(/^End time of Planning/)
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  // The start shows 11:00, after the 10:00 end, and isn't saved or refused yet.
+  expect(startOf("Planning").textContent).toMatch(/^11:00/)
+  expect(timeEditor().getAttribute("aria-invalid")).toBeNull()
+  expect(stored()).toEqual(before)
+
+  // Moving the end to 10 PM makes the pair valid, and Enter saves both at once.
+  segment("AM/PM").focus()
+  await user.keyboard("{ArrowUp}{Enter}")
+  await waitFor(() =>
+    expect(byId(stored(), "e3")).toMatchObject({ startedAt: at(12, 11), endedAt: at(12, 22) })
+  )
+})
+
+test("pressing back on the start keeps the edit going, and Escape then puts both back", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}")
+  await user.click(endOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}")
+  await user.click(startOf("Planning"))
+
+  expect(timeEditor().getAttribute("aria-label")).toMatch(/^Start time of Planning/)
+  expect(segment("hour").getAttribute("aria-valuenow")).toBe("10")
+  expect(endOf("Planning").textContent).toMatch(/^11:00/)
+  expect(stored()).toEqual(before)
+
+  await user.keyboard("{Escape}")
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  expect(stored()).toEqual(before)
+})
+
+test("pressing anywhere else still saves the open time", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowDown}")
+  // Another entry's time is elsewhere too: it saves this one, then opens that one alone.
+  await user.click(startOf("Invoices"))
+
+  await waitFor(() => expect(byId(stored(), "e3").startedAt).toBe(at(12, 8)))
+  expect(timeEditor().getAttribute("aria-label")).toMatch(/^Start time of Invoices/)
+})

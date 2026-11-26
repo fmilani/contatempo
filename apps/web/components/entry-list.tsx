@@ -84,7 +84,8 @@ type Draft = Partial<Record<Edge, string | null>>
 type Editing = {
   edge: Edge
   draft: Draft
-  // Tab went from the start into the end: the two are one edit, checked and saved together.
+  // Tab or a press went from one time to the other: the two are one edit, checked and saved
+  // together.
   linked: boolean
   // Which part of the input takes focus: the first coming forward, the last coming back.
   focus: "first" | "last"
@@ -93,9 +94,10 @@ type Editing = {
 }
 
 // A finished entry's start and end: text that turns into a time input in place when pressed.
-// Enter, leaving or Tab out saves; Escape puts the times back. Tab from the start goes straight
-// into editing the end, and the two save together once the end is done, so an entry can move
-// past its old end. An end before the start isn't saved: the input stays open, marked.
+// Enter, leaving or Tab out saves; Escape puts the times back. Tab from the start, or pressing
+// the other time while one is open (phones have no Tab), goes straight into editing it, and the
+// two save together once done, so an entry can move past its old end. An end before the start
+// isn't saved: the input stays open, marked.
 function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry) => void }) {
   const endedAt = entry.endedAt as string
   const saved = { start: toClock(entry.startedAt), end: toClock(endedAt) }
@@ -110,6 +112,9 @@ function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry)
   // Set while focus moves on purpose from one input to the other, or the edit closes, so a blur
   // fired as an input goes away doesn't save again.
   const switching = useRef(false)
+  // Set from pressing the other time until its click, which switches to it. A press that ends
+  // without a click, like a drag off it, leaves the edit as any other press elsewhere would.
+  const pressing = useRef(false)
 
   const editingEdge = editing?.edge ?? null
   const focusAt = editing?.focus
@@ -229,6 +234,9 @@ function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry)
         />
       )
     }
+    // Pressing the other time while one is open: its input's blur, which comes first, mustn't
+    // save, as the click goes on to edit this one too.
+    const otherOpen = editing !== null
     // The other time shows what was typed in it, while the two are one edit.
     const shownEntry = draftEntry(editing?.draft ?? {})
     const iso = edge === "start" ? shownEntry.startedAt : shownEntry.endedAt
@@ -243,7 +251,33 @@ function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry)
             ? `Change start time of ${entryName(entry)}`
             : `Change end time of ${entryName(entry)}, ended ${shown}`
         }
+        onPointerDown={() => {
+          if (!otherOpen) return
+          pressing.current = true
+          switching.current = true
+          // Phones send the click a little after the touch ends, so wait for it rather than a
+          // time. A click elsewhere, after a drag off, or a canceled touch, like a scroll, ends
+          // the edit as a press elsewhere would. A click here switches first, in onClick.
+          const settle = () => {
+            document.removeEventListener("click", settle, true)
+            document.removeEventListener("pointercancel", settle, true)
+            setTimeout(() => {
+              if (!pressing.current) return
+              pressing.current = false
+              switching.current = false
+              finish()
+              close(null)
+            })
+          }
+          document.addEventListener("click", settle, true)
+          document.addEventListener("pointercancel", settle, true)
+        }}
         onClick={(event) => {
+          if (editing) {
+            pressing.current = false
+            moveTo(edge, "first")
+            return
+          }
           setInvalid(false)
           setEditing({
             edge,

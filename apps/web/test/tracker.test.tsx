@@ -1205,3 +1205,131 @@ test("the running row's times aren't editable", async () => {
   expect(screen.getByText("Live work")).toBeTruthy()
   expect(screen.queryByRole("button", { name: /^Change (start|end) time of Live work/ })).toBeNull()
 })
+
+// Tab from the start time's last part goes straight into editing the end.
+const parts = () => within(timeEditor()).getAllByRole("spinbutton")
+// Tabs from the input's first part out past its last. The count is read first: the input can
+// close on the last Tab.
+async function tabOutOfStart(user: ReturnType<typeof userEvent.setup>) {
+  const count = parts().length
+  for (let i = 0; i < count; i++) await user.keyboard("{Tab}")
+}
+
+test("Tab from the start goes straight into editing the end, saving nothing yet", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}")
+  await tabOutOfStart(user)
+
+  // The end is the input now, focused on its hour; the start shows what was typed, unsaved.
+  expect(timeEditor().getAttribute("aria-label")).toMatch(/^End time of Planning/)
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  expect(startOf("Planning").textContent).toMatch(/^10:00/)
+  expect(stored()).toEqual(before)
+})
+
+test("start and end Tabbed through together save as one, so an entry can move past its old end", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  // Planning, 9:00 AM–10:00 AM, becomes 11:00 AM–10:00 PM: the new start is after the old end,
+  // which alone would be refused. The tests run on a 12-hour clock, so the end changes by its PM.
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}{ArrowUp}")
+  await tabOutOfStart(user)
+  expect(timeEditor().getAttribute("aria-invalid")).toBeNull()
+  segment("AM/PM").focus()
+  await user.keyboard("{ArrowUp}{Enter}")
+
+  await waitFor(() =>
+    expect(byId(stored(), "e3")).toMatchObject({ startedAt: at(12, 11), endedAt: at(12, 22) })
+  )
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  await waitFor(() => expect(document.activeElement).toBe(endOf("Planning")))
+})
+
+test("Escape on the end after Tabbing from the start puts both times back", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}")
+  await tabOutOfStart(user)
+  await user.keyboard("{ArrowUp}{Escape}")
+
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  expect(stored()).toEqual(before)
+  expect(startOf("Planning").textContent).toBe(endOf("Planning").textContent?.replace(/10/, "09"))
+})
+
+test("Shift+Tab from the end goes back into the start, still one unsaved edit", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}{ArrowUp}")
+  await tabOutOfStart(user)
+  await user.keyboard("{Shift>}{Tab}{/Shift}")
+
+  // Back on the start's last part, with what was typed in it kept.
+  expect(timeEditor().getAttribute("aria-label")).toMatch(/^Start time of Planning/)
+  const all = parts()
+  await waitFor(() => expect(document.activeElement).toBe(all[all.length - 1]))
+  expect(segment("hour").getAttribute("aria-valuenow")).toBe("11")
+  expect(stored()).toEqual(before)
+})
+
+test("an end before a Tabbed-in start stays open and saves neither", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  // Start 11:00, end left at 10:00.
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}{ArrowUp}")
+  await tabOutOfStart(user)
+  await user.keyboard("{Enter}")
+  expect(timeEditor().getAttribute("aria-invalid")).toBe("true")
+
+  // Tab out is refused too, and clicking away drops the whole edit.
+  await tabOutOfStart(user)
+  expect(timeEditor().getAttribute("aria-label")).toMatch(/^End time of Planning/)
+  await user.click(document.body)
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  expect(stored()).toEqual(before)
+})
+
+test("Tab out of the end saves both and moves on to the next control as usual", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(startOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}")
+  await tabOutOfStart(user)
+  await user.keyboard("{ArrowUp}")
+  await tabOutOfStart(user)
+
+  await waitFor(() =>
+    expect(byId(stored(), "e3")).toMatchObject({ startedAt: at(12, 10), endedAt: at(12, 11) })
+  )
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+  // Focus left the times: it didn't chain into another time input.
+  expect(document.activeElement?.closest(".entry-times")).toBeNull()
+})
+
+test("pressing the end directly edits it alone, as before", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(endOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(segment("hour")))
+  await user.keyboard("{ArrowUp}{Shift>}{Tab}{/Shift}")
+
+  // Shift+Tab from an end that wasn't reached from the start leaves the times and saves the end.
+  await waitFor(() => expect(byId(stored(), "e3").endedAt).toBe(at(12, 11)))
+  expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
+})

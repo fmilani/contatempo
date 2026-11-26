@@ -78,53 +78,164 @@ function withClock(iso: string, clock: string) {
   return date.toISOString()
 }
 
-// The start or end of a finished entry: text that turns into a time input in place when pressed.
-// Enter or leaving it saves, Escape puts the time back. An end before the start isn't saved.
-function EntryTime({ entry, edge, onSave }: { entry: Entry; edge: Edge; onSave: (entry: Entry) => void }) {
-  const iso = (edge === "start" ? entry.startedAt : entry.endedAt) as string
-  const [editing, setEditing] = useState(false)
-  const [value, setValue] = useState<string | null>(null)
+// The times typed so far. A time not touched yet is missing; one partly typed is null. Either
+// way it keeps its saved time, read when saving, so a save made meanwhile isn't undone.
+type Draft = Partial<Record<Edge, string | null>>
+type Editing = {
+  edge: Edge
+  draft: Draft
+  // Tab went from the start into the end: the two are one edit, checked and saved together.
+  linked: boolean
+  // Which part of the input takes focus: the first coming forward, the last coming back.
+  focus: "first" | "last"
+  // The button's width, which the input takes so nothing around it moves.
+  width: number
+}
+
+// A finished entry's start and end: text that turns into a time input in place when pressed.
+// Enter, leaving or Tab out saves; Escape puts the times back. Tab from the start goes straight
+// into editing the end, and the two save together once the end is done, so an entry can move
+// past its old end. An end before the start isn't saved: the input stays open, marked.
+function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry) => void }) {
+  const endedAt = entry.endedAt as string
+  const saved = { start: toClock(entry.startedAt), end: toClock(endedAt) }
+  const [editing, setEditing] = useState<Editing | null>(null)
   const [invalid, setInvalid] = useState(false)
-  // The input takes the text's exact width, so nothing around it moves.
-  const [width, setWidth] = useState<number | undefined>()
   const [controller] = useState(createTimeInputController)
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const refocus = useRef(false)
-  const shown = rowTimeFormat.format(new Date(iso))
+  const timesRef = useRef<HTMLSpanElement>(null)
+  const startButton = useRef<HTMLButtonElement>(null)
+  const endButton = useRef<HTMLButtonElement>(null)
+  // The button to focus once the input closes, when the keyboard closed it.
+  const refocus = useRef<Edge | null>(null)
+  // Set while focus moves on purpose from one input to the other, or the edit closes, so a blur
+  // fired as an input goes away doesn't save again.
+  const switching = useRef(false)
 
+  const editingEdge = editing?.edge ?? null
+  const focusAt = editing?.focus
   useEffect(() => {
-    if (editing) controller.focus()
-    else if (refocus.current) {
-      refocus.current = false
-      buttonRef.current?.focus()
+    if (editingEdge) {
+      const parts = timesRef.current?.querySelectorAll<HTMLElement>('[role="spinbutton"]')
+      if (focusAt === "last" && parts?.length) parts[parts.length - 1].focus()
+      else controller.focus()
+      switching.current = false
+    } else if (refocus.current) {
+      ;(refocus.current === "start" ? startButton : endButton).current?.focus()
+      refocus.current = null
     }
-  }, [editing, controller])
+  }, [editingEdge, focusAt, controller])
 
-  function close(keepFocus: boolean) {
-    refocus.current = keepFocus
-    setEditing(false)
+  const button = (edge: Edge) => (edge === "start" ? startButton : endButton).current
+  const widthOf = (edge: Edge) => button(edge)?.getBoundingClientRect().width ?? 0
+
+  // The entry the draft makes, using the saved time for a part left partly typed.
+  function draftEntry(draft: Draft): Entry {
+    return {
+      ...entry,
+      startedAt:
+        draft.start && draft.start !== saved.start
+          ? withClock(entry.startedAt, draft.start)
+          : entry.startedAt,
+      endedAt: draft.end && draft.end !== saved.end ? withClock(endedAt, draft.end) : endedAt,
+    }
+  }
+
+  function close(focusBack: Edge | null) {
+    switching.current = true
+    refocus.current = focusBack
+    setEditing(null)
     setInvalid(false)
   }
 
-  // Returns false when the time can't be saved, so the input stays open to fix it.
-  function commit() {
-    if (!value || value === toClock(iso)) return true
-    const next =
-      edge === "start"
-        ? { ...entry, startedAt: withClock(entry.startedAt, value) }
-        : { ...entry, endedAt: withClock(iso, value) }
-    if (Date.parse(next.endedAt as string) < Date.parse(next.startedAt)) {
-      setInvalid(true)
-      return false
-    }
-    onSave(next)
+  // Whether the draft can be saved: false, and marked, when the end is before the start.
+  function valid(): boolean {
+    if (!editing) return true
+    const next = draftEntry(editing.draft)
+    const ok = Date.parse(next.endedAt as string) >= Date.parse(next.startedAt)
+    if (!ok) setInvalid(true)
+    return ok
+  }
+
+  // Saves the draft, when it's valid and changed something. False when it isn't valid.
+  function finish(): boolean {
+    if (!editing || !valid()) return false
+    const next = draftEntry(editing.draft)
+    if (next.startedAt !== entry.startedAt || next.endedAt !== entry.endedAt) onSave(next)
     return true
   }
 
-  if (!editing) {
+  function moveTo(edge: Edge, focus: Editing["focus"]) {
+    switching.current = true
+    setInvalid(false)
+    setEditing((current) => current && { ...current, edge, linked: true, focus, width: widthOf(edge) })
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!editing) return
+    if (event.key === "Enter") {
+      event.preventDefault()
+      if (finish()) close(editing.edge)
+    } else if (event.key === "Escape") {
+      // The whole edit is canceled, both times, and only it: not a dialog around it.
+      event.preventDefault()
+      event.stopPropagation()
+      close(editing.edge)
+    } else if (event.key === "Tab") {
+      const parts = [...event.currentTarget.querySelectorAll<HTMLElement>('[role="spinbutton"]')]
+      const first = event.target === parts[0]
+      const last = event.target === parts[parts.length - 1]
+      if (!event.shiftKey && last && editing.edge === "start") {
+        event.preventDefault()
+        moveTo("end", "first")
+      } else if (event.shiftKey && first && editing.edge === "end" && editing.linked) {
+        event.preventDefault()
+        moveTo("start", "last")
+      } else if ((event.shiftKey ? first : last) && !valid()) {
+        // Leaving with an end before the start: stay, so it can be fixed.
+        event.preventDefault()
+      }
+      // Otherwise Tab moves on as usual, inside the input or out of it, and leaving saves.
+    }
+  }
+
+  function onBlur(event: FocusEvent<HTMLElement>) {
+    // Moving between the hour and minute stays inside.
+    if (switching.current || event.currentTarget.contains(event.relatedTarget as Node | null)) return
+    // Leaving saves, or drops a bad time.
+    finish()
+    close(null)
+  }
+
+  function slot(edge: Edge) {
+    if (editing?.edge === edge) {
+      return (
+        <TimeInput
+          controller={controller}
+          className="entry-time-edit"
+          style={{ width: editing.width }}
+          aria-label={`${edge === "start" ? "Start" : "End"} time of ${entryName(entry)}`}
+          aria-invalid={invalid || undefined}
+          data-bad={invalid ? "" : undefined}
+          title={invalid ? "The end can't be before the start" : undefined}
+          locale={rowTimeOptions.locale}
+          hourCycle={rowHourCycle}
+          value={edge in editing.draft ? (editing.draft[edge] ?? null) : saved[edge]}
+          onValueChange={(value) => {
+            setInvalid(false)
+            setEditing((current) => current && { ...current, draft: { ...current.draft, [edge]: value } })
+          }}
+          onKeyDown={onKeyDown}
+          onBlur={onBlur}
+        />
+      )
+    }
+    // The other time shows what was typed in it, while the two are one edit.
+    const shownEntry = draftEntry(editing?.draft ?? {})
+    const iso = edge === "start" ? shownEntry.startedAt : shownEntry.endedAt
+    const shown = rowTimeFormat.format(new Date(iso as string))
     return (
       <button
-        ref={buttonRef}
+        ref={edge === "start" ? startButton : endButton}
         type="button"
         className="entry-time"
         aria-label={
@@ -133,9 +244,14 @@ function EntryTime({ entry, edge, onSave }: { entry: Entry; edge: Edge; onSave: 
             : `Change end time of ${entryName(entry)}, ended ${shown}`
         }
         onClick={(event) => {
-          setWidth(event.currentTarget.getBoundingClientRect().width)
-          setValue(toClock(iso))
-          setEditing(true)
+          setInvalid(false)
+          setEditing({
+            edge,
+            draft: {},
+            linked: false,
+            focus: "first",
+            width: event.currentTarget.getBoundingClientRect().width,
+          })
         }}
       >
         {shown}
@@ -144,65 +260,28 @@ function EntryTime({ entry, edge, onSave }: { entry: Entry; edge: Edge; onSave: 
   }
 
   return (
-    <TimeInput
-      controller={controller}
-      className="entry-time-edit"
-      style={{ width }}
-      aria-label={`${edge === "start" ? "Start" : "End"} time of ${entryName(entry)}`}
-      aria-invalid={invalid || undefined}
-      data-bad={invalid ? "" : undefined}
-      title={invalid ? "The end can't be before the start" : undefined}
-      locale={rowTimeOptions.locale}
-      hourCycle={rowHourCycle}
-      value={value}
-      onValueChange={(next) => {
-        setValue(next)
-        setInvalid(false)
-      }}
-      onKeyDown={(event: KeyboardEvent) => {
-        if (event.key === "Enter") {
-          event.preventDefault()
-          if (commit()) close(true)
-        } else if (event.key === "Escape") {
-          // Only the edit is canceled, not a dialog or anything around it.
-          event.preventDefault()
-          event.stopPropagation()
-          close(true)
-        }
-      }}
-      onBlur={(event: FocusEvent<HTMLElement>) => {
-        // Moving between the hour and minute stays inside; leaving saves, or puts back a bad time.
-        if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
-        commit()
-        close(false)
-      }}
-    />
+    // tabular-nums gives every digit the same width, so times and durations line up across rows.
+    <span ref={timesRef} className="entry-times tabular-nums text-sm text-(--ui-muted-foreground)">
+      {slot("start")}
+      <span className="entry-dash">–</span>
+      {slot("end")}
+    </span>
   )
 }
 
 function RowTimes({ entry, onSave }: { entry: Entry; onSave?: (entry: Entry) => void }) {
+  if (entry.endedAt && onSave) return <EditableTimes entry={entry} onSave={onSave} />
   return (
-    // tabular-nums gives every digit the same width, so times and durations line up across rows.
     <span className="entry-times tabular-nums text-sm text-(--ui-muted-foreground)">
-      {entry.endedAt && onSave ? (
-        <>
-          <EntryTime entry={entry} edge="start" onSave={onSave} />
-          <span className="entry-dash">–</span>
-          <EntryTime entry={entry} edge="end" onSave={onSave} />
-        </>
+      {rowTimeFormat.format(new Date(entry.startedAt))}
+      <span className="entry-dash">–</span>
+      {entry.endedAt ? (
+        rowTimeFormat.format(new Date(entry.endedAt))
       ) : (
-        <>
-          {rowTimeFormat.format(new Date(entry.startedAt))}
-          <span className="entry-dash">–</span>
-          {entry.endedAt ? (
-            rowTimeFormat.format(new Date(entry.endedAt))
-          ) : (
-            <span className="inline-flex items-center gap-1.5">
-              <span aria-hidden="true" className="live-dot" />
-              now
-            </span>
-          )}
-        </>
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden="true" className="live-dot" />
+          now
+        </span>
       )}
     </span>
   )

@@ -17,12 +17,12 @@ test("the summary totals end a running entry at the given time", () => {
 })
 
 test("the list row and its day subtotal end a running entry at the given time", () => {
-  render(<EntryList entries={[running]} labels={[work]} onOpen={() => {}} now={start + 40 * 60_000} />)
+  render(<EntryList entries={[running]} labels={[work]} now={start + 40 * 60_000} />)
   expect(screen.getAllByText("40m")).toHaveLength(2)
 })
 
 test("a day's name is its full date, read once, whatever form is shown", async () => {
-  render(<EntryList entries={[running]} labels={[work]} onOpen={() => {}} now={start + 60_000} />)
+  render(<EntryList entries={[running]} labels={[work]} now={start + 60_000} />)
 
   const full = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(new Date(start))
   // The day reads its full date, then how many entries it has.
@@ -40,7 +40,7 @@ test("each day shows how many entries it has", () => {
     endedAt: `2026-11-${day}T${String(hour).padStart(2, "0")}:30:00Z`,
   })
   render(
-    <EntryList entries={[at("a", 9), at("b", 11), at("c", 13), at("d", 9, 20)]} labels={[]} onOpen={() => {}} />,
+    <EntryList entries={[at("a", 9), at("b", 11), at("c", 13), at("d", 9, 20)]} labels={[]} />,
   )
   const counts = [...document.querySelectorAll(".day-count")].map((el) => el.textContent)
   expect(counts).toEqual([", 3 entries", ", 1 entry"])

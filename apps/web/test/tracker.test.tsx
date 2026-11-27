@@ -70,13 +70,21 @@ async function setupHistory(seed = { labels: [work, admin], entries }, initial: 
 
 const recent = () => within(screen.getByRole("region", { name: "Recent" }))
 
-// Open an entry by its row, press Delete in the dialog, and answer the confirmation.
-async function deleteFromDialog(user: ReturnType<typeof userEvent.setup>, row: RegExp, answer: "Delete forever" | "Keep entry") {
-  await user.click(screen.getByRole("button", { name: row }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
-  await user.click(dialog.getByRole("button", { name: "Delete" }))
-  await user.click(await screen.findByRole("button", { name: answer }))
+// Deletes an entry from the trash button at the end of its row.
+async function deleteRow(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(screen.getByRole("button", { name: new RegExp(`^Delete ${name} at`) }))
 }
+
+// Types into a description editor, then picks the label menu's option named `option`.
+async function pickLabel(user: ReturnType<typeof userEvent.setup>, typed: string, option: string | RegExp) {
+  await user.keyboard(typed)
+  await user.click(await screen.findByRole("option", { name: option }))
+}
+
+const timerDescription = () => screen.getByRole("textbox", { name: "What are you working on?" })
+const optionNames = () => screen.queryAllByRole("option").map((option) => option.textContent)
+// The label menu lists its options a moment after a key: waits until they're `names`.
+const expectOptions = (names: string[]) => waitFor(() => expect(optionNames()).toEqual(names))
 
 const summary = () => within(screen.getByRole("region", { name: "Summary" }))
 
@@ -116,7 +124,8 @@ test("the idle card shows only the start button; the details appear once it runs
   expect(card.querySelector("[inert]")).toBeNull()
   expect(card.hasAttribute("data-running")).toBe(true)
   expect(screen.getByRole("textbox", { name: "What are you working on?" })).toBeTruthy()
-  expect(screen.getByRole("button", { name: "Choose timer labels" })).toBeTruthy()
+  // Labels are typed into the description: there's no labels button.
+  expect(screen.queryByRole("button", { name: /labels/i })).toBeNull()
   // The new timer is the first entry in Recent.
   expect(recent().queryByText("Nothing tracked yet. Press start to begin.")).toBeNull()
   expect(recent().getByText("No description").closest("[data-running]")).not.toBeNull()
@@ -145,115 +154,6 @@ test("the description saves while the timer runs, and Stop saves what was just t
   expect(screen.getByRole("timer").closest("[inert]")).not.toBeNull()
 })
 
-// The timer card's labels popup: a filter field inside it, the labels as options, and a Create option.
-async function openTimerLabels(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Choose timer labels" }))
-  return screen.findByRole("combobox", { name: "Find or create a label" })
-}
-
-test("labels are toggled from the popup, and saved on the running entry", async () => {
-  const { user, entries } = await setup({ labels: [work, admin], entries: [] })
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  await screen.findByRole("timer")
-
-  const filter = await openTimerLabels(user)
-  expect(document.activeElement).toBe(filter)
-  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Admin", "Work"])
-  await user.click(screen.getByRole("option", { name: "Work" }))
-
-  await waitFor(() => expect(entries()[0].labelIds).toEqual(["work"]))
-  expect(screen.getByRole("option", { name: "Work" }).getAttribute("aria-selected")).toBe("true")
-  expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Work")).toBeTruthy()
-
-  await user.click(screen.getByRole("option", { name: "Work" }))
-  await waitFor(() => expect(entries()[0].labelIds).toEqual([]))
-  expect(screen.queryByRole("list", { name: "Timer labels" })).toBeNull()
-})
-
-test("typing in the popup filters the labels", async () => {
-  const { user } = await setup({ labels: [work, admin], entries: [] })
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  const filter = await openTimerLabels(user)
-
-  await user.type(filter, "wo")
-
-  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
-    "Work",
-    "Create “wo”",
-  ])
-
-  await user.keyboard("{Escape}")
-  await waitFor(() => expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull())
-  const reopened = await openTimerLabels(user)
-  expect(reopened).toHaveProperty("value", "")
-  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Admin", "Work"])
-})
-
-test("a name that matches no label can be created from the popup, and is added to the timer", async () => {
-  const { user, entries, labels } = await setup({ labels: [work], entries: [] })
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  const filter = await openTimerLabels(user)
-
-  await user.type(filter, "Research")
-  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Create “Research”"])
-  await user.keyboard("{Enter}")
-
-  const created = labels().find((label) => label.name === "Research")
-  expect(created?.color).toMatch(/^#[0-9a-f]{6}$/)
-  await waitFor(() => expect(entries()[0].labelIds).toEqual([created?.id]))
-  expect(within(screen.getByRole("list", { name: "Timer labels" })).getByText("Research")).toBeTruthy()
-  expect(filter).toHaveProperty("value", "")
-  expect(screen.getByRole("option", { name: "Research" }).getAttribute("aria-selected")).toBe("true")
-})
-
-test("an exact match offers no Create, whatever the case", async () => {
-  const { user, labels } = await setup({ labels: [work], entries: [] })
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  const filter = await openTimerLabels(user)
-
-  await user.type(filter, "work")
-
-  expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Work"])
-  await user.keyboard("{Enter}")
-  expect(labels()).toEqual([work])
-})
-
-test("L opens the labels popup while the timer runs, and does nothing while it's stopped", async () => {
-  const { user } = await setup({ labels: [work], entries: [] })
-
-  await user.keyboard("l")
-  expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull()
-
-  // After a stop the card is still on screen while it collapses: L must not open its popup.
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  await screen.findByRole("timer")
-  await user.tab()
-  await user.click(screen.getByRole("button", { name: "Stop timer" }))
-  await user.keyboard("l")
-  expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull()
-
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  await screen.findByRole("timer")
-  await user.tab()
-  expect(screen.getByRole("button", { name: "Choose timer labels" }).getAttribute("aria-keyshortcuts")).toBe("L")
-  await user.keyboard("l")
-
-  const filter = await screen.findByRole("combobox", { name: "Find or create a label" })
-  await waitFor(() => expect(document.activeElement).toBe(filter))
-  expect(filter).toHaveProperty("value", "")
-})
-
-test("typing an L in the description doesn't open the labels popup", async () => {
-  const { user } = await setup({ labels: [work], entries: [] })
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  const description = screen.getByRole("textbox", { name: "What are you working on?" })
-
-  await user.type(description, "Planning")
-
-  expect(description).toHaveProperty("value", "Planning")
-  expect(screen.queryByRole("combobox", { name: "Find or create a label" })).toBeNull()
-})
-
 test("the running card has no edit button, and its description takes focus on start", async () => {
   const { user } = await setup({ labels: [], entries: [] })
 
@@ -271,10 +171,10 @@ test("starting with S focuses the description without typing the S into it", asy
   await user.keyboard("s")
   const description = screen.getByRole("textbox", { name: "What are you working on?" })
   await waitFor(() => expect(document.activeElement).toBe(description))
-  expect(description).toHaveProperty("value", "")
+  expect(description).toHaveProperty("textContent", "")
 
   await user.keyboard("Review")
-  expect(description).toHaveProperty("value", "Review")
+  expect(description).toHaveProperty("textContent", "Review")
   await waitFor(() => expect(stored()[0]).toMatchObject({ description: "Review", endedAt: null }))
 })
 
@@ -289,7 +189,7 @@ test("a timer already running when the page opens doesn't take focus", async () 
   await setup({ labels: [], entries: [runningEntry] })
 
   const description = await screen.findByRole("textbox", { name: "What are you working on?" })
-  expect(description).toHaveProperty("value", "From before")
+  expect(description).toHaveProperty("textContent", "From before")
   expect(document.activeElement).not.toBe(description)
 })
 
@@ -332,37 +232,6 @@ test("says when no entry matches the filters", async () => {
   expect(await screen.findByText("No entries match these filters.")).toBeTruthy()
 })
 
-test("edits an entry's description and keeps its times", async () => {
-  const { user, entries: stored } = await setupHistory()
-
-  await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
-  const description = dialog.getByRole("textbox", { name: "Entry description" })
-  expect(description).toHaveProperty("value", "Invoices")
-  await user.clear(description)
-  await user.type(description, "Send invoices")
-  await user.click(dialog.getByRole("button", { name: "Save entry" }))
-
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-  expect(await screen.findByText("Send invoices")).toBeTruthy()
-  expect(stored().find((entry) => entry.id === "e2")).toEqual({
-    ...entries[1],
-    description: "Send invoices",
-  })
-})
-
-test("cancel closes the dialog without saving", async () => {
-  const { user, entries: stored } = await setupHistory()
-
-  await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
-  await user.type(dialog.getByRole("textbox", { name: "Entry description" }), " changed")
-  await user.click(dialog.getByRole("button", { name: "Cancel" }))
-
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-  expect(stored()).toEqual(entries)
-})
-
 test("adds a past entry by hand, one hour long by default", async () => {
   const { user, entries: stored } = await setupHistory({ labels: [work], entries: [] })
 
@@ -375,93 +244,6 @@ test("adds a past entry by hand, one hour long by default", async () => {
   const [saved] = stored()
   expect(Date.parse(saved.endedAt!) - Date.parse(saved.startedAt)).toBe(3_600_000)
   expect(summary().getByText("1 entry")).toBeTruthy()
-})
-
-test("changing a time saves it, and leaves the other one alone", async () => {
-  const { user, entries: stored } = await setupHistory()
-
-  await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
-  const end = within(dialog.getByRole("group", { name: "Ended at" }))
-  await user.click(end.getByRole("spinbutton", { name: /hour/i }))
-  await user.keyboard("3")
-  await user.click(dialog.getByRole("button", { name: "Save entry" }))
-
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-  expect(stored().find((entry) => entry.id === "e2")).toMatchObject({
-    startedAt: at(10, 14, 0, 20),
-    endedAt: at(10, 15, 30),
-  })
-})
-
-test("refuses an end before the start", async () => {
-  const { user, entries: stored } = await setupHistory()
-
-  await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
-  const end = within(dialog.getByRole("group", { name: "Ended at" }))
-  await user.click(end.getByRole("spinbutton", { name: /hour/i }))
-  await user.keyboard("1")
-  await user.click(dialog.getByRole("button", { name: "Save entry" }))
-
-  expect(await dialog.findByText("The end can't be before the start.")).toBeTruthy()
-  expect(stored()).toEqual(entries)
-})
-
-test("deleting is in the dialog: it asks first, and keeps the entry on cancel", async () => {
-  const { user, entries: stored } = await setupHistory()
-
-  await deleteFromDialog(user, /^Edit Invoices at/, "Keep entry")
-  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
-  // Keeping the entry goes back to the edit dialog, not out of it.
-  expect(screen.getByRole("dialog", { name: "Edit entry" })).toBeTruthy()
-  expect(stored()).toHaveLength(4)
-  await user.click(screen.getByRole("button", { name: "Cancel" }))
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-
-  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
-  await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
-  // Both dialogs close once the entry is gone.
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-  expect(screen.queryByRole("alertdialog")).toBeNull()
-  expect(stored().map((entry) => entry.id)).toEqual(["e1", "e3", "e4"])
-  expect(summary().getByText("3 entries")).toBeTruthy()
-  // Focus lands on the neighbouring row, not the top of the page.
-  await waitFor(() =>
-    expect(document.activeElement?.getAttribute("aria-label")).toMatch(/^Edit Write report at/)
-  )
-})
-
-test("rows have no edit or delete buttons of their own; the whole row opens the entry", async () => {
-  const { user } = await setupHistory()
-
-  expect(screen.queryByRole("button", { name: /^Delete / })).toBeNull()
-  const rows = screen.getAllByRole("button", { name: /^Edit .* at / })
-  expect(rows).toHaveLength(entries.length)
-  const planning = screen.getByRole("button", { name: /^Edit Planning at/ })
-  // The description and times are buttons of their own, on top of the row's.
-  expect(screen.getByRole("button", { name: /^Change description of Planning at/ }).textContent).toBe("Planning")
-
-  // A press anywhere else on the row opens it, like on its duration.
-  await user.click(within(planning).getByText("1h 00m"))
-  const dialog = within(await screen.findByRole("dialog", { name: "Edit entry" }))
-  expect(dialog.getByRole("textbox", { name: "Entry description" })).toHaveProperty("value", "Planning")
-})
-
-test("a new entry has no Delete in its dialog", async () => {
-  const { user } = await setupHistory()
-
-  await user.click(screen.getByRole("button", { name: "Add entry" }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
-  expect(dialog.queryByRole("button", { name: "Delete" })).toBeNull()
-})
-
-test("a row opens from the keyboard too", async () => {
-  const { user } = await setupHistory()
-
-  screen.getByRole("button", { name: /^Edit Invoices at/ }).focus()
-  await user.keyboard("{Enter}")
-  expect(await screen.findByRole("dialog", { name: "Edit entry" })).toBeTruthy()
 })
 
 test("an agent can find every control, start and stop a timer, and needs a person to delete", async () => {
@@ -477,26 +259,23 @@ test("an agent can find every control, start and stop a timer, and needs a perso
   for (const label of ["Start timer", "Collapse all days"]) {
     expect(labels, `${label} is missing from the snapshot`).toContain(label)
   }
-  expect(labels.some((label) => label?.startsWith("Edit Invoices at"))).toBe(true)
+  expect(labels.some((label) => label?.startsWith("Change description of Invoices at"))).toBe(true)
 
   const started = await agent.act({ steps: [{ ref: "Start timer", action: "press" }] })
   expect(started.ok, started.error?.message).toBe(true)
   await screen.findByRole("timer")
   const running = agent.snapshot().filter((entry) => !entry.offPage).map((entry) => entry.label)
-  for (const label of ["Stop timer", "What are you working on?", "Choose timer labels"]) {
+  for (const label of ["Stop timer", "What are you working on?"]) {
     expect(running, `${label} is missing once the timer runs`).toContain(label)
   }
 
   const described = await agent.act({
-    steps: [
-      { ref: "What are you working on?", action: "setValue", args: ["Agent task"] },
-      { ref: "Choose timer labels", action: "setValue", args: [["Work"]] },
-    ],
+    steps: [{ ref: "What are you working on?", action: "setValue", args: ["Agent task #<label:work>"] }],
   })
   expect(described.ok, described.error?.message).toBe(true)
   await waitFor(() =>
     expect(stored().find((entry) => entry.endedAt === null)).toMatchObject({
-      description: "Agent task",
+      description: "Agent task #<label:work>",
       labelIds: ["work"],
     })
   )
@@ -506,19 +285,9 @@ test("an agent can find every control, start and stop a timer, and needs a perso
   await screen.findByRole("button", { name: "Start timer" })
   expect(stored().every((entry) => entry.endedAt !== null)).toBe(true)
 
-  const remove = {
-    steps: [
-      { ref: "Edit Invoices", action: "press" },
-      { ref: "Edit entry", action: "press", args: ["Delete"] },
-      { ref: "Delete this entry?", action: "press", args: ["Delete forever"] },
-    ],
-  }
+  const remove = { steps: [{ ref: "Delete Invoices", action: "press" }] }
   expect((await agent.act(remove)).ok).toBe(false)
   expect(stored().some((entry) => entry.id === "e2")).toBe(true)
-  await agent.act({ steps: [{ ref: "Delete this entry?", action: "press", args: ["Keep entry"] }] })
-  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
-  await agent.act({ steps: [{ ref: "Edit entry", action: "press", args: ["Cancel"] }] })
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
 
   approve = true
   const removed = await agent.act(remove)
@@ -533,27 +302,24 @@ test("start, typing, labels, stop and delete all show before the server answers"
   await user.click(screen.getByRole("button", { name: "Start timer" }))
   expect(screen.getByRole("timer", { name: "Elapsed time" })).toBeTruthy()
   const description = screen.getByRole("textbox", { name: "What are you working on?" })
-  await user.type(description, "Offline work")
-  await openTimerLabels(user)
-  await user.click(screen.getByRole("option", { name: "Work" }))
-  await user.keyboard("{Escape}")
+  await user.type(description, "Offline work ")
+  await pickLabel(user, "#wo", "Work")
   await user.click(screen.getByRole("button", { name: "Stop timer" }))
 
   expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
-  expect(recent().getByText("Offline work")).toBeTruthy()
+  expect(recent().getByRole("button", { name: /^Change description of Offline work #Work at/ })).toBeTruthy()
   expect(recent().getByText("Invoices")).toBeTruthy()
 
-  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
+  await deleteRow(user, "Invoices")
   await waitFor(() => expect(screen.queryByText("Invoices")).toBeNull())
   expect(stored()).toEqual([entries[1]])
 
   release()
   await waitFor(() => expect(stored()).toHaveLength(1))
   await waitFor(() =>
-    expect(stored()[0]).toMatchObject({ description: "Offline work", labelIds: ["work"] })
+    expect(stored()[0]).toMatchObject({ description: "Offline work #<label:work>", labelIds: ["work"] })
   )
   expect(stored()[0].endedAt).not.toBeNull()
-  expect(screen.getByText("Offline work")).toBeTruthy()
 })
 
 test("a manual entry and a new label show at once, and save in order", async () => {
@@ -562,26 +328,29 @@ test("a manual entry and a new label show at once, and save in order", async () 
 
   await user.click(screen.getByRole("button", { name: "Add entry" }))
   const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
-  await user.type(dialog.getByRole("textbox", { name: "Entry description" }), "Workshop")
-  await user.type(dialog.getByRole("combobox", { name: "Entry labels" }), "Client")
-  await user.click(await screen.findByRole("option", { name: /Create “Client”/ }))
+  await user.click(dialog.getByRole("textbox", { name: "Entry description" }))
+  await user.keyboard("Workshop ")
+  await pickLabel(user, "#Client", /Create “Client”/)
   await user.click(dialog.getByRole("button", { name: "Save entry" }))
 
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-  expect(screen.getByText("Workshop")).toBeTruthy()
+  expect(screen.getByRole("button", { name: /^Change description of Workshop #Client at/ })).toBeTruthy()
   expect(within(summary().getByRole("list", { name: "Time by label" })).getByText("Client")).toBeTruthy()
   expect(stored()).toEqual([])
 
   release()
   await waitFor(() => expect(stored()).toHaveLength(1))
-  expect(stored()[0].labelIds).toEqual([labels()[0].id])
+  expect(stored()[0]).toMatchObject({
+    description: `Workshop #<label:${labels()[0].id}>`,
+    labelIds: [labels()[0].id],
+  })
 })
 
 test("a change the server refuses is undone, with a message", async () => {
   const { user, entries: stored, failNextWrite } = await setupHistory()
 
   failNextWrite("Network down")
-  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
+  await deleteRow(user, "Invoices")
 
   expect(await screen.findByText("Network down")).toBeTruthy()
   expect(await screen.findByText("Invoices")).toBeTruthy()
@@ -595,13 +364,13 @@ test("writes reach the server in the order they were made, even when one is slow
   slowNextWrite()
   await user.click(screen.getByRole("button", { name: "Add entry" }))
   const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
-  await user.type(dialog.getByRole("combobox", { name: "Entry labels" }), "Client")
-  await user.click(await screen.findByRole("option", { name: /Create “Client”/ }))
+  await user.click(dialog.getByRole("textbox", { name: "Entry description" }))
+  await pickLabel(user, "#Client", /Create “Client”/)
   await user.click(dialog.getByRole("button", { name: "Save entry" }))
 
   await waitFor(() => expect(stored()).toHaveLength(1))
   expect(stored()[0].labelIds).toEqual([labels()[0].id])
-  expect(screen.queryByText("Unknown label")).toBeNull()
+  expect(screen.queryByText("unknown label")).toBeNull()
 })
 
 test("a refresh that started before a change doesn't undo it on screen", async () => {
@@ -609,7 +378,7 @@ test("a refresh that started before a change doesn't undo it on screen", async (
 
   const release = holdReads()
   document.dispatchEvent(new Event("visibilitychange"))
-  await deleteFromDialog(user, /^Edit Invoices at/, "Delete forever")
+  await deleteRow(user, "Invoices")
   await waitFor(() => expect(stored()).toHaveLength(3))
 
   release()
@@ -672,20 +441,21 @@ test("typing an S in the description doesn't stop the timer", async () => {
 
   await user.type(description, "Sales sync")
 
-  expect(description).toHaveProperty("value", "Sales sync")
+  expect(description).toHaveProperty("textContent", "Sales sync")
   expect(screen.getByRole("button", { name: "Stop timer" })).toBeTruthy()
   await waitFor(() => expect(stored()[0].description).toBe("Sales sync"))
   expect(stored()[0].endedAt).toBeNull()
 })
 
 test("S does nothing while a dialog is open", async () => {
-  const { user, entries: stored } = await setup({ labels: [], entries: [entries[1]] })
+  const { user, entries: stored } = await setupHistory({ labels: [], entries: [entries[1]] })
 
-  await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
-  await screen.findByRole("dialog", { name: "Edit entry" })
+  await user.click(screen.getByRole("button", { name: "Add entry" }))
+  await screen.findByRole("dialog", { name: "Add entry" })
+  // Out of the description, so S isn't typed into it.
+  screen.getByRole("dialog").focus()
   await user.keyboard("s")
 
-  expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
   expect(stored()).toEqual([entries[1]])
 })
 
@@ -718,7 +488,7 @@ test("deleting from the recent list brings the next older entry in", async () =>
   const { user } = await setup({ labels: [], entries: many })
   expect(recent().queryByText("Task 0")).toBeNull()
 
-  await deleteFromDialog(user, /^Edit Task 5 at/, "Delete forever")
+  await deleteRow(user, "Task 5")
 
   await waitFor(() => expect(recent().getByText("Task 0")).toBeTruthy())
   expect(recent().queryByText("Task 5")).toBeNull()
@@ -794,8 +564,8 @@ test("on a phone the entry dialog is a bottom sheet", async () => {
   const restore = pretendScreen(true)
   try {
     const { user } = await setupHistory()
-    await user.click(screen.getByRole("button", { name: /^Edit Invoices at/ }))
-    const dialog = await screen.findByRole("dialog", { name: "Edit entry" })
+    await user.click(screen.getByRole("button", { name: "Add entry" }))
+    const dialog = await screen.findByRole("dialog", { name: "Add entry" })
     expect(dialog.getAttribute("data-presentation")).toBe("sheet")
     await user.keyboard("{Escape}")
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
@@ -932,7 +702,7 @@ test("Recent keeps its length with a timer running, and Stop doesn't shift the r
 
   await user.click(screen.getByRole("button", { name: "Stop timer" }))
   expect(shown()).toEqual(running)
-  expect(screen.getByRole("button", { name: /^Edit Now at/ })).toBeTruthy()
+  expect(screen.getByRole("button", { name: /^Change description of Now at/ })).toBeTruthy()
 })
 
 test("days are points on a timeline: named by the day, with arrow keys between them", async () => {
@@ -957,7 +727,7 @@ test("days are points on a timeline: named by the day, with arrow keys between t
   expect(document.activeElement?.textContent).toMatch(/November 12, 2026/)
   expect(document.activeElement?.getAttribute("aria-expanded")).toBe("true")
   await user.tab()
-  expect(document.activeElement?.getAttribute("aria-label")).toMatch(/^Edit .* November 12, 2026$/)
+  expect(document.activeElement?.getAttribute("aria-label")).toMatch(/^Change start time of .* November 12, 2026$/)
 })
 
 const dayToggle = (day: RegExp) =>
@@ -1021,7 +791,7 @@ test("with some days already collapsed, C collapses the rest; once all are, C ex
 test("C from inside a day's entries keeps focus in the list, on that day", async () => {
   const { user } = await setupHistory()
 
-  screen.getByRole("button", { name: /^Edit Invoices at/ }).focus()
+  startOf("Invoices").focus()
   await user.keyboard("c")
 
   expect(expanded()).toEqual(["false", "false"])
@@ -1114,7 +884,7 @@ test.each(["{Enter}", "{Escape}"])("%s in the description leaves it and saves, s
   await waitFor(() => expect(stored()[0]).toMatchObject({ description: "Review", endedAt: null }))
 
   await user.keyboard("s")
-  expect(description).toHaveProperty("value", "Review")
+  expect(description).toHaveProperty("textContent", "Review")
   await waitFor(() => expect(stored()[0].endedAt).not.toBeNull())
   expect(screen.getByRole("button", { name: "Start timer" })).toBeTruthy()
 })
@@ -1191,13 +961,6 @@ test("an end before the start isn't saved: the input stays open, marked invalid"
   await user.click(document.body)
   expect(screen.queryByRole("group", { name: /time of / })).toBeNull()
   expect(stored()).toEqual(before)
-})
-
-test("pressing elsewhere on the row still opens the entry", async () => {
-  const { user } = await setupHistory()
-
-  await user.click(within(screen.getByRole("button", { name: /^Edit Invoices at/ })).getByText("30m"))
-  expect(await screen.findByRole("dialog", { name: "Edit entry" })).toBeTruthy()
 })
 
 test("the running row's times aren't editable", async () => {
@@ -1407,14 +1170,14 @@ test("pressing a row's description edits it in place, and Enter saves it", async
   expect(screen.queryByRole("dialog")).toBeNull()
   const field = descriptionField()
   await waitFor(() => expect(document.activeElement).toBe(field))
-  expect(field).toHaveProperty("value", "Invoices")
-  // The caret is at the end, ready to add to it.
-  expect((field as HTMLInputElement).selectionStart).toBe("Invoices".length)
-
-  await user.keyboard(" for October{Enter}")
+  expect(field).toHaveProperty("textContent", "Invoices")
+  // The caret is at the end, ready to add to it: what's typed goes after the text.
+  await user.keyboard(" for October")
+  expect(field).toHaveProperty("textContent", "Invoices for October")
+  await user.keyboard("{Enter}")
   await waitFor(() => expect(byId(stored(), "e2").description).toBe("Invoices for October"))
-  // Only the description changed.
-  expect(byId(stored(), "e2")).toMatchObject({ labelIds: ["admin"], startedAt: at(10, 14, 0, 20) })
+  // Only the description changed; it has no labels in it, so the entry has none.
+  expect(byId(stored(), "e2")).toMatchObject({ labelIds: [], startedAt: at(10, 14, 0, 20) })
   expect(screen.queryByRole("textbox", { name: /^Description of / })).toBeNull()
   await waitFor(() => expect(document.activeElement).toBe(descriptionOf("Invoices for October")))
 })
@@ -1456,9 +1219,9 @@ test("a description can be cleared, and an empty one edited from its placeholder
   // e3 and e4 have no description now: both show the placeholder, and either can be filled in.
   const empty = screen.getAllByRole("button", { name: /^Change description of entry at/ })
   expect(empty.map((button) => button.textContent)).toEqual(["No description", "No description"])
-  const untitled = empty.find((button) => button.closest(".entry-row")?.querySelector('[data-entry-id="e4"]'))
+  const untitled = empty.find((button) => button.closest('[data-entry-id="e4"]'))
   await user.click(untitled!)
-  await waitFor(() => expect(descriptionField()).toHaveProperty("value", ""))
+  await waitFor(() => expect(descriptionField()).toHaveProperty("textContent", ""))
   await user.keyboard("Filed{Enter}")
   await waitFor(() => expect(byId(stored(), "e4").description).toBe("Filed"))
 })
@@ -1481,4 +1244,291 @@ test("the running row's description isn't editable in the list", async () => {
 
   expect(screen.getByText("Live work")).toBeTruthy()
   expect(screen.queryByRole("button", { name: /^Change description of Live work/ })).toBeNull()
+})
+
+// Labels live in the description: # opens a menu, and the chosen label is saved in the text.
+test("# in the timer's description opens the labels, and picking one saves it in the text", async () => {
+  const { user, entries: stored } = await setup({ labels: [work, admin], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await waitFor(() => expect(document.activeElement).toBe(timerDescription()))
+
+  await user.keyboard("working on #")
+  await expectOptions(["Admin", "Work"])
+  await user.keyboard("wo")
+  await expectOptions(["Work", "Create “wo”"])
+  await user.keyboard("{Enter} today")
+
+  await waitFor(() =>
+    expect(stored()[0]).toMatchObject({
+      description: "working on #<label:work> today",
+      labelIds: ["work"],
+      endedAt: null,
+    })
+  )
+  // The label is a chip in the text: the description reads with its name.
+  expect(timerDescription().textContent).toContain("Work")
+  expect(timerDescription().textContent).not.toContain("#<label:")
+})
+
+test("a name no label has can be created from the menu, and goes in the text", async () => {
+  const { user, entries: stored, labels } = await setup({ labels: [work], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await waitFor(() => expect(document.activeElement).toBe(timerDescription()))
+
+  await user.keyboard("#backend")
+  await expectOptions(["Create “backend”"])
+  await user.keyboard("{Enter}")
+
+  const created = labels().find((label) => label.name === "backend")
+  expect(created?.color).toMatch(/^#[0-9a-f]{6}$/)
+  await waitFor(() =>
+    expect(stored()[0]).toMatchObject({
+      description: `#<label:${created?.id}>`,
+      labelIds: [created?.id],
+    })
+  )
+})
+
+test("an exact name, in any case, offers no Create", async () => {
+  const { user, labels } = await setup({ labels: [work], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await waitFor(() => expect(document.activeElement).toBe(timerDescription()))
+
+  await user.keyboard("#work")
+  await expectOptions(["Work"])
+  await user.keyboard("{Enter}")
+  expect(labels()).toEqual([work])
+})
+
+test("#text typed without picking from the menu stays text, like a PR number", async () => {
+  const { user, entries: stored, labels } = await setup({ labels: [work], entries: [] })
+  await user.click(screen.getByRole("button", { name: "Start timer" }))
+  await waitFor(() => expect(document.activeElement).toBe(timerDescription()))
+
+  // A space, or Escape, leaves the menu without choosing.
+  await user.keyboard("review PR #12 ")
+  await user.keyboard("and #work{Escape} done")
+  await user.click(document.body)
+
+  await waitFor(() =>
+    expect(stored()[0]).toMatchObject({ description: "review PR #12 and #work done", labelIds: [] })
+  )
+  expect(labels()).toEqual([work])
+})
+
+test("a label's place in the text is kept, and shows as a chip in the list", async () => {
+  const labelled: Entry = {
+    id: "l1",
+    description: "working on #<label:work> with #<label:admin> today",
+    labelIds: ["work", "admin"],
+    startedAt: at(10, 9),
+    endedAt: at(10, 10),
+  }
+  await setupHistory({ labels: [work, admin], entries: [labelled] })
+
+  const description = descriptionOf("working on #Work with #Admin today")
+  expect(description.textContent).toBe("working on Work with Admin today")
+  expect([...description.querySelectorAll(".desc-chip")].map((chip) => chip.textContent)).toEqual([
+    "Work",
+    "Admin",
+  ])
+  // No separate list of labels under the description.
+  expect(description.closest("[data-entry-id]")?.textContent?.match(/Work/g)).toHaveLength(1)
+})
+
+test("removing a label's chip in a row removes the label from the entry", async () => {
+  const labelled: Entry = {
+    id: "l1",
+    description: "planning #<label:work>",
+    labelIds: ["work"],
+    startedAt: at(10, 9),
+    endedAt: at(10, 10),
+  }
+  const { user, entries: stored } = await setupHistory({ labels: [work, admin], entries: [labelled] })
+
+  await user.click(descriptionOf("planning #Work"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await user.keyboard("{Backspace}{Enter}")
+
+  await waitFor(() => expect(byId(stored(), "l1")).toMatchObject({ description: "planning", labelIds: [] }))
+})
+
+test("labels can be added while editing a row, at the caret", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(descriptionOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await pickLabel(user, " #ad", "Admin")
+  // Choosing from the menu keeps the edit going: it isn't a click away.
+  expect(descriptionField()).toBeTruthy()
+  await user.keyboard("{Enter}")
+
+  await waitFor(() =>
+    expect(byId(stored(), "e3")).toMatchObject({
+      description: "Planning #<label:admin>",
+      labelIds: ["admin"],
+    })
+  )
+})
+
+test("Escape with the label menu open only closes the menu", async () => {
+  const { user, entries: stored } = await setupHistory()
+  const before = stored()
+
+  await user.click(descriptionOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await user.keyboard(" #ad")
+  await expectOptions(["Admin", "Create “ad”"])
+  await user.keyboard("{Escape}")
+
+  expect(screen.queryByRole("option")).toBeNull()
+  expect(descriptionField()).toBeTruthy()
+  await user.keyboard("{Escape}")
+  expect(screen.queryByRole("textbox", { name: /^Description of / })).toBeNull()
+  expect(stored()).toEqual(before)
+})
+
+test("a label that no longer exists shows as unknown, not as its id", async () => {
+  const orphan: Entry = {
+    id: "o1",
+    description: "old #<label:gone>",
+    labelIds: [],
+    startedAt: at(10, 9),
+    endedAt: at(10, 10),
+  }
+  await setupHistory({ labels: [work], entries: [orphan] })
+
+  const description = descriptionOf("old #unknown label")
+  expect(description.textContent).toBe("old unknown label")
+  expect(description.querySelector(".desc-chip")?.hasAttribute("data-unknown")).toBe(true)
+})
+
+test("a long description wraps instead of being cut off", async () => {
+  const long = "Review the quarterly numbers with finance, then write up the notes for the board meeting"
+  await setupHistory({
+    labels: [],
+    entries: [{ id: "w1", description: long, labelIds: [], startedAt: at(10, 9), endedAt: at(10, 10) }],
+  })
+  const description = screen.getByRole("button", { name: /^Change description of Review the quarterly/ })
+  expect(description.textContent).toBe(long)
+  expect(description.className).not.toMatch(/truncate/)
+})
+
+// Delete is the trash at the end of a row, with Undo instead of a confirmation.
+test("the trash deletes an entry at once, and Undo puts it back as it was", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await deleteRow(user, "Invoices")
+  await waitFor(() => expect(stored().map((entry) => entry.id)).toEqual(["e1", "e3", "e4"]))
+  expect(screen.queryByText("Invoices")).toBeNull()
+  expect(summary().getByText("3 entries")).toBeTruthy()
+
+  await waitFor(() => expect(screen.getAllByText("Deleted “Invoices”").length).toBeGreaterThan(0))
+  // The toast region lists each toast once on screen and once for screen readers: either works.
+  await user.click(screen.getAllByRole("button", { name: "Undo" })[0])
+
+  await waitFor(() => expect(byId(stored(), "e2")).toEqual(entries[1]))
+  expect(await screen.findByText("Invoices")).toBeTruthy()
+  expect(summary().getByText("4 entries")).toBeTruthy()
+})
+
+test("the running row has no trash", async () => {
+  await setupHistory({ labels: [work], entries: [runningSince(10)] })
+  expect(screen.getByText("Live work")).toBeTruthy()
+  expect(screen.queryByRole("button", { name: /^Delete / })).toBeNull()
+})
+
+test("rows don't open a dialog: there's no edit button, only the times, description and trash", async () => {
+  const { user } = await setupHistory()
+
+  expect(screen.queryByRole("button", { name: /^Edit / })).toBeNull()
+  const row = startOf("Planning").closest("[data-entry-id]") as HTMLElement
+  expect(within(row).getAllByRole("button").map((button) => button.getAttribute("aria-label")?.split(" of ")[0])).toEqual([
+    "Change start time",
+    "Change end time",
+    "Change description",
+    "Delete Planning at 9:00 AM, Thursday, November 12, 2026".split(" of ")[0],
+  ])
+  await user.click(within(row).getByText("1h 00m"))
+  expect(screen.queryByRole("dialog")).toBeNull()
+})
+
+// The dialog only adds entries now.
+test("the add dialog takes labels in its description, and checks the times", async () => {
+  const { user, entries: stored } = await setupHistory({ labels: [work], entries: [] })
+
+  await user.click(screen.getByRole("button", { name: "Add entry" }))
+  const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
+  expect(dialog.queryByRole("button", { name: "Delete" })).toBeNull()
+  await user.click(dialog.getByRole("textbox", { name: "Entry description" }))
+  await user.keyboard("Workshop ")
+  await pickLabel(user, "#wo", "Work")
+
+  // An end before the start is refused.
+  const end = within(dialog.getByRole("group", { name: "Ended at" }))
+  const start = within(dialog.getByRole("group", { name: "Started at" }))
+  const startHour = start.getByRole("spinbutton", { name: /hour/i }).getAttribute("aria-valuenow")
+  await user.click(end.getByRole("spinbutton", { name: /hour/i }))
+  await user.keyboard(`{ArrowDown}{ArrowDown}`)
+  await user.click(dialog.getByRole("button", { name: "Save entry" }))
+  expect(await dialog.findByText("The end can't be before the start.")).toBeTruthy()
+  expect(stored()).toEqual([])
+
+  await user.click(end.getByRole("spinbutton", { name: /hour/i }))
+  await user.keyboard(`{ArrowUp}{ArrowUp}`)
+  await user.click(dialog.getByRole("button", { name: "Save entry" }))
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+  await waitFor(() =>
+    expect(stored()[0]).toMatchObject({ description: "Workshop #<label:work>", labelIds: ["work"] })
+  )
+  expect(startHour).toBeTruthy()
+})
+
+test("Cancel closes the add dialog without saving", async () => {
+  const { user, entries: stored } = await setupHistory({ labels: [], entries: [] })
+
+  await user.click(screen.getByRole("button", { name: "Add entry" }))
+  const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
+  await user.click(dialog.getByRole("textbox", { name: "Entry description" }))
+  await user.keyboard("Not this")
+  await user.click(dialog.getByRole("button", { name: "Cancel" }))
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+  expect(stored()).toEqual([])
+})
+
+test("an unknown label shows as unknown in the editor too, and stays as it was when saved", async () => {
+  const orphan: Entry = {
+    id: "o1",
+    description: "old #<label:gone>",
+    labelIds: [],
+    startedAt: at(10, 9),
+    endedAt: at(10, 10),
+  }
+  const { user, entries: stored } = await setupHistory({ labels: [work], entries: [orphan] })
+
+  await user.click(descriptionOf("old #unknown label"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  expect(descriptionField().textContent).toContain("unknown label")
+  expect(descriptionField().textContent).not.toContain("gone")
+  await user.keyboard(" more{Enter}")
+
+  await waitFor(() => expect(byId(stored(), "o1").description).toBe("old #<label:gone> more"))
+})
+
+test("a label used twice in a description is on the entry once", async () => {
+  const { user, entries: stored } = await setupHistory()
+
+  await user.click(descriptionOf("Planning"))
+  await waitFor(() => expect(document.activeElement).toBe(descriptionField()))
+  await pickLabel(user, " #ad", "Admin")
+  await pickLabel(user, " and #ad", "Admin")
+  await user.keyboard("{Enter}")
+
+  await waitFor(() =>
+    expect(byId(stored(), "e3")).toMatchObject({
+      description: "Planning #<label:admin> and #<label:admin>",
+      labelIds: ["admin"],
+    })
+  )
 })

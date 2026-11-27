@@ -2,7 +2,6 @@
 
 import { Button } from "@ui-sdk/react/button"
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@ui-sdk/react/collapsible"
-import { Input } from "@ui-sdk/react/input"
 import { useShortcut, useShortcutHint } from "@ui-sdk/react/shortcuts"
 import { TimeInput, createTimeInputController } from "@ui-sdk/react/time-input"
 import { Toggle } from "@ui-sdk/react/toggle"
@@ -17,15 +16,22 @@ import {
 import type { Entry, Label } from "@/lib/api"
 import { dateKey, durationOf, formatDuration } from "@/lib/time"
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from "react"
-import { ChevronDownIcon, CollapseAllIcon, ExpandAllIcon } from "./icons"
-import { LabelDot } from "./label-picker"
+import {
+  isBlank,
+  labelIdsIn,
+  normalizeDescription,
+  readableDescription,
+} from "@/lib/description"
+import { DescriptionInput, DescriptionText } from "./description-input"
+import { ChevronDownIcon, CollapseAllIcon, ExpandAllIcon, TrashIcon } from "./icons"
 
 type EntryListProps = {
   entries: Entry[]
   labels: Label[]
-  onOpen: (entry: Entry) => void
-  // Saves an entry whose start or end time was changed in its row. Without it the times are text.
+  // Saves an entry changed in its row: its times or its description. Without it the rows only show.
   onSave?: (entry: Entry) => void
+  onDelete?: (entry: Entry) => void
+  onCreateLabel?: (name: string) => Label
   // Where a running entry's time ends, so its row and its day's subtotal keep counting.
   now?: number
   // Which days are collapsed, when the page shares it with a collapse-all toggle.
@@ -55,9 +61,11 @@ const rowTimeFormat = new Intl.DateTimeFormat(undefined, {
   minute: "2-digit",
 })
 
-function entryName(entry: Entry) {
+// How an entry is named to screen readers and agents: its description, with labels as #name.
+function entryName(entry: Entry, labels: Map<string, Label> = new Map()) {
   const start = new Date(entry.startedAt)
-  return `${entry.description || "entry"} at ${timeFormat.format(start)}, ${dayFormat.format(start)}`
+  const description = readableDescription(entry.description, labels).trim()
+  return `${description || "entry"} at ${timeFormat.format(start)}, ${dayFormat.format(start)}`
 }
 
 // The time editor shows the same clock as the list: the browser's language and its 12 or 24 hours.
@@ -99,7 +107,15 @@ type Editing = {
 // the other time while one is open (phones have no Tab), goes straight into editing it, and the
 // two save together once done, so an entry can move past its old end. An end before the start
 // isn't saved: the input stays open, marked.
-function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry) => void }) {
+function EditableTimes({
+  entry,
+  byId,
+  onSave,
+}: {
+  entry: Entry
+  byId: Map<string, Label>
+  onSave: (entry: Entry) => void
+}) {
   const endedAt = entry.endedAt as string
   const saved = { start: toClock(entry.startedAt), end: toClock(endedAt) }
   const [editing, setEditing] = useState<Editing | null>(null)
@@ -219,7 +235,7 @@ function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry)
           controller={controller}
           className="entry-time-edit"
           style={{ width: editing.width }}
-          aria-label={`${edge === "start" ? "Start" : "End"} time of ${entryName(entry)}`}
+          aria-label={`${edge === "start" ? "Start" : "End"} time of ${entryName(entry, byId)}`}
           aria-invalid={invalid || undefined}
           data-bad={invalid ? "" : undefined}
           title={invalid ? "The end can't be before the start" : undefined}
@@ -249,8 +265,8 @@ function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry)
         className="entry-time"
         aria-label={
           edge === "start"
-            ? `Change start time of ${entryName(entry)}`
-            : `Change end time of ${entryName(entry)}, ended ${shown}`
+            ? `Change start time of ${entryName(entry, byId)}`
+            : `Change end time of ${entryName(entry, byId)}, ended ${shown}`
         }
         onPointerDown={() => {
           if (!otherOpen) return
@@ -304,8 +320,16 @@ function EditableTimes({ entry, onSave }: { entry: Entry; onSave: (entry: Entry)
   )
 }
 
-function RowTimes({ entry, onSave }: { entry: Entry; onSave?: (entry: Entry) => void }) {
-  if (entry.endedAt && onSave) return <EditableTimes entry={entry} onSave={onSave} />
+function RowTimes({
+  entry,
+  byId,
+  onSave,
+}: {
+  entry: Entry
+  byId: Map<string, Label>
+  onSave?: (entry: Entry) => void
+}) {
+  if (entry.endedAt && onSave) return <EditableTimes entry={entry} byId={byId} onSave={onSave} />
   return (
     <span className="entry-times tabular-nums text-sm text-(--ui-muted-foreground)">
       {rowTimeFormat.format(new Date(entry.startedAt))}
@@ -322,26 +346,38 @@ function RowTimes({ entry, onSave }: { entry: Entry; onSave?: (entry: Entry) => 
   )
 }
 
-// A finished entry's description: its text is a button on top of the row, hugging the words so
-// the space after them still opens the entry. Pressed, it becomes a text field across the
-// column, in the same line, so nothing moves. Enter or leaving saves, Escape puts it back.
-function EditableDescription({ entry, onSave }: { entry: Entry; onSave: (entry: Entry) => void }) {
+// A finished entry's description, with its labels as chips in their places. It's a button that
+// hugs the words; pressed, it becomes the description input in the same place, where # adds a
+// label. Enter or leaving saves, along with the labels in it; Escape puts it back.
+function EditableDescription({
+  entry,
+  labels,
+  byId,
+  onSave,
+  onCreateLabel,
+}: {
+  entry: Entry
+  labels: Label[]
+  byId: Map<string, Label>
+  onSave: (entry: Entry) => void
+  onCreateLabel: (name: string) => Label
+}) {
   const [editing, setEditing] = useState(false)
-  const [value, setValue] = useState("")
-  const inputRef = useRef<HTMLInputElement>(null)
+  // The text's height when it was pressed. The editor fills in a moment after it appears, and
+  // keeping this height meanwhile stops the row shrinking, which would scroll the page.
+  const [height, setHeight] = useState<number | undefined>()
+  const latest = useRef(entry.description)
+  const editorRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
-  // Whether to focus the button once the field closes: when the keyboard closed it.
+  // Whether to focus the button once the input closes: when the keyboard closed it.
   const refocus = useRef(false)
-  // Set once the field closes, so a blur fired as it goes away doesn't save again.
+  // Set once the input closes, so a blur fired as it goes away doesn't save again.
   const closed = useRef(false)
 
+  // The editor focuses itself when it opens, with the caret after the text; this puts focus back
+  // on the button when the keyboard closed it.
   useEffect(() => {
-    if (editing) {
-      const input = inputRef.current
-      input?.focus()
-      // The caret at the end, as if the text had been pressed after its last word.
-      input?.setSelectionRange(input.value.length, input.value.length)
-    } else if (refocus.current) {
+    if (!editing && refocus.current) {
       refocus.current = false
       buttonRef.current?.focus()
     }
@@ -354,102 +390,90 @@ function EditableDescription({ entry, onSave }: { entry: Entry; onSave: (entry: 
   }
 
   function save() {
-    const description = value.trim()
-    if (description !== entry.description) onSave({ ...entry, description })
+    const description = normalizeDescription(latest.current)
+    if (description !== entry.description) {
+      onSave({ ...entry, description, labelIds: labelIdsIn(description, labels) })
+    }
   }
 
   if (editing) {
     return (
-      <Input
-        ref={inputRef}
-        className="entry-desc-edit"
-        aria-label={`Description of ${entryName(entry)}`}
-        placeholder="No description"
-        maxLength={500}
-        value={value}
-        onValueChange={setValue}
-        onKeyDown={(event) => {
-          // An input method uses Enter to pick a word: that one stays in the field.
-          if (event.nativeEvent.isComposing) return
-          if (event.key === "Enter") {
-            event.preventDefault()
+      <div className="entry-desc-edit" style={{ minHeight: height }}>
+        <DescriptionInput
+          editorRef={editorRef}
+          focusAtEnd
+          className="description-editor"
+          aria-label={`Description of ${entryName(entry, byId)}`}
+          placeholder="No description. Type # for labels"
+          defaultValue={entry.description}
+          labels={labels}
+          onCreateLabel={onCreateLabel}
+          onValueChange={(value) => (latest.current = value)}
+          onSubmit={() => {
             save()
             close(true)
-          } else if (event.key === "Escape") {
-            // Only the edit is canceled, not a dialog or anything around it.
-            event.preventDefault()
-            event.stopPropagation()
-            close(true)
-          }
-        }}
-        onBlur={() => {
-          if (closed.current) return
-          save()
-          close(false)
-        }}
-      />
+          }}
+          onEscape={() => close(true)}
+          onBlur={(event) => {
+            // The label menu and its items keep the edit going.
+            const next = event.relatedTarget as Node | null
+            if (closed.current || event.currentTarget.parentElement?.contains(next)) return
+            save()
+            close(false)
+          }}
+        />
+      </div>
     )
   }
 
   return (
-    <button
+    <Button
       ref={buttonRef}
-      type="button"
       className="entry-desc"
-      data-empty={entry.description ? undefined : ""}
-      aria-label={`Change description of ${entryName(entry)}`}
-      onClick={() => {
+      data-empty={isBlank(entry.description) ? "" : undefined}
+      aria-label={`Change description of ${entryName(entry, byId)}`}
+      onClick={(event) => {
+        setHeight(event.currentTarget.getBoundingClientRect().height)
         closed.current = false
-        setValue(entry.description)
+        latest.current = entry.description
         setEditing(true)
       }}
     >
-      {entry.description || "No description"}
-    </button>
+      {isBlank(entry.description) ? (
+        "No description"
+      ) : (
+        <DescriptionText description={entry.description} labels={byId} />
+      )}
+    </Button>
   )
 }
 
-// The description, labels and duration: inside the row's button, which covers the whole row.
-// When the description is edited in place, it sits on top of the row instead, and an empty line
-// holds its place here, so the labels stay below it.
+// The description and duration of a row that only shows, like the running one.
 function RowContent({
   entry,
   byId,
   now,
-  descriptionOnTop = false,
+  editable = false,
 }: {
   entry: Entry
   byId: Map<string, Label>
   now?: number
-  descriptionOnTop?: boolean
+  // The description sits on top of the row, as its own button: this keeps its column.
+  editable?: boolean
 }) {
   return (
     <>
-      <span className="entry-main min-w-0 text-start">
-        {descriptionOnTop ? (
-          <span aria-hidden="true" className="block">
-            {"\u00a0"}
-          </span>
-        ) : (
-          <span
-            className={
-              entry.description ? "block truncate" : "block text-(--ui-muted-foreground)"
-            }
-          >
-            {entry.description || "No description"}
-          </span>
-        )}
-        {entry.labelIds.length > 0 ? (
-          <span className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-(--ui-muted-foreground)">
-            {entry.labelIds.map((id) => (
-              <span key={id} className="flex items-center gap-1.5">
-                <LabelDot color={byId.get(id)?.color ?? "transparent"} />
-                {byId.get(id)?.name}
-              </span>
-            ))}
-          </span>
-        ) : null}
-      </span>
+      {editable ? null : (
+        <span
+          className={`entry-main ${isBlank(entry.description) ? "text-(--ui-muted-foreground)" : ""}`}
+        >
+          {isBlank(entry.description) ? (
+            "No description"
+          ) : (
+            <DescriptionText description={entry.description} labels={byId} />
+          )}
+        </span>
+      )}
       <span className="entry-duration text-end font-medium tabular-nums">
         {formatDuration(durationOf(entry, now))}
       </span>
@@ -509,7 +533,15 @@ function CollapseAllToggle({ collapse }: { collapse: DayCollapse }) {
   )
 }
 
-function EntryList({ entries, labels, onOpen, onSave, now, collapse: shared }: EntryListProps) {
+function EntryList({
+  entries,
+  labels,
+  onSave,
+  onDelete,
+  onCreateLabel,
+  now,
+  collapse: shared,
+}: EntryListProps) {
   const byId = new Map(labels.map((label) => [label.id, label]))
   const days = groupByDay(entries)
   const own = useDayCollapse(entries)
@@ -587,33 +619,39 @@ function EntryList({ entries, labels, onOpen, onSave, now, collapse: shared }: E
                 <ul className="day-entries">
                   {dayEntries.map((entry) => (
                     <li key={entry.id} className="border-b border-(--ui-border) last:border-b-0">
-                      {entry.endedAt === null ? (
+                      {entry.endedAt === null || !onSave || !onCreateLabel ? (
                         // The running timer is edited on its card, so its row only shows it.
-                        <div className="entry-row" data-running="" data-entry-id={entry.id}>
-                          <div className="entry-open">
-                            <RowContent entry={entry} byId={byId} now={now} />
-                          </div>
-                          <RowTimes entry={entry} />
+                        <div
+                          className="entry-row"
+                          data-running={entry.endedAt === null ? "" : undefined}
+                          data-entry-id={entry.id}
+                        >
+                          <RowContent entry={entry} byId={byId} now={now} />
+                          <RowTimes entry={entry} byId={byId} />
                         </div>
                       ) : (
-                        // The button covers the whole row and opens the entry; its name is the entry,
-                        // so the content stays visible text. The times sit on top, each its own button.
-                        <div className="entry-row">
-                          <Button
-                            className="entry-open"
-                            data-entry-id={entry.id}
-                            aria-label={`Edit ${entryName(entry)}`}
-                            onClick={() => onOpen(entry)}
-                          >
-                            <RowContent
-                              entry={entry}
-                              byId={byId}
-                              now={now}
-                              descriptionOnTop={Boolean(onSave)}
-                            />
-                          </Button>
-                          <RowTimes entry={entry} onSave={onSave} />
-                          {onSave ? <EditableDescription entry={entry} onSave={onSave} /> : null}
+                        // The times and the description are buttons that edit in place, and the
+                        // trash at the end deletes. The rest of the row does nothing.
+                        <div className="entry-row" data-entry-id={entry.id}>
+                          <RowContent entry={entry} byId={byId} now={now} editable />
+                          <RowTimes entry={entry} byId={byId} onSave={onSave} />
+                          <EditableDescription
+                            entry={entry}
+                            labels={labels}
+                            byId={byId}
+                            onSave={onSave}
+                            onCreateLabel={onCreateLabel}
+                          />
+                          {onDelete ? (
+                            <Button
+                              className="entry-delete"
+                              aria-label={`Delete ${entryName(entry, byId)}`}
+                              data-agent-confirm={`Deletes the entry ${entryName(entry, byId)}`}
+                              onClick={() => onDelete(entry)}
+                            >
+                              <TrashIcon />
+                            </Button>
+                          ) : null}
                         </div>
                       )}
                     </li>

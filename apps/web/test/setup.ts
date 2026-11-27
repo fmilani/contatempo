@@ -70,3 +70,18 @@ document.head.append(
 )
 
 afterEach(cleanup)
+
+// Trigger menus place themselves at the caret, measured through a Range, which jsdom can't lay out.
+const emptyRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 0, height: 0 })
+Range.prototype.getBoundingClientRect ??= emptyRect
+Range.prototype.getClientRects ??= () => [] as unknown as DOMRectList
+
+// jsdom has no isContentEditable, which shortcuts check so typing in a rich editor isn't a shortcut.
+if (!("isContentEditable" in HTMLElement.prototype)) {
+  Object.defineProperty(HTMLElement.prototype, "isContentEditable", {
+    get(this: HTMLElement) {
+      const editable = this.closest("[contenteditable]")
+      return editable !== null && editable.getAttribute("contenteditable") !== "false"
+    },
+  })
+}

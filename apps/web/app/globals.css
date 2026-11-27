@@ -165,11 +165,9 @@ body {
 
 .timer-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-rows: 2.75rem auto;
-  grid-template-areas:
-    "description labels-button clock"
-    "labels labels labels";
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(2.75rem, auto);
+  grid-template-areas: "description clock";
   align-items: center;
   column-gap: 0.5rem;
   /* Wide enough not to squash while the card narrows after Stop; the card clips it instead.
@@ -180,10 +178,6 @@ body {
   & > .timer-description {
     grid-area: description;
     min-width: 0;
-  }
-
-  & > .label-trigger {
-    grid-area: labels-button;
   }
 }
 
@@ -214,23 +208,14 @@ body {
   }
 }
 
-.timer-labels {
-  grid-area: labels;
-
-  & > div > * {
-    padding-top: 0.5rem;
-  }
-}
-
 /* Phones: the clock doesn't fit beside the description, so it goes below it. */
 @media (max-width: 30rem) {
   .timer-body {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: 2.75rem auto auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(2.75rem, auto) auto;
     grid-template-areas:
-      "description labels-button"
-      "clock clock"
-      "labels labels";
+      "description"
+      "clock";
   }
 
   .timer-clock > div > * {
@@ -266,48 +251,6 @@ body {
   .timer-details,
   .timer-reveal {
     transition: none;
-  }
-}
-
-.label-popup {
-  min-width: 16rem;
-  padding: 0;
-
-  & [data-slot="combobox-list"],
-  & [data-slot="combobox-empty"] {
-    padding: 0.25rem;
-  }
-}
-
-.label-popup-input {
-  width: 100%;
-  height: 2.5rem;
-  padding-inline: 0.75rem;
-  border: 0;
-  border-bottom: 1px solid var(--ui-border);
-  border-radius: 0;
-  background: transparent;
-  font: inherit;
-  font-size: var(--ui-font-size);
-  outline: none;
-}
-
-.label-trigger {
-  width: calc(var(--ui-spacing) * 8);
-  height: calc(var(--ui-spacing) * 8);
-  padding: 0;
-  border: 1px solid var(--ui-input);
-  border-radius: var(--ui-radius);
-  background: var(--ui-background);
-  color: var(--ui-foreground);
-
-  &:hover {
-    background: var(--ui-muted);
-  }
-
-  & svg {
-    width: 1rem;
-    height: 1rem;
   }
 }
 
@@ -372,63 +315,40 @@ a[data-slot="button"] {
   }
 }
 
-/* A list row: one big button that opens the entry, with the start and end times on top of it,
-   each a button of its own. The row's grid sets the columns, and the big button shares them
-   through subgrid, so the times sit in the first column exactly where they'd be inside it. */
+/* A list row: the times, the description and the duration, with a trash button at the end. The
+   times and the description are buttons that turn into inputs in place, each in its own cell. */
 .entry-row {
   --row-pad-block: 0.625rem;
   --row-pad-inline: 0.5rem;
   display: grid;
-  grid-template-columns: 9.5rem minmax(0, 1fr) 4rem;
+  grid-template-columns: 9.5rem minmax(0, 1fr) 4rem 1.75rem;
   column-gap: 1rem;
   align-items: baseline;
   padding: var(--row-pad-block) var(--row-pad-inline);
-}
 
-/* Covers the whole row, padding included: the negative margin and the padding cancel out for
-   what's inside, so its content lines up with the times. */
-.entry-open {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  display: grid;
-  grid-template-columns: subgrid;
-  /* A subgrid takes its own gap, and a button has one: match the row's, so every row lines up. */
-  gap: inherit;
-  align-items: baseline;
-  height: auto;
-  margin: calc(-1 * var(--row-pad-block)) calc(-1 * var(--row-pad-inline));
-  padding: var(--row-pad-block) var(--row-pad-inline);
-  border: 0;
-  border-radius: var(--ui-radius);
-  background: transparent;
-  font-weight: 400;
-  text-align: start;
-  white-space: normal;
-
-  &:hover:not(:is([data-running], [data-running] *)) {
-    background: var(--ui-muted);
+  & > .entry-times {
+    grid-column: 1;
+    grid-row: 1;
   }
 
-  & > .entry-main {
+  & > :is(.entry-main, .entry-desc, .entry-desc-edit) {
     grid-column: 2;
+    grid-row: 1;
   }
 
   & > .entry-duration {
     grid-column: 3;
+    grid-row: 1;
+  }
+
+  & > .entry-delete {
+    grid-column: 4;
+    grid-row: 1;
   }
 }
 
 .entry-times {
-  position: relative;
-  grid-column: 1;
-  grid-row: 1;
   white-space: nowrap;
-  /* Only the times take presses; the gaps around them go through to the row. */
-  pointer-events: none;
-
-  & > * {
-    pointer-events: auto;
-  }
 }
 
 /* Room either side of the dash, for the ring around a time being edited. */
@@ -510,32 +430,31 @@ a[data-slot="button"] {
   }
 }
 
-/* The description on top of the row, in the place the row keeps for it: the button hugs the
-   words, the field spans the column. Both are one line of the row's text, so nothing moves. */
+/* A description, with its labels as chips in their places. It wraps onto more lines. */
 .entry-desc,
-.entry-desc-edit {
-  position: relative;
-  grid-column: 2;
-  grid-row: 1;
+.entry-main {
   min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--ui-font-size);
+  line-height: var(--ui-line-height);
+}
+
+/* A ui-sdk Button, so agents can find it, but laid out as text: block, so the words and chips
+   wrap as lines instead of becoming flex items. */
+.entry-desc {
+  display: block;
+  justify-self: start;
+  max-width: 100%;
   height: auto;
+  user-select: text;
   padding: 0;
   border: 0;
   border-radius: calc(var(--ui-radius) / 2);
   background: transparent;
   color: var(--ui-foreground);
   font: inherit;
-  font-size: var(--ui-font-size);
-  line-height: var(--ui-line-height);
   text-align: start;
-}
-
-.entry-desc {
-  justify-self: start;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
   cursor: text;
 
   &[data-empty] {
@@ -553,38 +472,178 @@ a[data-slot="button"] {
   }
 }
 
-[data-slot="input"].entry-desc-edit {
-  justify-self: stretch;
-  width: 100%;
-  outline: none;
-  box-shadow: 0 0 0 2px var(--ui-background), 0 0 0 4px var(--ui-ring-border);
+/* The input takes the description's place: no padding or border of its own, same line height,
+   so its text sits where the text was. The ring is drawn outside it and takes no space. */
+.entry-desc-edit {
+  min-width: 0;
 }
 
-/* Narrow screens: the times and the duration share the first line, the description goes below. */
+.description-editor[data-slot="token-input-editor"] {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--ui-radius) / 2);
+  background: transparent;
+  font-size: var(--ui-font-size);
+  line-height: var(--ui-line-height);
+  overflow-wrap: anywhere;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--ui-background), 0 0 0 4px var(--ui-ring-border);
+  }
+}
+
+/* In the dialog and on the timer card the editor is a field with a box of its own. */
+.description-editor-boxed[data-slot="token-input-editor"] {
+  min-height: calc(var(--ui-spacing) * 8);
+  padding: calc(var(--ui-spacing) * 1.25) calc(var(--ui-spacing) * 2.5);
+  border: 1px solid var(--ui-input);
+  border-radius: var(--ui-radius);
+  background: var(--ui-background);
+
+  &:focus-visible {
+    border-color: var(--ui-ring-border);
+    box-shadow: none;
+    outline: 3px solid var(--ui-ring);
+  }
+}
+
+/* A label in a description: a small pill, as tall as the text, so it sits in the line without
+   making it taller, in the text and in the editor alike. */
+.desc-chip,
+.desc-chip[data-slot="token-input-token"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  height: 1.25rem;
+  margin-inline: 0.0625rem;
+  padding-inline: 0.375rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--ui-muted);
+  color: var(--ui-foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: 0.0625rem;
+
+  & > span[aria-hidden="true"]:first-child {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  &[data-unknown] {
+    color: var(--ui-muted-foreground);
+    font-style: italic;
+  }
+
+  &[data-selected] {
+    box-shadow: 0 0 0 1.5px var(--ui-foreground);
+  }
+
+  & [data-slot="token-input-token-remove"] {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-inline-end: -0.125rem;
+    color: var(--ui-muted-foreground);
+    cursor: pointer;
+
+    & svg {
+      width: 0.625rem;
+      height: 0.625rem;
+    }
+  }
+}
+
+/* The label menu, under the caret. */
+.label-menu {
+  min-width: 14rem;
+  max-height: 16rem;
+
+  & [data-slot="trigger-menu-item"] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  & .label-create svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+/* Deletes the entry, with Undo in a toast. On a mouse it shows on hover or keyboard focus; on
+   touch screens it's always there. */
+.entry-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius);
+  background: transparent;
+  color: var(--ui-muted-foreground);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ui-muted);
+    color: var(--ui-destructive);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-ring-border);
+    outline-offset: 0;
+  }
+
+  & svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .entry-delete {
+    opacity: 0;
+  }
+
+  .entry-row:is(:hover, :focus-within) .entry-delete {
+    opacity: 1;
+  }
+}
+
+/* Narrow screens: the times, the duration and the trash share the first line, the description
+   takes the whole second one. */
 @media (max-width: 30rem) {
-  .entry-desc,
-  .entry-desc-edit {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
   .entry-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-rows: auto auto;
+    column-gap: 0.75rem;
     row-gap: 0.375rem;
-  }
 
-  .entry-open {
-    grid-row: 1 / span 2;
-    grid-template-rows: subgrid;
+    & > .entry-times {
+      grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
+    }
 
-    & > .entry-main {
+    & > :is(.entry-main, .entry-desc, .entry-desc-edit) {
       grid-column: 1 / -1;
       grid-row: 2;
     }
 
     & > .entry-duration {
       grid-column: 2;
+      grid-row: 1;
+    }
+
+    & > .entry-delete {
+      grid-column: 3;
       grid-row: 1;
     }
   }

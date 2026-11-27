@@ -2,7 +2,9 @@
 
 import { Button } from "@ui-sdk/react/button"
 import { useState } from "react"
-import { inFilter, type Api } from "@/lib/api"
+import { toast } from "@ui-sdk/react/toast"
+import { inFilter, type Api, type Entry } from "@/lib/api"
+import { readableDescription } from "@/lib/description"
 import type { HistoryQuery } from "@/lib/history-query"
 import { EntryDialog, type EntryInput } from "./entry-dialog"
 import { CollapseAllToggle, EntryList, useDayCollapse } from "./entry-list"
@@ -16,14 +18,16 @@ export const RECENT_LIMIT = 10
 
 type Tracker = ReturnType<typeof useTracker>
 
-// The dialog that adds, edits and deletes entries, shared by the pages that list them.
+// What the pages that list entries share: editing a row, deleting one with an Undo toast, and
+// the dialog that adds a past entry by hand.
 function useEntryEditing(tracker: Tracker) {
-  const [editing, setEditing] = useState<EntryInput | null>(null)
+  const [adding, setAdding] = useState<EntryInput | null>(null)
+  const byId = new Map(tracker.labels.map((label) => [label.id, label]))
 
   function addEntry() {
     const end = new Date()
     end.setSeconds(0, 0)
-    setEditing({
+    setAdding({
       description: "",
       labelIds: [],
       startedAt: new Date(end.getTime() - 60 * 60 * 1000).toISOString(),
@@ -31,20 +35,32 @@ function useEntryEditing(tracker: Tracker) {
     })
   }
 
+  // Deletes at once, and Undo puts it back as it was, with the same id.
+  function deleteEntry(entry: Entry) {
+    tracker.deleteEntry(entry.id)
+    const name = readableDescription(entry.description, byId).trim()
+    toast(name ? `Deleted “${name}”` : "Deleted entry", {
+      action: { label: "Undo", onAction: () => tracker.saveEntry(entry, true) },
+    })
+  }
+
+  const listProps = {
+    onSave: (entry: Entry) => tracker.saveEntry(entry, false),
+    onDelete: deleteEntry,
+    onCreateLabel: tracker.createLabel,
+  }
+
   const dialogs = (
     <EntryDialog
-      entry={editing}
+      entry={adding}
       labels={tracker.labels}
-      onClose={() => setEditing(null)}
-      onSave={(draft) => {
-        tracker.saveEntry({ ...draft, id: draft.id ?? crypto.randomUUID() }, !draft.id)
-      }}
-      onDelete={tracker.deleteEntry}
+      onClose={() => setAdding(null)}
+      onSave={(draft) => tracker.saveEntry({ ...draft, id: crypto.randomUUID() }, true)}
       onCreateLabel={tracker.createLabel}
     />
   )
 
-  return { open: setEditing, addEntry, dialogs }
+  return { addEntry, listProps, dialogs }
 }
 
 const loading = (
@@ -89,7 +105,13 @@ function TimerView({ api }: { api: Api }) {
         {entries === null ? (
           loading
         ) : entries.length > 0 ? (
-          <EntryList entries={entries} labels={labels} onOpen={editing.open} onSave={(entry) => tracker.saveEntry(entry, false)} now={now} collapse={collapse} />
+          <EntryList
+            entries={entries}
+            labels={labels}
+            {...editing.listProps}
+            now={now}
+            collapse={collapse}
+          />
         ) : (
           <p className="text-(--ui-muted-foreground)">Nothing tracked yet. Press start to begin.</p>
         )}
@@ -138,7 +160,13 @@ function HistoryView({ api, query, onQueryChange }: HistoryViewProps) {
         <>
           <Summary entries={entries} labels={labels} now={now} />
           {entries.length > 0 ? (
-            <EntryList entries={entries} labels={labels} onOpen={editing.open} onSave={(entry) => tracker.saveEntry(entry, false)} now={now} collapse={collapse} />
+            <EntryList
+            entries={entries}
+            labels={labels}
+            {...editing.listProps}
+            now={now}
+            collapse={collapse}
+          />
           ) : (
             <p className="text-(--ui-muted-foreground)">
               {filtered ? "No entries match these filters." : "Nothing tracked yet."}

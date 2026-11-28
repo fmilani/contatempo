@@ -768,8 +768,12 @@ a[data-slot="button"] {
   display: none;
 }
 
-/* The collapsible spans the text columns: the day's name and total on its first row, the entries below. */
+/* The collapsible spans the text columns: the day's name and total on its first row, the entries below.
+   It's the box the day's trigger stretches across, and isolated, so the trigger's fill can sit
+   under the header's text. */
 .day-collapsible {
+  position: relative;
+  isolation: isolate;
   grid-column: 2 / -1;
   grid-row: 1 / span 2;
   display: grid;
@@ -794,6 +798,16 @@ a[data-slot="button"] {
   min-width: 0;
 }
 
+/* Clicks anywhere on the header line go through to the trigger's area under it. */
+.day-title,
+.day-total {
+  pointer-events: none;
+}
+
+.day-title .day-trigger {
+  pointer-events: auto;
+}
+
 .day-count {
   flex-shrink: 0;
   font-weight: 400;
@@ -812,9 +826,37 @@ a[data-slot="button"] {
   padding: 0 0.25rem 0 0.375rem;
   border-radius: var(--ui-radius);
   font-weight: 500;
+  background: none;
 
   &:hover {
+    background: none;
+  }
+
+  /* The whole header line is the button: the date, the count and the total. Its fill and focus
+     ring go on the line, under the text. */
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    inset-inline: -0.375rem 0;
+    height: 1.75rem;
+    border-radius: var(--ui-radius);
+    cursor: pointer;
+  }
+
+  &:hover::after {
     background: var(--ui-muted);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  &:focus-visible::after {
+    outline: 2px solid var(--ui-ring-border);
+    outline-offset: 1px;
   }
 
   & svg {

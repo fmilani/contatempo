@@ -97,28 +97,33 @@ function RunningDetails({
     }
   }, [flushRef])
 
-  // One grid, so the clock can sit beside the description, or below it on narrow screens.
+  // One grid, so the clock can sit beside the description, or on phones beside the button with
+  // the description on the line below. The inner div lets that line grow open on phones.
   return (
     <div className="timer-body">
       <div className="timer-description">
-        <DescriptionInput
-          editorRef={descriptionRef}
-          className="description-editor description-editor-boxed"
-          aria-label="What are you working on?"
-          placeholder="What are you working on? Type # for labels"
-          defaultValue={entry.description}
-          labels={labels}
-          onCreateLabel={onCreateLabel}
-          onValueChange={(value) => {
-            latest.current = value
-            clearTimeout(timer.current)
-            timer.current = setTimeout(save, SAVE_DELAY)
-          }}
-          // Enter or Escape is done typing: leave the field, which saves it, so S stops the timer.
-          onSubmit={() => descriptionRef.current?.blur()}
-          onEscape={() => descriptionRef.current?.blur()}
-          onBlur={save}
-        />
+        <div>
+          <div className="timer-description-field">
+            <DescriptionInput
+              editorRef={descriptionRef}
+              className="description-editor description-editor-boxed"
+              aria-label="What are you working on?"
+              placeholder="What are you working on? Type # for labels"
+              defaultValue={entry.description}
+              labels={labels}
+              onCreateLabel={onCreateLabel}
+              onValueChange={(value) => {
+                latest.current = value
+                clearTimeout(timer.current)
+                timer.current = setTimeout(save, SAVE_DELAY)
+              }}
+              // Enter or Escape is done typing: leave the field, which saves it, so S stops the timer.
+              onSubmit={() => descriptionRef.current?.blur()}
+              onEscape={() => descriptionRef.current?.blur()}
+              onBlur={save}
+            />
+          </div>
+        </div>
       </div>
       <div className="timer-reveal timer-clock">
         <div>

@@ -208,18 +208,53 @@ body {
   }
 }
 
-/* Phones: the clock doesn't fit beside the description, so it goes below it. */
+/* Phones: the clock doesn't fit beside the description, so it sits beside the button and the
+   description takes the line below, across the whole card. That line grows open as the card
+   widens, the way the clock does on wider screens. */
 @media (max-width: 30rem) {
+  .timer-details {
+    /* The description reaches back under the button; the card clips instead. */
+    overflow: visible;
+  }
+
   .timer-body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(2.75rem, auto) auto;
     grid-template-areas:
-      "description"
-      "clock";
+      "clock"
+      "description";
+
+    & > .timer-description {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      /* From the card's left edge, past the button and the body's padding, to its right edge.
+         The extra 4px each side, given back by the field's padding, keeps its focus ring from
+         being clipped. */
+      margin-inline: calc(-3.5rem - 4px) calc(-0.25rem - 4px);
+
+      & > div {
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .timer-card[data-running] & {
+        grid-template-rows: 1fr;
+      }
+    }
   }
 
-  .timer-clock > div > * {
-    padding: 0.25rem 0 0;
+  .timer-description-field {
+    padding: 0.5rem 4px 4px;
+  }
+
+  /* Beside the button from the start: only the description grows open. */
+  .timer-clock {
+    grid-template-rows: 1fr;
+
+    & > div > * {
+      padding: 0;
+    }
   }
 }
 
@@ -241,7 +276,7 @@ body {
 }
 
 .timer-card:not([data-animated]),
-.timer-card:not([data-animated]) :is(.timer-icon, .timer-details, .timer-reveal) {
+.timer-card:not([data-animated]) :is(.timer-icon, .timer-details, .timer-reveal, .timer-description) {
   transition: none;
 }
 
@@ -249,7 +284,8 @@ body {
   .timer-card,
   .timer-icon,
   .timer-details,
-  .timer-reveal {
+  .timer-reveal,
+  .timer-description {
     transition: none;
   }
 }

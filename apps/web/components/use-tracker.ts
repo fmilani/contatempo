@@ -3,7 +3,7 @@
 import { toast } from "@ui-sdk/react/toast"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { LABEL_COLORS, matchesFilter, OfflineError, type Api, type Entry, type Label } from "@/lib/api"
-import { rangeToInstants, type DayRange } from "@/lib/time"
+import { keepRecentDays, rangeToInstants, startOfDay, type DayRange } from "@/lib/time"
 
 type Data = { labels: Label[]; running: Entry | null; entries: Entry[] | null }
 
@@ -19,14 +19,27 @@ const byNewest = (a: Entry, b: Entry) =>
 
 const byName = (a: Label, b: Label) => a.name.localeCompare(b.name)
 
+// The finished entries of the `days` most recent local days that have any. Each step asks for the
+// newest entry before the earliest day found so far, so it's one small request per day, then the list.
+async function listRecentDays(api: Api, days: number) {
+  let from: string | undefined
+  for (let day = 0; day < days; day++) {
+    const [newest] = await api.listEntries({ to: from, labelIds: [], limit: 1 })
+    if (!newest) break
+    from = startOfDay(newest.startedAt)
+  }
+  return from ? api.listEntries({ from, labelIds: [] }) : []
+}
+
 // Every change shows at once and is sent in the background, one write at a time so they reach
 // the server in the order they were made. A failed write shows a toast, and the data is read
 // again once the writes settle, which undoes whatever the server refused.
-export type TrackerQuery = { range: DayRange | null; labelIds: string[]; limit?: number }
+// `days` lists the entries of that many most recent days with entries, instead of filtering.
+export type TrackerQuery = { range: DayRange | null; labelIds: string[]; days?: number }
 
 const noLabels: string[] = []
 
-function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuery) {
+function useTracker(api: Api, { range, labelIds = noLabels, days }: TrackerQuery) {
   const [data, setData] = useState<Data>({ labels: [], running: null, entries: null })
   const dataRef = useRef(data)
   const queue = useRef(Promise.resolve())
@@ -51,7 +64,7 @@ function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuer
         const [labels, running, entries] = await Promise.all([
           api.listLabels(),
           api.getRunning(),
-          api.listEntries({ from, to, labelIds, limit }),
+          days ? listRecentDays(api, days) : api.listEntries({ from, to, labelIds }),
         ])
         if (read !== reads.current) return
         // A read that crossed a write could undo it on screen: read again once the writes settle.
@@ -66,7 +79,7 @@ function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuer
       }
       return
     }
-  }, [api, from, to, labelIds, limit])
+  }, [api, from, to, labelIds, days])
 
   const loadRef = useRef(load)
   useEffect(() => {
@@ -107,7 +120,9 @@ function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuer
   const place = (entries: Entry[] | null, entry: Entry) => {
     if (!entries) return entries
     const rest = entries.filter((other) => other.id !== entry.id)
-    return matchesFilter(entry, filter) ? [...rest, entry].sort(byNewest).slice(0, limit) : rest
+    if (!matchesFilter(entry, filter)) return rest
+    const sorted = [...rest, entry].sort(byNewest)
+    return days ? keepRecentDays(sorted, days) : sorted
   }
   const stopRunning = (current: Data, at: string): Data =>
     current.running
@@ -173,7 +188,9 @@ function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuer
           entry.endedAt === null
             ? { ...current, running: entry }
             : { ...current, entries: place(current.entries, entry) },
-        () => api.saveEntry(entry, create)
+        () => api.saveEntry(entry, create),
+        // New times can empty a recent day, so an older one takes its place.
+        days !== undefined
       )
     },
 
@@ -184,8 +201,8 @@ function useTracker(api: Api, { range, labelIds = noLabels, limit }: TrackerQuer
           entries: current.entries?.filter((entry) => entry.id !== id) ?? null,
         }),
         () => api.deleteEntry(id),
-        // A shortened list reads again, so the next entry takes the deleted one's place.
-        limit !== undefined
+        // Recent reads again, so an older day takes the place of one the delete emptied.
+        days !== undefined
       )
     },
   }

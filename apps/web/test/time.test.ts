@@ -4,8 +4,10 @@ import {
   formatClock,
   formatDuration,
   fromLocalInput,
+  keepRecentDays,
   rangePresets,
   rangeToInstants,
+  startOfDay,
   toLocalInput,
 } from "@/lib/time"
 
@@ -52,4 +54,17 @@ test("a running entry lasts until now", () => {
   const startedAt = "2026-11-15T10:00:00.000Z"
   expect(durationOf({ startedAt, endedAt: null }, Date.parse(startedAt) + 90_000)).toBe(90_000)
   expect(durationOf({ startedAt, endedAt: "2026-11-15T11:00:00.000Z" })).toBe(3_600_000)
+})
+
+test("finds the start of an instant's local day", () => {
+  expect(startOfDay(new Date(2026, 10, 5, 23, 59).toISOString())).toBe(new Date(2026, 10, 5).toISOString())
+  expect(startOfDay(new Date(2026, 10, 5).toISOString())).toBe(new Date(2026, 10, 5).toISOString())
+})
+
+test("keeps the entries of the first days in a newest-first list, whatever the gaps", () => {
+  const on = (day: number, hour: number) => ({ startedAt: new Date(2026, 10, day, hour).toISOString(), id: `${day}-${hour}` })
+  const list = [on(20, 9), on(20, 8), on(12, 23), on(12, 0), on(1, 10)]
+  expect(keepRecentDays(list, 2).map((entry) => entry.id)).toEqual(["20-9", "20-8", "12-23", "12-0"])
+  expect(keepRecentDays(list, 1).map((entry) => entry.id)).toEqual(["20-9", "20-8"])
+  expect(keepRecentDays([], 2)).toEqual([])
 })

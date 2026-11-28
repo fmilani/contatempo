@@ -4,7 +4,7 @@ import { createAgent } from "@ui-sdk/react/agent"
 import { OverlayHost } from "@ui-sdk/react/overlays"
 import { useState } from "react"
 import { expect, test, vi } from "vitest"
-import { HistoryView, RECENT_LIMIT, TimerView } from "@/components/tracker"
+import { HistoryView, RECENT_DAYS, TimerView } from "@/components/tracker"
 import { emptyHistoryQuery, type HistoryQuery } from "@/lib/history-query"
 import type { Entry, Label } from "@/lib/api"
 import { createFakeApi } from "./fake-api"
@@ -285,14 +285,15 @@ test("an agent can find every control, start and stop a timer, and needs a perso
   await screen.findByRole("button", { name: "Start timer" })
   expect(stored().every((entry) => entry.endedAt !== null)).toBe(true)
 
-  const remove = { steps: [{ ref: "Delete Invoices", action: "press" }] }
+  // Planning's day is still among the recent ones now that today has an entry.
+  const remove = { steps: [{ ref: "Delete Planning", action: "press" }] }
   expect((await agent.act(remove)).ok).toBe(false)
-  expect(stored().some((entry) => entry.id === "e2")).toBe(true)
+  expect(stored().some((entry) => entry.id === "e3")).toBe(true)
 
   approve = true
   const removed = await agent.act(remove)
   expect(removed.ok, removed.error?.message).toBe(true)
-  await waitFor(() => expect(stored().some((entry) => entry.id === "e2")).toBe(false))
+  await waitFor(() => expect(stored().some((entry) => entry.id === "e3")).toBe(false))
 })
 
 test("start, typing, labels, stop and delete all show before the server answers", async () => {
@@ -459,63 +460,51 @@ test("S does nothing while a dialog is open", async () => {
   expect(stored()).toEqual([entries[1]])
 })
 
-test("the timer page lists only the most recent entries, newest first", async () => {
-  const many: Entry[] = Array.from({ length: RECENT_LIMIT + 3 }, (_, index) => ({
-    id: `m${index}`,
-    description: `Task ${index}`,
-    labelIds: [],
-    startedAt: at(1, 8, index),
-    endedAt: at(1, 8, index, 30),
-  }))
-  await setup({ labels: [], entries: many })
+// Entries on three days with a gap between them: one on Nov 1, two on Nov 3 and two on Nov 5.
+const spread: Entry[] = [1, 3, 3, 5, 5].map((day, index) => ({
+  id: `d${index}`,
+  description: `Task ${index}`,
+  labelIds: [],
+  startedAt: at(day, 8 + index),
+  endedAt: at(day, 8 + index, 30),
+}))
+const shownTasks = () => recent().queryAllByText(/^(Task \d+|Now)$/).map((item) => item.textContent)
+const shownDays = () =>
+  within(screen.getByRole("list", { name: "Entries by day" })).getAllByRole("listitem", { name: /2026/ })
 
-  const shown = recent().getAllByText(/^Task \d+$/).map((item) => item.textContent)
-  expect(shown).toHaveLength(RECENT_LIMIT)
-  expect(shown[0]).toBe(`Task ${RECENT_LIMIT + 2}`)
-  expect(shown).not.toContain("Task 0")
+test("the timer page lists every entry of the two most recent days with entries, newest first", async () => {
+  await setup({ labels: [], entries: spread })
+
+  expect(shownTasks()).toEqual(["Task 4", "Task 3", "Task 2", "Task 1"])
+  expect(shownDays()).toHaveLength(RECENT_DAYS)
   expect(screen.queryByRole("region", { name: "Summary" })).toBeNull()
   expect(screen.queryByRole("combobox", { name: "Filter labels" })).toBeNull()
 })
 
-test("deleting from the recent list brings the next older entry in", async () => {
-  const many: Entry[] = Array.from({ length: RECENT_LIMIT + 1 }, (_, index) => ({
-    id: `m${index}`,
-    description: `Task ${index}`,
-    labelIds: [],
-    startedAt: at(1, 8, index),
-    endedAt: at(1, 8, index, 30),
-  }))
-  const { user } = await setup({ labels: [], entries: many })
-  expect(recent().queryByText("Task 0")).toBeNull()
+test("deleting the last entry of a recent day brings the next older day in", async () => {
+  const { user } = await setup({ labels: [], entries: spread.filter((entry) => entry.id !== "d2") })
+  expect(shownTasks()).toEqual(["Task 4", "Task 3", "Task 1"])
 
-  await deleteRow(user, "Task 5")
+  await deleteRow(user, "Task 1")
 
-  await waitFor(() => expect(recent().getByText("Task 0")).toBeTruthy())
-  expect(recent().queryByText("Task 5")).toBeNull()
-  expect(recent().getAllByText(/^Task \d+$/)).toHaveLength(RECENT_LIMIT)
+  await waitFor(() => expect(shownTasks()).toEqual(["Task 4", "Task 3", "Task 0"]))
 })
 
-test("a newly stopped timer joins the top of the recent list, which stays the same length", async () => {
-  const many: Entry[] = Array.from({ length: RECENT_LIMIT }, (_, index) => ({
-    id: `m${index}`,
-    description: `Task ${index}`,
-    labelIds: [],
-    startedAt: at(1, 8, index),
-    endedAt: at(1, 8, index, 30),
-  }))
-  const { user, hold } = await setup({ labels: [], entries: many })
+test("a timer started today makes today a recent day, and Stop doesn't change the list", async () => {
+  const { user, hold } = await setup({ labels: [], entries: spread })
 
-  // Before the server answers: the list on screen has to keep its length by itself.
+  // Before the server answers: the list on screen has to keep to two days by itself.
   const release = hold()
   await user.click(screen.getByRole("button", { name: "Start timer" }))
-  await user.type(screen.getByRole("textbox", { name: "What are you working on?" }), "Newest")
-  await user.click(screen.getByRole("button", { name: "Stop timer" }))
+  await user.type(timerDescription(), "Now")
+  // The row shows the description once it saves, a moment after typing pauses.
+  await waitFor(() => expect(shownTasks()).toEqual(["Now", "Task 4", "Task 3"]))
 
-  const shown = recent().getAllByText(/^(Task \d+|Newest)$/).map((item) => item.textContent)
-  expect(shown[0]).toBe("Newest")
-  expect(shown).toHaveLength(RECENT_LIMIT)
-  expect(shown).not.toContain("Task 0")
+  await user.click(screen.getByRole("button", { name: "Stop timer" }))
+  expect(shownTasks()).toEqual(["Now", "Task 4", "Task 3"])
   release()
+  await waitFor(() => expect(screen.getByRole("button", { name: /^Change description of Now at/ })).toBeTruthy())
+  expect(shownTasks()).toEqual(["Now", "Task 4", "Task 3"])
 })
 
 test("the history page opens with the filters from its URL", async () => {
@@ -680,29 +669,6 @@ test("what's typed on the timer card shows in its Recent row as it's typed", asy
   await user.type(screen.getByRole("textbox", { name: "What are you working on?" }), "Planning")
 
   await waitFor(() => expect(recent().getByText("Planning")).toBeTruthy())
-})
-
-test("Recent keeps its length with a timer running, and Stop doesn't shift the rows", async () => {
-  const many: Entry[] = Array.from({ length: RECENT_LIMIT }, (_, index) => ({
-    id: `m${index}`,
-    description: `Task ${index}`,
-    labelIds: [],
-    startedAt: at(1, 8, index),
-    endedAt: at(1, 8, index, 30),
-  }))
-  const { user } = await setup({ labels: [], entries: many })
-  const shown = () => recent().getAllByText(/^(Task \d+|Now)$/).map((item) => item.textContent)
-
-  await user.click(screen.getByRole("button", { name: "Start timer" }))
-  await user.type(screen.getByRole("textbox", { name: "What are you working on?" }), "Now")
-  await waitFor(() => expect(shown()[0]).toBe("Now"))
-  const running = shown()
-  expect(running).toHaveLength(RECENT_LIMIT)
-  expect(running).not.toContain("Task 0")
-
-  await user.click(screen.getByRole("button", { name: "Stop timer" }))
-  expect(shown()).toEqual(running)
-  expect(screen.getByRole("button", { name: /^Change description of Now at/ })).toBeTruthy()
 })
 
 test("days are points on a timeline: named by the day, with arrow keys between them", async () => {
@@ -1455,33 +1421,43 @@ test("rows don't open a dialog: there's no edit button, only the times, descript
 
 // The dialog only adds entries now.
 test("the add dialog takes labels in its description, and checks the times", async () => {
-  const { user, entries: stored } = await setupHistory({ labels: [work], entries: [] })
+  // Mid-morning, so two hours back from the end stays before the start: at 1 PM, on a 12-hour
+  // clock, the hour goes 1, 12, 11 and stays PM, which is after the start.
+  vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ["Date"] })
+  const morning = new Date()
+  morning.setHours(10, 0, 0, 0)
+  vi.setSystemTime(morning)
+  try {
+    const { user, entries: stored } = await setupHistory({ labels: [work], entries: [] })
 
-  await user.click(screen.getByRole("button", { name: "Add entry" }))
-  const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
-  expect(dialog.queryByRole("button", { name: "Delete" })).toBeNull()
-  await user.click(dialog.getByRole("textbox", { name: "Entry description" }))
-  await user.keyboard("Workshop ")
-  await pickLabel(user, "#wo", "Work")
+    await user.click(screen.getByRole("button", { name: "Add entry" }))
+    const dialog = within(await screen.findByRole("dialog", { name: "Add entry" }))
+    expect(dialog.queryByRole("button", { name: "Delete" })).toBeNull()
+    await user.click(dialog.getByRole("textbox", { name: "Entry description" }))
+    await user.keyboard("Workshop ")
+    await pickLabel(user, "#wo", "Work")
 
-  // An end before the start is refused.
-  const end = within(dialog.getByRole("group", { name: "Ended at" }))
-  const start = within(dialog.getByRole("group", { name: "Started at" }))
-  const startHour = start.getByRole("spinbutton", { name: /hour/i }).getAttribute("aria-valuenow")
-  await user.click(end.getByRole("spinbutton", { name: /hour/i }))
-  await user.keyboard(`{ArrowDown}{ArrowDown}`)
-  await user.click(dialog.getByRole("button", { name: "Save entry" }))
-  expect(await dialog.findByText("The end can't be before the start.")).toBeTruthy()
-  expect(stored()).toEqual([])
+    // An end before the start is refused.
+    const end = within(dialog.getByRole("group", { name: "Ended at" }))
+    const start = within(dialog.getByRole("group", { name: "Started at" }))
+    const startHour = start.getByRole("spinbutton", { name: /hour/i }).getAttribute("aria-valuenow")
+    await user.click(end.getByRole("spinbutton", { name: /hour/i }))
+    await user.keyboard(`{ArrowDown}{ArrowDown}`)
+    await user.click(dialog.getByRole("button", { name: "Save entry" }))
+    expect(await dialog.findByText("The end can't be before the start.")).toBeTruthy()
+    expect(stored()).toEqual([])
 
-  await user.click(end.getByRole("spinbutton", { name: /hour/i }))
-  await user.keyboard(`{ArrowUp}{ArrowUp}`)
-  await user.click(dialog.getByRole("button", { name: "Save entry" }))
-  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-  await waitFor(() =>
-    expect(stored()[0]).toMatchObject({ description: "Workshop #<label:work>", labelIds: ["work"] })
-  )
-  expect(startHour).toBeTruthy()
+    await user.click(end.getByRole("spinbutton", { name: /hour/i }))
+    await user.keyboard(`{ArrowUp}{ArrowUp}`)
+    await user.click(dialog.getByRole("button", { name: "Save entry" }))
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+    await waitFor(() =>
+      expect(stored()[0]).toMatchObject({ description: "Workshop #<label:work>", labelIds: ["work"] })
+    )
+    expect(startHour).toBeTruthy()
+  } finally {
+    vi.useRealTimers()
+  }
 })
 
 test("Cancel closes the add dialog without saving", async () => {

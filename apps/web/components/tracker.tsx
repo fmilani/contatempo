@@ -5,6 +5,7 @@ import { useState } from "react"
 import { toast } from "@ui-sdk/react/toast"
 import { inFilter, type Api, type Entry } from "@/lib/api"
 import { readableDescription } from "@/lib/description"
+import { keepRecentDays } from "@/lib/time"
 import type { HistoryQuery } from "@/lib/history-query"
 import { EntryDialog, type EntryInput } from "./entry-dialog"
 import { CollapseAllToggle, EntryList, useDayCollapse } from "./entry-list"
@@ -14,7 +15,8 @@ import { TimerBar } from "./timer-bar"
 import { useNow } from "./use-now"
 import { useTracker } from "./use-tracker"
 
-export const RECENT_LIMIT = 10
+// Recent shows the entries of this many most recent days with entries.
+export const RECENT_DAYS = 2
 
 type Tracker = ReturnType<typeof useTracker>
 
@@ -69,17 +71,17 @@ const loading = (
   </p>
 )
 
-const recentQuery = { range: null, labelIds: [], limit: RECENT_LIMIT }
+const recentQuery = { range: null, labelIds: [], days: RECENT_DAYS }
 
 function TimerView({ api }: { api: Api }) {
   const tracker = useTracker(api, recentQuery)
   const editing = useEntryEditing(tracker)
   const { labels, running } = tracker
-  // The running timer heads the list. The list keeps its length, so on Stop its row simply
-  // becomes a finished one instead of the list growing a row.
+  // The running timer heads the list, and its day is one of the recent days, so on Stop its row
+  // simply becomes a finished one instead of the list growing a day.
   const entries =
     tracker.entries && running
-      ? [running, ...tracker.entries].slice(0, RECENT_LIMIT)
+      ? keepRecentDays([running, ...tracker.entries], RECENT_DAYS)
       : tracker.entries
   const now = useNow(running !== null)
   const collapse = useDayCollapse(entries)

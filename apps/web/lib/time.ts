@@ -18,6 +18,23 @@ export function dateKey(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
+// The start of the local day an instant falls on, as an instant.
+export function startOfDay(iso: string) {
+  const date = new Date(iso)
+  date.setHours(0, 0, 0, 0)
+  return date.toISOString()
+}
+
+// The entries of the first `days` local days in a list ordered newest first.
+export function keepRecentDays<T extends { startedAt: string }>(entries: T[], days: number) {
+  const kept = new Set<string>()
+  return entries.filter((entry) => {
+    const key = dateKey(new Date(entry.startedAt))
+    if (kept.size < days) kept.add(key)
+    return kept.has(key)
+  })
+}
+
 function parseDateKey(key: string) {
   const [year, month, day] = key.split("-").map(Number)
   return new Date(year, month - 1, day)

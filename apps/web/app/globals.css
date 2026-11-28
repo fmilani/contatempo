@@ -806,6 +806,26 @@ a[data-slot="button"] {
 
 .day-title .day-trigger {
   pointer-events: auto;
+  /* Not the box its area is placed in: the header line is. ui-sdk makes buttons relative on touch
+     screens, for its larger tap area, which would shrink the area back to the date. */
+  position: static;
+
+  /* That larger tap area, ui-sdk's ::before, would stretch over the whole day from here. */
+  &::before {
+    content: none;
+  }
+}
+
+/* On touch screens the line keeps a finger-sized tap area, as tall as ui-sdk's, under the text. */
+@media (pointer: coarse) {
+  .day-title .day-trigger::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: calc((1.75rem - 2.75rem) / 2);
+    height: 2.75rem;
+    inset-inline: -0.375rem 0;
+  }
 }
 
 .day-count {
